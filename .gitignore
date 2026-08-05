@@ -31,7 +31,9 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+.env
+.env.*
+!.env.example
 
 # typescript
 *.tsbuildinfo
@@ -41,4 +43,17 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Expo agent skills (local AI helpers, not product code)
 .agents/
+
+# Secrets & credentials (never commit)
+*.keystore
+google-services.json
+GoogleService-Info.plist
+credentials.json
+service-account*.json
+auth.json
+secrets/
+*.secret
+*.token
