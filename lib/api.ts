@@ -1,4 +1,5 @@
 import type { Constraints, Plan } from '@/data/plans';
+import { getDeviceKey } from '@/lib/device';
 
 export class NetworkError extends Error {
   constructor(message = 'Connexion impossible. Réessaie dans un instant.') {
@@ -33,15 +34,35 @@ export type DuoPublicSnapshot = {
   match: Plan | null;
 };
 
+export type HistoryApiItem = {
+  id: string;
+  title: string;
+  type: 'Duo' | 'Groupe';
+  durationMin: number;
+  status: 'Validée' | 'Sans match' | 'Expirée';
+  createdAt: number;
+  planId?: string;
+};
+
 const API_BASE =
   (typeof process !== 'undefined' &&
     (process.env.EXPO_PUBLIC_API_URL || process.env.EXPO_PUBLIC_WEB_URL)?.replace(/\/$/, '')) ||
   'https://flipon.vercel.app';
 
+let authTokenGetter: (() => Promise<string | null>) | null = null;
+
+/** Enregistré depuis le layout Clerk pour envoyer le JWT. */
+export function setAuthTokenGetter(getter: (() => Promise<string | null>) | null) {
+  authTokenGetter = getter;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!API_BASE.startsWith('https://') && !API_BASE.startsWith('http://localhost')) {
     throw new NetworkError('URL API non sécurisée.');
   }
+
+  const deviceKey = await getDeviceKey();
+  const token = authTokenGetter ? await authTokenGetter() : null;
 
   let res: Response;
   try {
@@ -50,6 +71,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
+        'x-flipon-device-key': deviceKey,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(init?.headers ?? {}),
       },
     });
@@ -81,10 +104,17 @@ export function getApiBase() {
   return API_BASE;
 }
 
-export async function createRoom(constraints: Constraints) {
-  return request<{ role: 'host'; room: DuoPublicSnapshot }>('/api/duo', {
+export async function createRoom(
+  constraints: Constraints,
+  opts?: { type?: 'DUO' | 'GROUPE'; partySize?: number },
+) {
+  return request<{ role: 'host'; room: DuoPublicSnapshot; deviceKey?: string }>('/api/duo', {
     method: 'POST',
-    body: JSON.stringify({ constraints }),
+    body: JSON.stringify({
+      constraints,
+      type: opts?.type,
+      partySize: opts?.partySize,
+    }),
   });
 }
 
@@ -95,9 +125,10 @@ export async function getRoom(code: string, role: DuoRole) {
 
 export async function joinRoom(code: string) {
   const id = encodeURIComponent(code.trim().toUpperCase());
-  return request<{ role: 'guest'; room: DuoPublicSnapshot }>(`/api/duo/${id}/join`, {
-    method: 'POST',
-  });
+  return request<{ role: 'guest'; room: DuoPublicSnapshot; deviceKey?: string }>(
+    `/api/duo/${id}/join`,
+    { method: 'POST' },
+  );
 }
 
 export async function setReady(code: string, role: DuoRole) {
@@ -123,4 +154,15 @@ export async function closeRoom(code: string) {
   } catch {
     /* best-effort */
   }
+}
+
+export async function syncMe() {
+  return request<{ id: string; clerkId: string; email: string | null; displayName: string | null }>(
+    '/api/me',
+    { method: 'POST' },
+  );
+}
+
+export async function fetchRemoteHistory() {
+  return request<{ items: HistoryApiItem[] }>('/api/history', { method: 'GET' });
 }

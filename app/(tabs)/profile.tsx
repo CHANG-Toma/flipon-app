@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { GoogleAuthCard } from '@/components/auth/GoogleAuthCard';
+import { AuthCard } from '@/components/auth/AuthCard';
 import { FlipOn } from '@/constants/flipon';
 
 export default function ProfileScreen() {
@@ -12,8 +12,12 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
-        <GoogleAuthCard />
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag">
+        <AuthCard />
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Confidentialité</Text>

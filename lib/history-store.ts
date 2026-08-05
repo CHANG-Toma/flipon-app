@@ -76,6 +76,30 @@ export async function addHistoryEntry(entry: Omit<HistoryEntry, 'id' | 'createdA
   return next;
 }
 
+/** Fusionne l’historique cloud (auth) avec le local ; le cloud gagne en cas de conflit d’id. */
+export async function mergeRemoteHistory(remote: HistoryEntry[]) {
+  await hydrateHistory();
+  const byId = new Map<string, HistoryEntry>();
+  for (const item of entries) byId.set(item.id, item);
+  for (const item of remote) byId.set(item.id, item);
+  entries = Array.from(byId.values())
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, 50);
+  await persist();
+  emit();
+  return entries;
+}
+
+export async function pullCloudHistory() {
+  try {
+    const { fetchRemoteHistory } = await import('@/lib/api');
+    const { items } = await fetchRemoteHistory();
+    return mergeRemoteHistory(items);
+  } catch {
+    return getHistory();
+  }
+}
+
 export async function clearHistory() {
   entries = [];
   await persist();

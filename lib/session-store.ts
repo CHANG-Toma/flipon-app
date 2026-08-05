@@ -308,7 +308,10 @@ export async function createSessionOnServer(
 ) {
   const normalized = normalizeConstraints({ ...DEFAULT_CONSTRAINTS, ...constraints });
   const size = clampPartySize(type, partySize ?? defaultPartySize(type));
-  const { room } = await createRoom(normalized);
+  const { room } = await createRoom(normalized, {
+    type: type === 'Groupe' ? 'GROUPE' : 'DUO',
+    partySize: size,
+  });
 
   historyRecordedForCode = null;
   state = emptyState({

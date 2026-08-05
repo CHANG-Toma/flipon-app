@@ -15,7 +15,9 @@ private votes → shared result → optional Boost plan.
 - Session creation is step-by-step: type + cadre first, then invitation lobby.
 - Groupe lets the host pick party size (3–8). Voting starts when the lobby is full.
 - Active sessions + history are persisted locally; duo create/join/vote go through FlipOn API (`/api/duo`).
-- Google via Clerk on Profil (optional for joining by code).
+- Postgres (DATABASE_URL on web API) stores durable sessions/users/history; Redis stays the hot lobby cache.
+- Google via Clerk on Profil (optional for joining by code); signed-in users sync history via `/api/history`.
+- Auth: email/password (créer un compte) **ou** Google OAuth — same Clerk app.
 
 Navigation:
 - Tabs: Accueil, Historique, Profil
