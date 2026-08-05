@@ -1,8 +1,8 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -19,15 +19,53 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Accueil',
+          tabBarIcon: ({ color }) => <MaterialIcons size={24} name="home" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="session"
+        options={{
+          title: 'Session',
+          tabBarIcon: ({ color }) => <MaterialIcons size={24} name="tune" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="activity"
+        options={{
+          title: 'Activite',
+          tabBarIcon: ({ color }) => <MaterialIcons size={24} name="explore" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profil',
+          tabBarIcon: ({ color }) => <MaterialIcons size={24} name="person" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="vote"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="result"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="boost"
+        options={{
+          href: null,
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          href: null,
         }}
       />
     </Tabs>
