@@ -17,8 +17,8 @@ export default function SessionScreen() {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
         <View style={styles.hero}>
           <Text style={styles.kicker}>Nouvelle session</Text>
-          <Text style={styles.title}>Cadre rapide, decision claire.</Text>
-          <Text style={styles.subtitle}>Les votes restent prives. Le code expire automatiquement.</Text>
+          <Text style={styles.title}>Cadre rapide, décision claire.</Text>
+          <Text style={styles.subtitle}>Les votes restent privés. Le code expire automatiquement.</Text>
         </View>
 
         <View style={styles.card}>
@@ -40,10 +40,10 @@ export default function SessionScreen() {
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Cadre</Text>
-          <SettingLine label="Moment" value="Apres-midi" />
-          <SettingLine label="Duree" value="2h" />
+          <SettingLine label="Moment" value="Après-midi" />
+          <SettingLine label="Durée" value="2h" />
           <SettingLine label="Budget" value="0 - 25 EUR" />
-          <SettingLine label="Energie" value="Calme" />
+          <SettingLine label="Énergie" value="Calme" />
           <SettingLine label="Zone" value="Autour de moi (5 km)" last />
         </View>
 
@@ -52,7 +52,7 @@ export default function SessionScreen() {
             <Text style={styles.cardTitle}>Invitation</Text>
             <SettingLine label="Code temporaire" value="FLIP-2841" />
             <SettingLine label="Participants" value="2/4 ont rejoint" last />
-            <Text style={styles.hint}>Le lien n expose aucun vote. Expire apres 24h.</Text>
+            <Text style={styles.hint}>Le lien n'expose aucun vote. Expire après 24h.</Text>
             <Pressable style={styles.secondaryButton}>
               <Text style={styles.secondaryButtonText}>Partager le lien</Text>
             </Pressable>

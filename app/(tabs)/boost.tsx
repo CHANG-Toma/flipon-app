@@ -6,25 +6,25 @@ export default function BoostScreen() {
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
         <Text style={styles.title}>Boost</Text>
-        <Text style={styles.subtitle}>Plans contextuels premium: lieu, meteo, moment, groupe.</Text>
+        <Text style={styles.subtitle}>Plans contextuels premium : lieu, météo, moment, groupe.</Text>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Vision globale</Text>
-        <Text style={styles.item}>- Plan IA deja structure avec etapes</Text>
-        <Text style={styles.item}>- Suggestions proches en temps reel</Text>
+        <Text style={styles.item}>- Plan IA déjà structuré avec étapes</Text>
+        <Text style={styles.item}>- Suggestions proches en temps réel</Text>
         <Text style={styles.item}>- Variantes auto si aucun match</Text>
       </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>UX/UI</Text>
-        <Text style={styles.item}>- Ticket plan premium simple a suivre</Text>
+        <Text style={styles.item}>- Ticket plan premium simple à suivre</Text>
         <Text style={styles.item}>- Valeur Boost visible en 5 secondes</Text>
       </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Securite & Performance</Text>
-          <Text style={styles.item}>- Permissions geoloc demandees au bon moment</Text>
-          <Text style={styles.item}>- Cache des resultats pour limiter les appels IA</Text>
+          <Text style={styles.cardTitle}>Sécurité & Performance</Text>
+          <Text style={styles.item}>- Permissions géoloc demandées au bon moment</Text>
+          <Text style={styles.item}>- Cache des résultats pour limiter les appels IA</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

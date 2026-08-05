@@ -8,24 +8,24 @@ export default function ActivityScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Activite</Text>
+        <Text style={styles.title}>Activité</Text>
         <Text style={styles.subtitle}>
-          Tout ce qui compte apres le vote: resultat final et plan Boost.
+          Tout ce qui compte après le vote : résultat final et plan Boost.
         </Text>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Resultat commun</Text>
-          <Text style={styles.item}>- Idee retenue, claire pour tout le groupe</Text>
-          <Text style={styles.item}>- Resume simple et partage rapide</Text>
+          <Text style={styles.cardTitle}>Résultat commun</Text>
+          <Text style={styles.item}>- Idée retenue, claire pour tout le groupe</Text>
+          <Text style={styles.item}>- Résumé simple et partage rapide</Text>
           <Pressable style={styles.primaryButton} onPress={() => router.push('/(tabs)/result')}>
-            <Text style={styles.primaryText}>Voir le resultat</Text>
+            <Text style={styles.primaryText}>Voir le résultat</Text>
           </Pressable>
         </View>
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Plan Boost</Text>
-          <Text style={styles.item}>- Etapes deja choisies par l IA</Text>
-          <Text style={styles.item}>- Tu suis simplement le parcours propose</Text>
+          <Text style={styles.item}>- Étapes déjà choisies par l'IA</Text>
+          <Text style={styles.item}>- Tu suis simplement le parcours proposé</Text>
           <Pressable style={styles.secondaryButton} onPress={() => router.push('/(tabs)/boost')}>
             <Text style={styles.secondaryText}>Voir Boost</Text>
           </Pressable>

@@ -1,5 +1,5 @@
 import { Tabs, usePathname, useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +16,15 @@ export default function TabLayout() {
   const router = useRouter();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
+
+  // Web: évite le warning "aria-hidden + focus" au changement d'onglet
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    const active = document.activeElement as HTMLElement | null;
+    if (active && active !== document.body && typeof active.blur === 'function') {
+      active.blur();
+    }
+  }, [pathname]);
 
   const hideFab =
     pathname.includes('session') ||
@@ -98,13 +107,14 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    right: 20,
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+    right: 18,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: FlipOn.accent,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 20,
+    elevation: 4,
   },
 });

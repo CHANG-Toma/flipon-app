@@ -3,12 +3,12 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const items = [
-  { label: 'Session', hint: 'Creation et configuration d une session', route: '/session' },
-  { label: 'Vote prive', hint: 'Ecran de decisions Oui / Passer', route: '/vote' },
-  { label: 'Resultat', hint: 'Idee commune + prochaines etapes', route: '/result' },
-  { label: 'Boost', hint: 'Plan contextuel pret a suivre', route: '/boost' },
-  { label: 'Historique', hint: 'Sessions precedentes et favoris', route: '/history' },
-  { label: 'Profil', hint: 'Compte, abonnement, preferences', route: '/profile' },
+  { label: 'Session', hint: "Création et configuration d'une session", route: '/session' },
+  { label: 'Vote privé', hint: 'Écran de décisions Oui / Passer', route: '/vote' },
+  { label: 'Résultat', hint: 'Idée commune + prochaines étapes', route: '/result' },
+  { label: 'Boost', hint: 'Plan contextuel prêt à suivre', route: '/boost' },
+  { label: 'Historique', hint: 'Sessions précédentes et favoris', route: '/history' },
+  { label: 'Profil', hint: 'Compte, abonnement, préférences', route: '/profile' },
 ];
 
 export default function MenuScreen() {
@@ -18,7 +18,7 @@ export default function MenuScreen() {
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
         <Text style={styles.title}>Menu</Text>
-        <Text style={styles.subtitle}>Base globale de l application mobile FlipOn.</Text>
+        <Text style={styles.subtitle}>Base globale de l'application mobile FlipOn.</Text>
 
         <View style={styles.list}>
           {items.map((item, index) => (
@@ -34,9 +34,9 @@ export default function MenuScreen() {
 
         <View style={styles.footerCard}>
           <Text style={styles.footerTitle}>Principes produit</Text>
-          <Text style={styles.footerText}>- UX/UI: flux clair en 3 etapes, 1 action principale par ecran.</Text>
-          <Text style={styles.footerText}>- Securite: votes prives, donnees minimales, sessions expirees.</Text>
-          <Text style={styles.footerText}>- Performance: rendu leger, chargements paresseux, cache local.</Text>
+          <Text style={styles.footerText}>- UX/UI : flux clair en 3 étapes, 1 action principale par écran.</Text>
+          <Text style={styles.footerText}>- Sécurité : votes privés, données minimales, sessions expirées.</Text>
+          <Text style={styles.footerText}>- Performance : rendu léger, chargements paresseux, cache local.</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

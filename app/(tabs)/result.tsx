@@ -5,26 +5,26 @@ export default function ResultScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Resultat commun</Text>
-        <Text style={styles.subtitle}>Une idee retenue pour tout le monde + etapes a suivre.</Text>
+        <Text style={styles.title}>Résultat commun</Text>
+        <Text style={styles.subtitle}>Une idée retenue pour tout le monde + étapes à suivre.</Text>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Vision globale</Text>
-        <Text style={styles.item}>- Idee finale avec resume clair</Text>
-        <Text style={styles.item}>- Etapes actionnables (chemin simple)</Text>
-        <Text style={styles.item}>- CTA: partager, relancer, enregistrer</Text>
+        <Text style={styles.item}>- Idée finale avec résumé clair</Text>
+        <Text style={styles.item}>- Étapes actionnables (chemin simple)</Text>
+        <Text style={styles.item}>- CTA : partager, relancer, enregistrer</Text>
       </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>UX/UI</Text>
-        <Text style={styles.item}>- Hero principal tres lisible</Text>
-        <Text style={styles.item}>- Priorite au bouton Partager</Text>
+        <Text style={styles.item}>- Hero principal très lisible</Text>
+        <Text style={styles.item}>- Priorité au bouton Partager</Text>
       </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Securite & Performance</Text>
-          <Text style={styles.item}>- Resultat visible uniquement aux membres session</Text>
-          <Text style={styles.item}>- Cache local pour reouvrir vite l ecran</Text>
+          <Text style={styles.cardTitle}>Sécurité & Performance</Text>
+          <Text style={styles.item}>- Résultat visible uniquement aux membres session</Text>
+          <Text style={styles.item}>- Cache local pour rouvrir vite l'écran</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

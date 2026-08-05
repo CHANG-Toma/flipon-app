@@ -5,25 +5,25 @@ export default function VoteScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Vote prive</Text>
+        <Text style={styles.title}>Vote privé</Text>
         <Text style={styles.subtitle}>Chaque membre vote Oui / Passer sans pression sociale.</Text>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Vision globale</Text>
-        <Text style={styles.item}>- Carte idee: titre, duree, budget, contexte</Text>
-        <Text style={styles.item}>- Actions rapides: Oui / Passer</Text>
-        <Text style={styles.item}>- Etat: progression dans le deck</Text>
+        <Text style={styles.item}>- Carte idée : titre, durée, budget, contexte</Text>
+        <Text style={styles.item}>- Actions rapides : Oui / Passer</Text>
+        <Text style={styles.item}>- État : progression dans le deck</Text>
       </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>UX/UI</Text>
-        <Text style={styles.item}>- Boutons larges pour une decision en 1 tap</Text>
-        <Text style={styles.item}>- Retour visuel immediat apres le vote</Text>
+        <Text style={styles.item}>- Boutons larges pour une décision en 1 tap</Text>
+        <Text style={styles.item}>- Retour visuel immédiat après le vote</Text>
       </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Securite & Performance</Text>
-          <Text style={styles.item}>- Vote chiffre en transit (HTTPS)</Text>
+          <Text style={styles.cardTitle}>Sécurité & Performance</Text>
+          <Text style={styles.item}>- Vote chiffré en transit (HTTPS)</Text>
           <Text style={styles.item}>- Envoi asynchrone + retry si connexion faible</Text>
         </View>
       </ScrollView>

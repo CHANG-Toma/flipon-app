@@ -28,7 +28,7 @@ export default function ProfileScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Compte</Text>
           <SettingRow label="Modifier le profil" value="Nom et photo" />
-          <SettingRow label="Telephone" value="+33 6 •• •• •• 78" />
+          <SettingRow label="Téléphone" value="+33 6 •• •• •• 78" />
           <SettingRow label="Ville" value="Paris" last />
         </View>
 
@@ -39,7 +39,7 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Confidentialite</Text>
+          <Text style={styles.cardTitle}>Confidentialité</Text>
           <ToggleRow
             label="Notifications session"
             value={sessionNotif}
@@ -52,14 +52,14 @@ export default function ProfileScreen() {
             onValueChange={setShareStats}
             last
           />
-          <Text style={styles.hint}>Desactive par defaut. Tes votes restent prives.</Text>
+          <Text style={styles.hint}>Désactivé par défaut. Tes votes restent privés.</Text>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Securite</Text>
+          <Text style={styles.cardTitle}>Sécurité</Text>
           <SettingRow label="Mot de passe" value="Modifier" />
-          <SettingRow label="Appareils connectes" value="1 appareil" />
-          <SettingRow label="Deconnexion globale" value="Tous les appareils" last />
+          <SettingRow label="Appareils connectés" value="1 appareil" />
+          <SettingRow label="Déconnexion globale" value="Tous les appareils" last />
         </View>
 
         <Pressable style={styles.primaryButton}>

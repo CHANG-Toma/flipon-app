@@ -1,29 +1,29 @@
-import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { FlipOn } from '@/constants/flipon';
 
 const PAST_SESSIONS = [
-  { id: '1', title: 'Balade + cafe', meta: 'Duo · Hier · 1h30', status: 'Validee' },
-  { id: '2', title: 'Cinema centre-ville', meta: 'Groupe · Lun · 2h', status: 'Validee' },
-  { id: '3', title: 'Brunch terrasse', meta: 'Solo · Dim · 1h', status: 'Expiree' },
+  { id: '1', title: 'Balade + café', meta: 'Duo · Hier · 1h30', status: 'Validée' as const },
+  { id: '2', title: 'Cinéma centre-ville', meta: 'Groupe · Lun · 2h', status: 'Validée' as const },
+  { id: '3', title: 'Brunch terrasse', meta: 'Solo · Dim · 1h', status: 'Expirée' as const },
 ];
 
 export default function HistoryScreen() {
-  const router = useRouter();
-
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
         <View style={styles.top}>
           <Text style={styles.title}>Historique</Text>
-          <Text style={styles.subtitle}>Uniquement tes sessions. Rien n est partage sans toi.</Text>
+          <Text style={styles.subtitle}>Uniquement tes sessions. Rien n'est partagé sans toi.</Text>
         </View>
+
+        <Text style={styles.count}>{PAST_SESSIONS.length} sessions</Text>
 
         <View style={styles.list}>
           {PAST_SESSIONS.map((session) => {
-            const expired = session.status === 'Expiree';
+            const expired = session.status === 'Expirée';
             return (
               <Pressable key={session.id} style={styles.row}>
                 <View style={styles.rowBody}>
@@ -33,14 +33,11 @@ export default function HistoryScreen() {
                 <Text style={[styles.pill, expired ? styles.pillMuted : styles.pillOk]}>
                   {session.status}
                 </Text>
+                <MaterialIcons name="chevron-right" size={22} color={FlipOn.muted} />
               </Pressable>
             );
           })}
         </View>
-
-        <Pressable style={styles.cta} onPress={() => router.push('/(tabs)/session')}>
-          <Text style={styles.ctaText}>Nouvelle session</Text>
-        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );
@@ -49,20 +46,33 @@ export default function HistoryScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: FlipOn.bg },
   scroll: { flex: 1 },
-  container: { flexGrow: 1, padding: 20, gap: 16, paddingBottom: 28 },
+  container: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 110,
+    gap: 12,
+  },
   top: { gap: 6 },
   title: { fontSize: 30, fontWeight: '800', color: FlipOn.ink, letterSpacing: -0.5 },
   subtitle: { fontSize: 14, lineHeight: 20, color: FlipOn.muted },
+  count: {
+    marginTop: 4,
+    fontSize: 13,
+    fontWeight: '600',
+    color: FlipOn.muted,
+  },
   list: { gap: 10 },
   row: {
     backgroundColor: FlipOn.surface,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: FlipOn.line,
-    padding: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   rowBody: { flex: 1, gap: 3 },
   rowTitle: { fontSize: 16, fontWeight: '700', color: FlipOn.ink },
@@ -77,13 +87,4 @@ const styles = StyleSheet.create({
   },
   pillOk: { color: FlipOn.success, backgroundColor: FlipOn.successSoft },
   pillMuted: { color: FlipOn.muted, backgroundColor: FlipOn.soft },
-  cta: {
-    marginTop: 'auto',
-    minHeight: 50,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: FlipOn.accent,
-  },
-  ctaText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 });
