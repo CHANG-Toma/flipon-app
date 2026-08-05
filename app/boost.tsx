@@ -1,50 +1,149 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+
+import { Screen } from '@/components/ui/Screen';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { FlipOn } from '@/constants/flipon';
+import { NetworkError, mockRequest } from '@/lib/mock-api';
+import { getSession, markBoostOpened, planToBoostSteps } from '@/lib/session-store';
 
 export default function BoostScreen() {
-  return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Boost</Text>
-        <Text style={styles.subtitle}>Plans contextuels premium: lieu, meteo, moment, groupe.</Text>
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const result = getSession().result;
+  const [steps, setSteps] = useState(planToBoostSteps(result));
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Vision globale</Text>
-        <Text style={styles.item}>- Plan IA deja structure avec etapes</Text>
-        <Text style={styles.item}>- Suggestions proches en temps reel</Text>
-        <Text style={styles.item}>- Variantes auto si aucun match</Text>
-      </View>
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      markBoostOpened();
+      const data = await mockRequest(planToBoostSteps(getSession().result));
+      setSteps(data);
+    } catch (e) {
+      setError(e instanceof NetworkError ? e.message : 'Impossible de charger le plan Boost.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>UX/UI</Text>
-        <Text style={styles.item}>- Ticket plan premium simple a suivre</Text>
-        <Text style={styles.item}>- Valeur Boost visible en 5 secondes</Text>
-      </View>
+  useEffect(() => {
+    load();
+  }, [load]);
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Securite & Performance</Text>
-          <Text style={styles.item}>- Permissions geoloc demandees au bon moment</Text>
-          <Text style={styles.item}>- Cache des resultats pour limiter les appels IA</Text>
+  if (!result) {
+    return (
+      <Screen showBack title="Boost">
+        <EmptyState
+          title="Boost indisponible"
+          text="Il faut un résultat commun avant d'afficher un plan détaillé."
+          actionLabel="Retour"
+          onAction={() => router.replace('/(tabs)')}
+          icon="bolt"
+        />
+      </Screen>
+    );
+  }
+
+  if (loading) {
+    return (
+      <Screen showBack title="Boost">
+        <View style={styles.center}>
+          <ActivityIndicator color={FlipOn.accent} size="large" />
+          <Text style={styles.loadingText}>Préparation du plan…</Text>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      </Screen>
+    );
+  }
+
+  if (error) {
+    return (
+      <Screen showBack title="Boost">
+        <ErrorState text={error} onRetry={load} />
+      </Screen>
+    );
+  }
+
+  return (
+    <Screen showBack title="Boost">
+      <View style={styles.hero}>
+        <Text style={styles.kicker}>Plan premium</Text>
+        <Text style={styles.title}>{result.title}</Text>
+        <Text style={styles.subtitle}>
+          Étapes issues du plan validé. Aucune réservation automatique par FlipOn.
+        </Text>
+      </View>
+
+      <View style={styles.list}>
+        {steps.map((step, index) => (
+          <View key={step.id} style={styles.step}>
+            <View style={styles.stepIndex}>
+              <Text style={styles.stepIndexText}>{index + 1}</Text>
+            </View>
+            <View style={styles.stepBody}>
+              <Text style={styles.stepTitle}>{step.title}</Text>
+              {step.duration ? <Text style={styles.stepDuration}>{step.duration}</Text> : null}
+            </View>
+          </View>
+        ))}
+      </View>
+
+      <Pressable style={styles.primaryButton} onPress={() => router.replace('/(tabs)')}>
+        <Text style={styles.primaryText}>Terminer</Text>
+      </Pressable>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8fafc' },
-  scroll: { flex: 1 },
-  container: { flexGrow: 1, padding: 20, gap: 12, backgroundColor: '#f8fafc' },
-  title: { fontSize: 28, fontWeight: '800', color: '#111827' },
-  subtitle: { fontSize: 14, lineHeight: 20, color: '#6b7280' },
-  card: {
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#ffffff',
-    padding: 14,
-    gap: 6,
+  center: { alignItems: 'center', justifyContent: 'center', gap: 12, paddingTop: 80 },
+  loadingText: { color: FlipOn.muted, fontSize: 14 },
+  hero: {
+    backgroundColor: FlipOn.dark,
+    borderRadius: 22,
+    padding: 18,
+    gap: 8,
   },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: '#111827' },
-  item: { fontSize: 13, lineHeight: 18, color: '#4b5563' },
+  kicker: {
+    color: FlipOn.accent,
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  title: { color: '#fff', fontSize: 24, fontWeight: '800' },
+  subtitle: { color: '#C7CBD1', fontSize: 14, lineHeight: 20 },
+  list: { gap: 10 },
+  step: {
+    flexDirection: 'row',
+    gap: 12,
+    backgroundColor: FlipOn.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: FlipOn.line,
+    padding: 14,
+  },
+  stepIndex: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: FlipOn.accentSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepIndexText: { color: FlipOn.accentInk, fontWeight: '800' },
+  stepBody: { flex: 1, gap: 3 },
+  stepTitle: { fontSize: 15, fontWeight: '700', color: FlipOn.ink },
+  stepDuration: { marginTop: 4, fontSize: 12, fontWeight: '700', color: FlipOn.accentInk },
+  primaryButton: {
+    minHeight: 52,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: FlipOn.accent,
+  },
+  primaryText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 });

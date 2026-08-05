@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { GoogleAuthCard } from '@/components/auth/GoogleAuthCard';
 import { FlipOn } from '@/constants/flipon';
 
 export default function ProfileScreen() {
@@ -12,31 +13,7 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
-        <View style={styles.header}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>HM</Text>
-          </View>
-          <View style={styles.headerText}>
-            <Text style={styles.name}>Haua M.</Text>
-            <Text style={styles.email}>haua@example.com</Text>
-            <View style={styles.planBadge}>
-              <Text style={styles.planBadgeText}>Boost actif</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Compte</Text>
-          <SettingRow label="Modifier le profil" value="Nom et photo" />
-          <SettingRow label="Téléphone" value="+33 6 •• •• •• 78" />
-          <SettingRow label="Ville" value="Paris" last />
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Abonnement</Text>
-          <SettingRow label="Offre" value="Boost mensuel" />
-          <SettingRow label="Renouvellement" value="12 sept. 2026" last />
-        </View>
+        <GoogleAuthCard />
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Confidentialité</Text>
@@ -56,15 +33,11 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Sécurité</Text>
-          <SettingRow label="Mot de passe" value="Modifier" />
-          <SettingRow label="Appareils connectés" value="1 appareil" />
-          <SettingRow label="Déconnexion globale" value="Tous les appareils" last />
+          <Text style={styles.cardTitle}>Abonnement</Text>
+          <SettingRow label="Offre" value="Basique" />
+          <SettingRow label="Boost" value="Optionnel" last />
         </View>
 
-        <Pressable style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>Enregistrer</Text>
-        </Pressable>
         <Pressable style={styles.dangerButton}>
           <Text style={styles.dangerButtonText}>Supprimer mon compte</Text>
         </Pressable>
@@ -117,38 +90,7 @@ function ToggleRow({
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: FlipOn.bg },
   scroll: { flex: 1 },
-  container: { flexGrow: 1, padding: 20, gap: 12, paddingBottom: 28 },
-  header: {
-    backgroundColor: FlipOn.surface,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: FlipOn.line,
-    padding: 16,
-    flexDirection: 'row',
-    gap: 14,
-    alignItems: 'center',
-  },
-  avatar: {
-    height: 56,
-    width: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: FlipOn.accentSoft,
-  },
-  avatarText: { fontSize: 18, fontWeight: '800', color: FlipOn.accentInk },
-  headerText: { flex: 1, gap: 3 },
-  name: { fontSize: 20, fontWeight: '800', color: FlipOn.ink },
-  email: { fontSize: 13, color: FlipOn.muted },
-  planBadge: {
-    marginTop: 6,
-    alignSelf: 'flex-start',
-    backgroundColor: FlipOn.dark,
-    borderRadius: 999,
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-  },
-  planBadgeText: { fontSize: 12, fontWeight: '700', color: '#fff' },
+  container: { flexGrow: 1, padding: 20, gap: 12, paddingBottom: 110 },
   card: {
     backgroundColor: FlipOn.surface,
     borderRadius: 18,
@@ -170,14 +112,6 @@ const styles = StyleSheet.create({
   rowLabel: { fontSize: 14, fontWeight: '600', color: FlipOn.ink },
   rowValue: { fontSize: 13, color: FlipOn.muted },
   hint: { marginTop: 8, fontSize: 12, lineHeight: 18, color: FlipOn.muted },
-  primaryButton: {
-    minHeight: 50,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: FlipOn.accent,
-  },
-  primaryButtonText: { fontSize: 15, fontWeight: '700', color: '#fff' },
   dangerButton: {
     minHeight: 48,
     borderRadius: 14,

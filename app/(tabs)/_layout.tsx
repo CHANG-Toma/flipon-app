@@ -1,5 +1,5 @@
-import { Tabs, usePathname, useRouter } from 'expo-router';
-import React, { useEffect } from 'react';
+import { Tabs, useRouter } from 'expo-router';
+import React from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,23 +14,7 @@ const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 68;
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
-  const pathname = usePathname();
   const insets = useSafeAreaInsets();
-
-  // Web: évite le warning "aria-hidden + focus" au changement d'onglet
-  useEffect(() => {
-    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
-    const active = document.activeElement as HTMLElement | null;
-    if (active && active !== document.body && typeof active.blur === 'function') {
-      active.blur();
-    }
-  }, [pathname]);
-
-  const hideFab =
-    pathname.includes('session') ||
-    pathname.includes('vote') ||
-    pathname.includes('result') ||
-    pathname.includes('boost');
 
   return (
     <View style={styles.root}>
@@ -64,36 +48,34 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => <MaterialIcons size={24} name="person" color={color} />,
           }}
         />
-        <Tabs.Screen name="session" options={{ href: null }} />
-        <Tabs.Screen name="activity" options={{ href: null }} />
-        <Tabs.Screen name="vote" options={{ href: null }} />
-        <Tabs.Screen name="result" options={{ href: null }} />
-        <Tabs.Screen name="boost" options={{ href: null }} />
-        <Tabs.Screen name="explore" options={{ href: null }} />
+        <Tabs.Screen
+          name="session"
+          options={{
+            href: null,
+            title: 'Session',
+          }}
+        />
       </Tabs>
 
-      {!hideFab && (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Nouvelle session"
-          onPress={() => router.push('/(tabs)/session')}
-          style={[
-            styles.fab,
-            {
-              bottom: TAB_BAR_HEIGHT + Math.max(insets.bottom, 8),
-            },
-          ]}>
-          <MaterialIcons size={28} name="add" color="#ffffff" />
-        </Pressable>
-      )}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Nouvelle session"
+        onPress={() => router.push('/session')}
+        hitSlop={4}
+        style={[
+          styles.fab,
+          {
+            bottom: TAB_BAR_HEIGHT + Math.max(insets.bottom, 8),
+          },
+        ]}>
+        <MaterialIcons size={28} name="add" color="#ffffff" />
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
+  root: { flex: 1 },
   tabBar: {
     backgroundColor: FlipOn.surface,
     borderTopColor: FlipOn.line,
