@@ -1,0 +1,17 @@
+export const FlipOn = {
+  bg: '#F4F6F8',
+  surface: '#FFFFFF',
+  ink: '#12141A',
+  muted: '#6B7280',
+  line: '#E6E8EC',
+  soft: '#F3F4F6',
+  accent: '#F97316',
+  accentSoft: '#FFF4EB',
+  accentInk: '#9A3412',
+  dark: '#12141A',
+  danger: '#B91C1C',
+  dangerSoft: '#FEF2F2',
+  dangerLine: '#FECACA',
+  success: '#047857',
+  successSoft: '#ECFDF5',
+};

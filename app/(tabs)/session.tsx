@@ -1,56 +1,65 @@
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { FlipOn } from '@/constants/flipon';
+
+const TYPES = ['Solo', 'Duo', 'Groupe'] as const;
+type SessionType = (typeof TYPES)[number];
+
 export default function SessionScreen() {
+  const router = useRouter();
+  const [type, setType] = useState<SessionType>('Duo');
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
-        <View style={styles.headerCard}>
-          <Text style={styles.kicker}>NOUVELLE SESSION</Text>
-          <Text style={styles.title}>On lance quoi maintenant ?</Text>
-          <Text style={styles.subtitle}>
-            Configure en 30 secondes, invite ton groupe et passe au vote.
-          </Text>
+        <View style={styles.hero}>
+          <Text style={styles.kicker}>Nouvelle session</Text>
+          <Text style={styles.title}>Cadre rapide, decision claire.</Text>
+          <Text style={styles.subtitle}>Les votes restent prives. Le code expire automatiquement.</Text>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Type de session</Text>
+          <Text style={styles.cardTitle}>Type</Text>
           <View style={styles.chipRow}>
-            <Chip label="Solo" />
-            <Chip label="Duo" selected />
-            <Chip label="Groupe" />
+            {TYPES.map((item) => {
+              const selected = item === type;
+              return (
+                <Pressable
+                  key={item}
+                  onPress={() => setType(item)}
+                  style={[styles.chip, selected && styles.chipSelected]}>
+                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{item}</Text>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Cadre rapide</Text>
-          <View style={styles.stack}>
-            <SettingLine label="Moment" value="Apres-midi" />
-            <SettingLine label="Duree" value="2h" />
-            <SettingLine label="Budget" value="0 - 25 EUR" />
-            <SettingLine label="Energie" value="Calme" />
-            <SettingLine label="Zone" value="Autour de moi (5 km)" />
+          <Text style={styles.cardTitle}>Cadre</Text>
+          <SettingLine label="Moment" value="Apres-midi" />
+          <SettingLine label="Duree" value="2h" />
+          <SettingLine label="Budget" value="0 - 25 EUR" />
+          <SettingLine label="Energie" value="Calme" />
+          <SettingLine label="Zone" value="Autour de moi (5 km)" last />
+        </View>
+
+        {type !== 'Solo' && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Invitation</Text>
+            <SettingLine label="Code temporaire" value="FLIP-2841" />
+            <SettingLine label="Participants" value="2/4 ont rejoint" last />
+            <Text style={styles.hint}>Le lien n expose aucun vote. Expire apres 24h.</Text>
+            <Pressable style={styles.secondaryButton}>
+              <Text style={styles.secondaryButtonText}>Partager le lien</Text>
+            </Pressable>
           </View>
-        </View>
+        )}
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Participants</Text>
-          <View style={styles.stack}>
-            <SettingLine label="Code session" value="FLIP-2841" />
-            <SettingLine label="Membres" value="2/4 ont rejoint" />
-          </View>
-          <Pressable style={styles.secondaryButton}>
-            <Text style={styles.secondaryButtonText}>Partager le lien d invitation</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Confidentialite</Text>
-          <Text style={styles.item}>- Vote prive par participant</Text>
-          <Text style={styles.item}>- Session expiree automatiquement apres 24h</Text>
-        </View>
-
-        <Pressable style={styles.primaryButton}>
+        <Pressable style={styles.primaryButton} onPress={() => router.push('/(tabs)/vote')}>
           <Text style={styles.primaryButtonText}>Lancer le vote</Text>
         </Pressable>
       </ScrollView>
@@ -58,27 +67,17 @@ export default function SessionScreen() {
   );
 }
 
-type ChipProps = {
-  label: string;
-  selected?: boolean;
-};
-
-function Chip({ label, selected = false }: ChipProps) {
-  return (
-    <View style={[styles.chip, selected && styles.chipSelected]}>
-      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
-    </View>
-  );
-}
-
-type SettingLineProps = {
+function SettingLine({
+  label,
+  value,
+  last = false,
+}: {
   label: string;
   value: string;
-};
-
-function SettingLine({ label, value }: SettingLineProps) {
+  last?: boolean;
+}) {
   return (
-    <View style={styles.settingLine}>
+    <View style={[styles.settingLine, !last && styles.settingBorder]}>
       <Text style={styles.settingLabel}>{label}</Text>
       <Text style={styles.settingValue}>{value}</Text>
     </View>
@@ -86,80 +85,71 @@ function SettingLine({ label, value }: SettingLineProps) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8fafc' },
+  safe: { flex: 1, backgroundColor: FlipOn.bg },
   scroll: { flex: 1 },
-  container: { flexGrow: 1, padding: 20, gap: 12, backgroundColor: '#f8fafc' },
-  headerCard: {
-    borderRadius: 16,
-    backgroundColor: '#111827',
-    padding: 16,
-    gap: 6,
-  },
-  kicker: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    color: '#fdba74',
-  },
-  title: { fontSize: 27, fontWeight: '800', color: '#ffffff', lineHeight: 33 },
-  subtitle: { fontSize: 14, lineHeight: 20, color: '#d1d5db' },
-  card: {
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#ffffff',
-    padding: 14,
-    gap: 10,
-  },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: '#111827' },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  container: { flexGrow: 1, padding: 20, gap: 12, paddingBottom: 28 },
+  hero: {
+    backgroundColor: FlipOn.dark,
+    borderRadius: 22,
+    padding: 18,
     gap: 8,
   },
+  kicker: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
+    color: FlipOn.accent,
+  },
+  title: { fontSize: 26, fontWeight: '800', color: '#fff', lineHeight: 32 },
+  subtitle: { fontSize: 14, lineHeight: 20, color: '#C7CBD1' },
+  card: {
+    backgroundColor: FlipOn.surface,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: FlipOn.line,
+    padding: 16,
+    gap: 10,
+  },
+  cardTitle: { fontSize: 15, fontWeight: '700', color: FlipOn.ink },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
-    minHeight: 34,
+    minHeight: 38,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#d1d5db',
-    paddingHorizontal: 14,
+    borderColor: FlipOn.line,
+    paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: FlipOn.surface,
   },
   chipSelected: {
-    borderColor: '#fb923c',
-    backgroundColor: '#fff7ed',
+    borderColor: FlipOn.accent,
+    backgroundColor: FlipOn.accentSoft,
   },
-  chipText: { fontSize: 13, fontWeight: '600', color: '#374151' },
-  chipTextSelected: { color: '#c2410c' },
-  stack: { gap: 8 },
-  settingLine: {
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-    gap: 2,
-  },
-  settingLabel: { fontSize: 12, color: '#6b7280' },
-  settingValue: { fontSize: 14, fontWeight: '600', color: '#111827' },
-  item: { fontSize: 13, lineHeight: 18, color: '#4b5563' },
+  chipText: { fontSize: 14, fontWeight: '600', color: FlipOn.muted },
+  chipTextSelected: { color: FlipOn.accentInk },
+  settingLine: { paddingVertical: 10, gap: 2 },
+  settingBorder: { borderBottomWidth: 1, borderBottomColor: FlipOn.soft },
+  settingLabel: { fontSize: 12, color: FlipOn.muted },
+  settingValue: { fontSize: 15, fontWeight: '600', color: FlipOn.ink },
+  hint: { fontSize: 12, lineHeight: 18, color: FlipOn.muted },
   secondaryButton: {
-    marginTop: 2,
-    minHeight: 44,
+    minHeight: 46,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: FlipOn.line,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: FlipOn.surface,
   },
-  secondaryButtonText: { fontSize: 14, fontWeight: '600', color: '#111827' },
+  secondaryButtonText: { fontSize: 14, fontWeight: '700', color: FlipOn.ink },
   primaryButton: {
     minHeight: 52,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f97316',
+    backgroundColor: FlipOn.accent,
   },
-  primaryButtonText: { fontSize: 16, fontWeight: '700', color: '#ffffff' },
+  primaryButtonText: { fontSize: 16, fontWeight: '700', color: '#fff' },
 });

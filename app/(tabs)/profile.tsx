@@ -1,11 +1,18 @@
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { FlipOn } from '@/constants/flipon';
+
 export default function ProfileScreen() {
+  const [sessionNotif, setSessionNotif] = useState(true);
+  const [boostNotif, setBoostNotif] = useState(true);
+  const [shareStats, setShareStats] = useState(false);
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
-        <View style={styles.headerCard}>
+        <View style={styles.header}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>HM</Text>
           </View>
@@ -20,34 +27,43 @@ export default function ProfileScreen() {
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Compte</Text>
-          <SettingRow label="Modifier le profil" value="Nom, photo, bio" />
-          <SettingRow label="Telephone" value="+33 6 12 34 56 78" />
-          <SettingRow label="Ville" value="Paris, France" isLast />
+          <SettingRow label="Modifier le profil" value="Nom et photo" />
+          <SettingRow label="Telephone" value="+33 6 •• •• •• 78" />
+          <SettingRow label="Ville" value="Paris" last />
         </View>
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Abonnement</Text>
-          <SettingRow label="Offre actuelle" value="Boost mensuel 6,99 EUR" />
-          <SettingRow label="Renouvellement" value="12 septembre 2026" />
-          <SettingRow label="Gerer l abonnement" value="Facturation et options" isLast />
+          <SettingRow label="Offre" value="Boost mensuel" />
+          <SettingRow label="Renouvellement" value="12 sept. 2026" last />
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Preferences</Text>
-          <ToggleRow label="Notifications session" />
-          <ToggleRow label="Notifications Boost" />
-          <ToggleRow label="Partager les stats perso" isLast />
+          <Text style={styles.cardTitle}>Confidentialite</Text>
+          <ToggleRow
+            label="Notifications session"
+            value={sessionNotif}
+            onValueChange={setSessionNotif}
+          />
+          <ToggleRow label="Notifications Boost" value={boostNotif} onValueChange={setBoostNotif} />
+          <ToggleRow
+            label="Partager mes stats"
+            value={shareStats}
+            onValueChange={setShareStats}
+            last
+          />
+          <Text style={styles.hint}>Desactive par defaut. Tes votes restent prives.</Text>
         </View>
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Securite</Text>
-          <SettingRow label="Changer le mot de passe" value="Derniere mise a jour: il y a 2 mois" />
-          <SettingRow label="Appareils connectes" value="iPhone, navigateur web" />
-          <SettingRow label="Deconnexion de tous les appareils" value="Action immediate" isLast />
+          <SettingRow label="Mot de passe" value="Modifier" />
+          <SettingRow label="Appareils connectes" value="1 appareil" />
+          <SettingRow label="Deconnexion globale" value="Tous les appareils" last />
         </View>
 
         <Pressable style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>Enregistrer les modifications</Text>
+          <Text style={styles.primaryButtonText}>Enregistrer</Text>
         </Pressable>
         <Pressable style={styles.dangerButton}>
           <Text style={styles.dangerButtonText}>Supprimer mon compte</Text>
@@ -57,112 +73,119 @@ export default function ProfileScreen() {
   );
 }
 
-type SettingRowProps = {
+function SettingRow({
+  label,
+  value,
+  last = false,
+}: {
   label: string;
   value: string;
-  isLast?: boolean;
-};
-
-function SettingRow({ label, value, isLast = false }: SettingRowProps) {
+  last?: boolean;
+}) {
   return (
-    <View style={[styles.row, !isLast && styles.rowBorder]}>
+    <View style={[styles.row, !last && styles.rowBorder]}>
       <Text style={styles.rowLabel}>{label}</Text>
       <Text style={styles.rowValue}>{value}</Text>
     </View>
   );
 }
 
-type ToggleRowProps = {
+function ToggleRow({
+  label,
+  value,
+  onValueChange,
+  last = false,
+}: {
   label: string;
-  isLast?: boolean;
-};
-
-function ToggleRow({ label, isLast = false }: ToggleRowProps) {
+  value: boolean;
+  onValueChange: (next: boolean) => void;
+  last?: boolean;
+}) {
   return (
-    <View style={[styles.rowToggle, !isLast && styles.rowBorder]}>
+    <View style={[styles.rowToggle, !last && styles.rowBorder]}>
       <Text style={styles.rowLabel}>{label}</Text>
-      <Switch value />
+      <Switch
+        value={value}
+        onValueChange={onValueChange}
+        trackColor={{ false: FlipOn.line, true: '#FDBA74' }}
+        thumbColor={value ? FlipOn.accent : '#f4f4f5'}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8fafc' },
+  safe: { flex: 1, backgroundColor: FlipOn.bg },
   scroll: { flex: 1 },
-  container: { flexGrow: 1, padding: 20, gap: 12, backgroundColor: '#f8fafc' },
-  headerCard: {
-    borderRadius: 16,
+  container: { flexGrow: 1, padding: 20, gap: 12, paddingBottom: 28 },
+  header: {
+    backgroundColor: FlipOn.surface,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#ffffff',
-    padding: 14,
+    borderColor: FlipOn.line,
+    padding: 16,
     flexDirection: 'row',
-    gap: 12,
+    gap: 14,
     alignItems: 'center',
   },
   avatar: {
-    height: 52,
-    width: 52,
-    borderRadius: 26,
+    height: 56,
+    width: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fed7aa',
+    backgroundColor: FlipOn.accentSoft,
   },
-  avatarText: { fontSize: 18, fontWeight: '700', color: '#9a3412' },
-  headerText: { flex: 1, gap: 2 },
-  name: { fontSize: 20, fontWeight: '800', color: '#111827' },
-  email: { fontSize: 13, color: '#6b7280' },
+  avatarText: { fontSize: 18, fontWeight: '800', color: FlipOn.accentInk },
+  headerText: { flex: 1, gap: 3 },
+  name: { fontSize: 20, fontWeight: '800', color: FlipOn.ink },
+  email: { fontSize: 13, color: FlipOn.muted },
   planBadge: {
     marginTop: 6,
     alignSelf: 'flex-start',
-    backgroundColor: '#111827',
+    backgroundColor: FlipOn.dark,
     borderRadius: 999,
     paddingVertical: 4,
     paddingHorizontal: 10,
   },
-  planBadgeText: { fontSize: 12, fontWeight: '700', color: '#ffffff' },
+  planBadgeText: { fontSize: 12, fontWeight: '700', color: '#fff' },
   card: {
-    borderRadius: 14,
+    backgroundColor: FlipOn.surface,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#ffffff',
-    padding: 14,
-    gap: 4,
-  },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 4 },
-  row: {
-    paddingVertical: 10,
+    borderColor: FlipOn.line,
+    padding: 16,
     gap: 2,
   },
+  cardTitle: { fontSize: 15, fontWeight: '700', color: FlipOn.ink, marginBottom: 6 },
+  row: { paddingVertical: 11, gap: 2 },
   rowToggle: {
-    paddingVertical: 12,
+    paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 10,
   },
-  rowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-  },
-  rowLabel: { fontSize: 14, fontWeight: '600', color: '#111827' },
-  rowValue: { fontSize: 12, color: '#6b7280' },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: FlipOn.soft },
+  rowLabel: { fontSize: 14, fontWeight: '600', color: FlipOn.ink },
+  rowValue: { fontSize: 13, color: FlipOn.muted },
+  hint: { marginTop: 8, fontSize: 12, lineHeight: 18, color: FlipOn.muted },
   primaryButton: {
     minHeight: 50,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f97316',
+    backgroundColor: FlipOn.accent,
   },
-  primaryButtonText: { fontSize: 15, fontWeight: '700', color: '#ffffff' },
+  primaryButtonText: { fontSize: 15, fontWeight: '700', color: '#fff' },
   dangerButton: {
     minHeight: 48,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#fecaca',
-    backgroundColor: '#fff1f2',
+    borderColor: FlipOn.dangerLine,
+    backgroundColor: FlipOn.dangerSoft,
   },
-  dangerButtonText: { fontSize: 14, fontWeight: '700', color: '#b91c1c' },
+  dangerButtonText: { fontSize: 14, fontWeight: '700', color: FlipOn.danger },
 });
