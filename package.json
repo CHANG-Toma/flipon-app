@@ -4,11 +4,22 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
+    "start:dev-client": "expo start --dev-client",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
+    "android": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/android.ps1",
+    "android:setup": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/android-setup.ps1",
+    "android:devices": "powershell -NoProfile -ExecutionPolicy Bypass -Command \". ./scripts/android-env.ps1; adb devices; emulator -list-avds\"",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "start:tunnel": "expo start --tunnel",
+    "lint": "expo lint",
+    "eas:login": "npx eas-cli@latest login",
+    "eas:whoami": "npx eas-cli@latest whoami",
+    "eas:init": "npx eas-cli@latest init",
+    "build:ios-sim": "npx eas-cli@latest build --platform ios --profile ios-simulator",
+    "build:android-dev": "npx eas-cli@latest build --platform android --profile development",
+    "build:preview": "npx eas-cli@latest build --platform all --profile preview",
+    "build:run:ios": "npx eas-cli@latest build:run -p ios --latest"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.19.31",
@@ -19,6 +30,7 @@
     "@react-navigation/native": "^7.1.8",
     "expo": "~54.0.35",
     "expo-constants": "~18.0.13",
+    "expo-dev-client": "~6.0.21",
     "expo-font": "~14.0.12",
     "expo-haptics": "~15.0.8",
     "expo-image": "~3.0.11",
