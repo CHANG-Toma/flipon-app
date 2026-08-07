@@ -1,3 +1,9 @@
+/**
+ * Onglet Profil
+ * -------------
+ * AuthCard : identité + déconnexion (session obligatoire via AuthBridge).
+ * Toggles confidentialité / abo : UI locale pour l’instant (pas encore persistés BDD).
+ */
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';

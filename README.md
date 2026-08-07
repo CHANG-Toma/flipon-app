@@ -2,7 +2,7 @@
 
 FlipOn aide a choisir rapidement une activite en solo, duo ou groupe.
 
-## Dev — Expo Go (simple)
+## Dev — Expo Go
 
 1. Installe [Expo Go](https://expo.dev/go) sur ton telephone (iPhone ou Android)
 2. Lance l’API si besoin (`cd flipon && npm run db:up && npm run dev`)
@@ -22,7 +22,3 @@ npx expo start --tunnel
 
 - Prod / simple : `EXPO_PUBLIC_API_URL=https://flipon.vercel.app`
 - API locale (meme Wi‑Fi) : `EXPO_PUBLIC_API_URL=http://IP_DU_PC:3000`
-
-## EAS
-
-Config `eas.json` presente pour plus tard (stores). Pas necessaire pour Expo Go.

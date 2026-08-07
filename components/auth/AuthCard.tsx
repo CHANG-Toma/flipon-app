@@ -1,3 +1,18 @@
+/**
+ * Auth UI — Clerk (email / inscription / Google)
+ * ----------------------------------------------
+ * Deux exports publics :
+ * - `AuthForm`  → écran `/login` (formulaire seul ; `onSuccess` pour naviguer)
+ * - `AuthCard`  → onglet Profil (compte connecté + déconnexion, ou form compact)
+ *
+ * Prérequis Clerk dashboard :
+ * - Email/Password activé
+ * - Google OAuth activé
+ * - Redirect natif : `fliponapp://oauth-native-callback` (+ URL générée par Linking)
+ *
+ * Inscription email : Clerk envoie un code → état `pendingVerification`.
+ * Après session active, `AuthBridge` (`app/_layout`) sync `/api/me` + historique.
+ */
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -15,15 +30,30 @@ import { useRouter } from 'expo-router';
 import { FlipOn } from '@/constants/flipon';
 import { isClerkConfigured } from '@/lib/clerk';
 
+/** Requis pour finaliser le retour OAuth (Google) dans Expo. */
 WebBrowser.maybeCompleteAuthSession();
 
 type Mode = 'signIn' | 'signUp';
 
-/** @deprecated use AuthCard */
+type AuthFormProps = {
+  /** Appelé une fois la session Clerk active (email, vérif code, ou Google). */
+  onSuccess?: () => void;
+  /**
+   * `true` = carte bordée (Profil).
+   * `false` = formulaire intégré dans le bloc login (sans double cadre).
+   */
+  compact?: boolean;
+};
+
+/** @deprecated Alias historique — préférer `AuthCard`. */
 export function GoogleAuthCard() {
   return <AuthCard />;
 }
 
+/**
+ * Carte Profil : identité + déconnexion si connecté, sinon formulaire compact.
+ * La déconnexion renvoie vers `/login` (le gate root refuse l’app sans session).
+ */
 export function AuthCard() {
   if (!isClerkConfigured) {
     return (
@@ -40,107 +70,38 @@ export function AuthCard() {
   return <AuthCardInner />;
 }
 
+/**
+ * Formulaire d’entrée (login / signup / Google).
+ * Ne gère pas l’état « déjà connecté » — c’est le rôle d’`AuthCard` ou du gate.
+ */
+export function AuthForm({ onSuccess, compact = false }: AuthFormProps) {
+  if (!isClerkConfigured) {
+    return (
+      <View style={[styles.card, !compact && styles.cardFlush]}>
+        <Text style={styles.cardTitle}>Configuration requise</Text>
+        <Text style={styles.hint}>
+          Ajoute `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` dans `flipon-app/.env`, redémarre Expo, et active
+          Email/Password + Google dans le dashboard Clerk (redirect `fliponapp://oauth-native-callback`).
+        </Text>
+      </View>
+    );
+  }
+
+  return <AuthFormInner onSuccess={onSuccess} compact={compact} />;
+}
+
 function AuthCardInner() {
   const { isSignedIn, signOut } = useAuth();
   const { user } = useUser();
-  const { signIn, setActive: setActiveSignIn, isLoaded: signInLoaded } = useSignIn();
-  const { signUp, setActive: setActiveSignUp, isLoaded: signUpLoaded } = useSignUp();
-  const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
   const router = useRouter();
-
-  const [mode, setMode] = useState<Mode>('signIn');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [code, setCode] = useState('');
-  const [pendingVerification, setPendingVerification] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const humanError = (e: unknown) => {
-    if (e && typeof e === 'object' && 'errors' in e) {
-      const first = (e as { errors?: { message?: string }[] }).errors?.[0]?.message;
-      if (first) return first;
-    }
-    return e instanceof Error ? e.message : 'Une erreur est survenue.';
-  };
-
-  const onGoogle = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const { createdSessionId, setActive } = await startOAuthFlow({
-        redirectUrl: Linking.createURL('/(tabs)/profile', { scheme: 'fliponapp' }),
-      });
-      if (createdSessionId && setActive) {
-        await setActive({ session: createdSessionId });
-      }
-    } catch (e) {
-      setError(humanError(e));
-    } finally {
-      setLoading(false);
-    }
-  }, [startOAuthFlow]);
-
-  const onEmailAuth = async () => {
-    const trimmed = email.trim().toLowerCase();
-    if (!trimmed || !password) {
-      setError('Email et mot de passe requis.');
-      return;
-    }
-    if (loading) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      if (mode === 'signIn') {
-        if (!signInLoaded || !signIn || !setActiveSignIn) return;
-        const result = await signIn.create({ identifier: trimmed, password });
-        if (result.status === 'complete') {
-          await setActiveSignIn({ session: result.createdSessionId });
-          return;
-        }
-        setError('Connexion incomplète. Réessaie ou utilise Google.');
-        return;
-      }
-
-      if (!signUpLoaded || !signUp || !setActiveSignUp) return;
-      await signUp.create({ emailAddress: trimmed, password });
-      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
-      setPendingVerification(true);
-    } catch (e) {
-      setError(humanError(e));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onVerify = async () => {
-    if (!signUpLoaded || !signUp || !setActiveSignUp) return;
-    if (!code.trim()) {
-      setError('Entre le code reçu par e-mail.');
-      return;
-    }
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await signUp.attemptEmailAddressVerification({ code: code.trim() });
-      if (result.status === 'complete') {
-        await setActiveSignUp({ session: result.createdSessionId });
-        setPendingVerification(false);
-        return;
-      }
-      setError('Vérification incomplète. Vérifie le code.');
-    } catch (e) {
-      setError(humanError(e));
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (isSignedIn && user) {
     const name =
-      user.fullName || user.firstName || user.username || user.primaryEmailAddress?.emailAddress || 'Compte FlipOn';
+      user.fullName ||
+      user.firstName ||
+      user.username ||
+      user.primaryEmailAddress?.emailAddress ||
+      'Compte FlipOn';
     const mail = user.primaryEmailAddress?.emailAddress ?? '';
     const initials = name
       .split(' ')
@@ -164,7 +125,8 @@ function AuthCardInner() {
           accessibilityRole="button"
           style={styles.secondaryButton}
           onPress={() => {
-            void signOut().then(() => router.replace('/(tabs)/profile'));
+            // Le replace vers /login évite de rester sur Profil sans session.
+            void signOut().then(() => router.replace('/login' as import('expo-router').Href));
           }}>
           <Text style={styles.secondaryText}>Se déconnecter</Text>
         </Pressable>
@@ -172,9 +134,121 @@ function AuthCardInner() {
     );
   }
 
+  // Cas rare (Profil ouvert sans session) : le gate aurait dû rediriger.
+  return <AuthForm compact />;
+}
+
+function AuthFormInner({ onSuccess, compact = false }: AuthFormProps) {
+  const { signIn, setActive: setActiveSignIn, isLoaded: signInLoaded } = useSignIn();
+  const { signUp, setActive: setActiveSignUp, isLoaded: signUpLoaded } = useSignUp();
+  const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
+
+  const [mode, setMode] = useState<Mode>('signIn');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
+  /** Après signup email : saisie du code à 6 chiffres reçu par mail. */
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  /** Messages Clerk souvent dans `errors[0].message`. */
+  const humanError = (e: unknown) => {
+    if (e && typeof e === 'object' && 'errors' in e) {
+      const first = (e as { errors?: { message?: string }[] }).errors?.[0]?.message;
+      if (first) return first;
+    }
+    return e instanceof Error ? e.message : 'Une erreur est survenue.';
+  };
+
+  const finish = useCallback(() => {
+    onSuccess?.();
+  }, [onSuccess]);
+
+  /** OAuth Google — redirect via scheme `fliponapp` (deep link). */
+  const onGoogle = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const { createdSessionId, setActive } = await startOAuthFlow({
+        redirectUrl: Linking.createURL('/login', { scheme: 'fliponapp' }),
+      });
+      if (createdSessionId && setActive) {
+        await setActive({ session: createdSessionId });
+        finish();
+      }
+    } catch (e) {
+      setError(humanError(e));
+    } finally {
+      setLoading(false);
+    }
+  }, [finish, startOAuthFlow]);
+
+  /** Connexion email OU démarrage inscription (+ envoi code vérif). */
+  const onEmailAuth = async () => {
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed || !password) {
+      setError('Email et mot de passe requis.');
+      return;
+    }
+    if (loading) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (mode === 'signIn') {
+        if (!signInLoaded || !signIn || !setActiveSignIn) return;
+        const result = await signIn.create({ identifier: trimmed, password });
+        if (result.status === 'complete') {
+          await setActiveSignIn({ session: result.createdSessionId });
+          finish();
+          return;
+        }
+        // Ex. 2FA Clerk non géré ici — basculer sur Google ou étendre plus tard.
+        setError('Connexion incomplète. Réessaie ou utilise Google.');
+        return;
+      }
+
+      if (!signUpLoaded || !signUp || !setActiveSignUp) return;
+      await signUp.create({ emailAddress: trimmed, password });
+      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      setPendingVerification(true);
+    } catch (e) {
+      setError(humanError(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /** Valide le code email et active la session. */
+  const onVerify = async () => {
+    if (!signUpLoaded || !signUp || !setActiveSignUp) return;
+    if (!code.trim()) {
+      setError('Entre le code reçu par e-mail.');
+      return;
+    }
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await signUp.attemptEmailAddressVerification({ code: code.trim() });
+      if (result.status === 'complete') {
+        await setActiveSignUp({ session: result.createdSessionId });
+        setPendingVerification(false);
+        finish();
+        return;
+      }
+      setError('Vérification incomplète. Vérifie le code.');
+    } catch (e) {
+      setError(humanError(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (pendingVerification) {
     return (
-      <View style={styles.card}>
+      <View style={[styles.card, !compact && styles.cardFlush]}>
         <Text style={styles.cardTitle}>Confirme ton e-mail</Text>
         <Text style={styles.hint}>Un code a été envoyé à {email.trim().toLowerCase()}.</Text>
         <TextInput
@@ -214,11 +288,11 @@ function AuthCardInner() {
   }
 
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>{mode === 'signIn' ? 'Connexion' : 'Créer un compte'}</Text>
-      <Text style={styles.hint}>
-        Compte FlipOn ou Google. Tu peux aussi rejoindre une session avec un code sans compte.
-      </Text>
+    <View style={[styles.card, !compact && styles.cardFlush]}>
+      {/* Sur l’écran login le titre est déjà hors du formulaire. */}
+      {!compact ? null : (
+        <Text style={styles.cardTitle}>{mode === 'signIn' ? 'Connexion' : 'Créer un compte'}</Text>
+      )}
 
       <TextInput
         value={email}
@@ -256,7 +330,7 @@ function AuthCardInner() {
           <ActivityIndicator color="#fff" />
         ) : (
           <Text style={styles.primaryText}>
-            {mode === 'signIn' ? 'Se connecter' : 'Créer mon compte'}
+            {mode === 'signIn' ? 'Se connecter' : "S'inscrire"}
           </Text>
         )}
       </Pressable>
@@ -282,7 +356,9 @@ function AuthCardInner() {
         }}
         hitSlop={8}>
         <Text style={styles.link}>
-          {mode === 'signIn' ? 'Pas encore de compte ? Créer un compte' : 'Déjà un compte ? Se connecter'}
+          {mode === 'signIn'
+            ? "Pas encore de compte ? S'inscrire"
+            : 'Déjà un compte ? Se connecter'}
         </Text>
       </Pressable>
     </View>
@@ -298,18 +374,24 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 10,
   },
+  /** Sans bordure : le parent (`login` formBlock) fournit déjà le cadre. */
+  cardFlush: {
+    borderWidth: 0,
+    backgroundColor: 'transparent',
+    paddingHorizontal: 0,
+  },
   cardTitle: { fontSize: 15, fontWeight: '700', color: FlipOn.ink },
   hint: { fontSize: 12, lineHeight: 18, color: FlipOn.muted },
   error: { fontSize: 13, color: FlipOn.danger, lineHeight: 18 },
   input: {
-    minHeight: 46,
+    minHeight: 48,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: FlipOn.line,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     fontSize: 15,
     color: FlipOn.ink,
-    backgroundColor: FlipOn.bg,
+    backgroundColor: FlipOn.surface,
   },
   header: { flexDirection: 'row', gap: 14, alignItems: 'center' },
   avatar: {
@@ -325,7 +407,7 @@ const styles = StyleSheet.create({
   name: { fontSize: 20, fontWeight: '800', color: FlipOn.ink },
   email: { fontSize: 13, color: FlipOn.muted },
   primaryButton: {
-    minHeight: 48,
+    minHeight: 50,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -333,19 +415,20 @@ const styles = StyleSheet.create({
   },
   primaryText: { fontSize: 15, fontWeight: '700', color: '#fff' },
   secondaryButton: {
-    minHeight: 46,
+    minHeight: 48,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: FlipOn.line,
+    backgroundColor: FlipOn.surface,
   },
   secondaryText: { fontSize: 14, fontWeight: '700', color: FlipOn.ink },
   dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 2 },
   divider: { flex: 1, height: 1, backgroundColor: FlipOn.line },
   dividerText: { fontSize: 12, color: FlipOn.muted, fontWeight: '600' },
   link: {
-    marginTop: 2,
+    marginTop: 4,
     fontSize: 13,
     fontWeight: '600',
     color: FlipOn.accentInk,

@@ -1,0 +1,107 @@
+/**
+ * Écran d’accueil / login (`/login`)
+ * ---------------------------------
+ * Première surface visible (gate auth dans `app/_layout`).
+ *
+ * Contenu :
+ * - Logo brand (`assets/images/logo.png` — placeholder à remplacer plus tard)
+ * - Formulaire via `AuthForm` (email, inscription, Google)
+ *
+ * Après succès : `router.replace('/(tabs)')` ;
+ * le gate root ferait aussi cette redirection si on reste sur /login connecté.
+ */
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter, type Href } from 'expo-router';
+
+import { AuthForm } from '@/components/auth/AuthCard';
+import { FlipOn } from '@/constants/flipon';
+
+export default function LoginScreen() {
+  const router = useRouter();
+
+  return (
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          <View style={styles.brand}>
+            <Image
+              source={require('../assets/images/logo.png')}
+              style={styles.logo}
+              accessibilityLabel="Logo FlipOn"
+            />
+            <Text style={styles.brandName}>FlipOn</Text>
+            <Text style={styles.tagline}>Connecte-toi pour choisir quoi faire.</Text>
+          </View>
+
+          <View style={styles.formBlock}>
+            <Text style={styles.formTitle}>Connexion</Text>
+            <AuthForm
+              onSuccess={() => {
+                router.replace('/(tabs)' as Href);
+              }}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: FlipOn.bg },
+  flex: { flex: 1 },
+  container: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 36,
+    justifyContent: 'center',
+    gap: 28,
+  },
+  brand: { alignItems: 'center', gap: 10 },
+  logo: {
+    width: 96,
+    height: 96,
+    borderRadius: 24,
+  },
+  brandName: {
+    fontSize: 34,
+    fontWeight: '800',
+    color: FlipOn.ink,
+    letterSpacing: -0.8,
+  },
+  tagline: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: FlipOn.muted,
+    textAlign: 'center',
+    maxWidth: 280,
+  },
+  formBlock: {
+    backgroundColor: FlipOn.surface,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: FlipOn.line,
+    padding: 18,
+    gap: 12,
+  },
+  formTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: FlipOn.ink,
+  },
+});

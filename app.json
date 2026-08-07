@@ -44,18 +44,11 @@
           }
         }
       ],
-      "expo-secure-store",
-      "expo-dev-client"
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    },
-    "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "c97cacb1-1fda-449e-ae67-0564c60c6ede"
-      }
     }
   }
 }

@@ -1,6 +1,13 @@
 import type { Constraints, Plan } from '@/data/plans';
 import { getDeviceKey } from '@/lib/device';
 
+/**
+ * Client HTTP FlipOn (app → API Next.js)
+ * --------------------------------------
+ * Base URL : EXPO_PUBLIC_API_URL || EXPO_PUBLIC_WEB_URL (prod Vercel ou IP LAN en dev).
+ * Auth : Bearer JWT Clerk via `setAuthTokenGetter` (branché dans app/_layout AuthBridge).
+ * Device : header x-flipon-device-key pour lier host/guest sans compte legacy.
+ */
 export class NetworkError extends Error {
   constructor(message = 'Connexion impossible. Réessaie dans un instant.') {
     super(message);
@@ -51,9 +58,13 @@ const API_BASE =
 
 const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
 
+/**
+ * Allowlist d’URL API.
+ * Prod : HTTPS only.
+ * Dev : localhost / 10.0.2.2 (AVD) / LAN privée pour Expo Go sur téléphone.
+ */
 function isAllowedApiBase(url: string) {
   if (url.startsWith('https://')) return true;
-  // Local / émulateur Android (10.0.2.2 = host machine) — uniquement en dev
   if (!isDev) return false;
   return (
     url.startsWith('http://localhost') ||
@@ -66,7 +77,10 @@ function isAllowedApiBase(url: string) {
 
 let authTokenGetter: (() => Promise<string | null>) | null = null;
 
-/** Enregistré depuis le layout Clerk pour envoyer le JWT. */
+/**
+ * Enregistré depuis AuthBridge (Clerk getToken).
+ * Les routes protégées serveur (/api/me, /api/history) exigent ce Bearer.
+ */
 export function setAuthTokenGetter(getter: (() => Promise<string | null>) | null) {
   authTokenGetter = getter;
 }
