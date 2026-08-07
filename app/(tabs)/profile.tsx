@@ -1,7 +1,7 @@
 /**
  * Onglet Profil (Basique)
  * -----------------------
- * - Compte Clerk (AuthCard) + déconnexion
+ * - Compte Clerk (AuthCard : identité + modifier + déconnexion)
  * - Offre Basique
  * - Liens légaux (site) + support
  * - Suppression de compte (RGPD)
@@ -93,16 +93,6 @@ export default function ProfileScreen() {
         <Text style={styles.screenTitle}>Profil</Text>
 
         <AuthCard />
-
-        <View style={styles.block}>
-          <Text style={styles.blockTitle}>Compte</Text>
-          <LinkRow
-            label="Modifier mon profil"
-            detail="Prénom, nom"
-            onPress={() => router.push('/edit-profile' as Href)}
-            last
-          />
-        </View>
 
         <View style={styles.block}>
           <Text style={styles.blockTitle}>Offre</Text>

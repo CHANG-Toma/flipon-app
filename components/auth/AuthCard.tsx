@@ -25,10 +25,12 @@ import {
 import { useAuth, useOAuth, useSignIn, useSignUp, useUser } from '@clerk/clerk-expo';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { FlipOn } from '@/constants/flipon';
 import { isClerkConfigured } from '@/lib/clerk';
+import { getSubscription } from '@/lib/subscription';
 
 /** Requis pour finaliser le retour OAuth (Google) dans Expo. */
 WebBrowser.maybeCompleteAuthSession();
@@ -51,7 +53,7 @@ export function GoogleAuthCard() {
 }
 
 /**
- * Carte Profil : identité + déconnexion si connecté, sinon formulaire compact.
+ * Carte Profil : identité + modifier profil + déconnexion.
  * La déconnexion renvoie vers `/login` (le gate root refuse l’app sans session).
  */
 export function AuthCard() {
@@ -94,6 +96,7 @@ function AuthCardInner() {
   const { isSignedIn, signOut } = useAuth();
   const { user } = useUser();
   const router = useRouter();
+  const planLabel = getSubscription().label;
 
   if (isSignedIn && user) {
     const name =
@@ -110,23 +113,45 @@ function AuthCardInner() {
       .slice(0, 2)
       .toUpperCase();
 
+    const openEdit = () => {
+      router.push('/edit-profile' as Href);
+    };
+
     return (
       <View style={styles.card}>
-        <View style={styles.header}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Modifier mon profil"
+          accessibilityHint="Ouvre l’édition du prénom et du nom"
+          onPress={openEdit}
+          style={({ pressed }) => [styles.identityHit, pressed && styles.pressed]}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{initials || 'FO'}</Text>
           </View>
           <View style={styles.headerText}>
-            <Text style={styles.name}>{name}</Text>
-            {mail ? <Text style={styles.email}>{mail}</Text> : null}
+            <View style={styles.nameRow}>
+              <Text style={styles.name} numberOfLines={1}>
+                {name}
+              </Text>
+              <View style={styles.planPill}>
+                <Text style={styles.planPillText}>{planLabel}</Text>
+              </View>
+            </View>
+            {mail ? (
+              <Text style={styles.email} numberOfLines={1}>
+                {mail}
+              </Text>
+            ) : null}
+            <Text style={styles.editHint}>Modifier mon profil</Text>
           </View>
-        </View>
+          <MaterialIcons name="chevron-right" size={22} color={FlipOn.muted} />
+        </Pressable>
+
         <Pressable
           accessibilityRole="button"
           style={styles.secondaryButton}
           onPress={() => {
-            // Le replace vers /login évite de rester sur Profil sans session.
-            void signOut().then(() => router.replace('/login' as import('expo-router').Href));
+            void signOut().then(() => router.replace('/login' as Href));
           }}>
           <Text style={styles.secondaryText}>Se déconnecter</Text>
         </Pressable>
@@ -402,6 +427,13 @@ const styles = StyleSheet.create({
     backgroundColor: FlipOn.surface,
   },
   header: { flexDirection: 'row', gap: 14, alignItems: 'center' },
+  identityHit: {
+    flexDirection: 'row',
+    gap: 14,
+    alignItems: 'center',
+    paddingVertical: 2,
+  },
+  pressed: { opacity: 0.72 },
   avatar: {
     height: 56,
     width: 56,
@@ -411,9 +443,28 @@ const styles = StyleSheet.create({
     backgroundColor: FlipOn.accentSoft,
   },
   avatarText: { fontSize: 18, fontWeight: '800', color: FlipOn.accentInk },
-  headerText: { flex: 1, gap: 3 },
-  name: { fontSize: 20, fontWeight: '800', color: FlipOn.ink },
+  headerText: { flex: 1, gap: 3, minWidth: 0 },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  name: { fontSize: 20, fontWeight: '800', color: FlipOn.ink, flexShrink: 1 },
+  planPill: {
+    backgroundColor: FlipOn.accentSoft,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  planPillText: { fontSize: 11, fontWeight: '800', color: FlipOn.accentInk },
   email: { fontSize: 13, color: FlipOn.muted },
+  editHint: {
+    marginTop: 2,
+    fontSize: 13,
+    fontWeight: '600',
+    color: FlipOn.accentInk,
+  },
   primaryButton: {
     minHeight: 50,
     borderRadius: 14,
