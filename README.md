@@ -1,46 +1,28 @@
 # FlipOn Mobile
 
-FlipOn est une application mobile qui aide a choisir rapidement une activite en solo, duo ou groupe.
+FlipOn aide a choisir rapidement une activite en solo, duo ou groupe.
 
-## Dev Windows — Android (recommandé)
+## Dev — Expo Go (simple)
 
-Sur Windows, l’émulateur **Android** fonctionne nativement. Le Simulateur iOS non (Mac only).  
-Tu peux aussi brancher un **vrai iPhone** avec Expo Go — ce n’est pas un simulateur, mais du vrai device.
-
-### 1. Une fois — créer l’émulateur
+1. Installe [Expo Go](https://expo.dev/go) sur ton telephone (iPhone ou Android)
+2. Lance l’API si besoin (`cd flipon && npm run db:up && npm run dev`)
+3. Dans l’app :
 
 ```bash
 cd flipon-app
-npm run android:setup
-```
-
-(télécharge l’image Android 34 + crée `Pixel_7_API_34`, plusieurs minutes)
-
-Ou via Android Studio → **Device Manager** → Create Device (Pixel).
-
-### 2. Lancer l’app
-
-```bash
-npm run android
-```
-
-Ça démarre l’émulateur si besoin, puis Expo (Expo Go sur l’AVD).
-
-### iPhone depuis Windows ?
-
-Oui, avec un **iPhone physique** + [Expo Go](https://expo.dev/go) :
-
-```bash
+cp .env.example .env   # renseigner Clerk + URLs
+npx expo start
+# si le QR ne charge pas (Wi‑Fi different) :
 npx expo start --tunnel
 ```
 
-Puis scanne le QR. Pas besoin de Mac pour ça.
+4. Scanne le QR avec Expo Go
 
-## EAS (builds cloud — plus tard)
+### URLs API dans `.env`
 
-Profils dans `eas.json`. Le build `ios-simulator` nécessite un Mac pour **installer** le résultat.
+- Prod / simple : `EXPO_PUBLIC_API_URL=https://flipon.vercel.app`
+- API locale (meme Wi‑Fi) : `EXPO_PUBLIC_API_URL=http://IP_DU_PC:3000`
 
-```bash
-npm run build:android-dev   # APK test
-npm run build:ios-sim       # .app sim — Mac only pour lancer
-```
+## EAS
+
+Config `eas.json` presente pour plus tard (stores). Pas necessaire pour Expo Go.

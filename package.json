@@ -4,22 +4,12 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
-    "start:dev-client": "expo start --dev-client",
+    "start:tunnel": "expo start --tunnel",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/android.ps1",
-    "android:setup": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/android-setup.ps1",
-    "android:devices": "powershell -NoProfile -ExecutionPolicy Bypass -Command \". ./scripts/android-env.ps1; adb devices; emulator -list-avds\"",
+    "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "start:tunnel": "expo start --tunnel",
-    "lint": "expo lint",
-    "eas:login": "npx eas-cli@latest login",
-    "eas:whoami": "npx eas-cli@latest whoami",
-    "eas:init": "npx eas-cli@latest init",
-    "build:ios-sim": "npx eas-cli@latest build --platform ios --profile ios-simulator",
-    "build:android-dev": "npx eas-cli@latest build --platform android --profile development",
-    "build:preview": "npx eas-cli@latest build --platform all --profile preview",
-    "build:run:ios": "npx eas-cli@latest build:run -p ios --latest"
+    "lint": "expo lint"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.19.31",

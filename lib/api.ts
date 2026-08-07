@@ -49,6 +49,21 @@ const API_BASE =
     (process.env.EXPO_PUBLIC_API_URL || process.env.EXPO_PUBLIC_WEB_URL)?.replace(/\/$/, '')) ||
   'https://flipon.vercel.app';
 
+const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
+
+function isAllowedApiBase(url: string) {
+  if (url.startsWith('https://')) return true;
+  // Local / émulateur Android (10.0.2.2 = host machine) — uniquement en dev
+  if (!isDev) return false;
+  return (
+    url.startsWith('http://localhost') ||
+    url.startsWith('http://127.0.0.1') ||
+    url.startsWith('http://10.0.2.2') ||
+    /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(url) ||
+    /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(url)
+  );
+}
+
 let authTokenGetter: (() => Promise<string | null>) | null = null;
 
 /** Enregistré depuis le layout Clerk pour envoyer le JWT. */
@@ -57,7 +72,7 @@ export function setAuthTokenGetter(getter: (() => Promise<string | null>) | null
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  if (!API_BASE.startsWith('https://') && !API_BASE.startsWith('http://localhost')) {
+  if (!isAllowedApiBase(API_BASE)) {
     throw new NetworkError('URL API non sécurisée.');
   }
 
