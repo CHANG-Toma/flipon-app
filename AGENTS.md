@@ -21,6 +21,7 @@ private votes → shared matched idea.
 - Google via Clerk on Profil (optional for joining by code); signed-in users sync history via `/api/history`.
 - Auth: email/password (créer un compte) **ou** Google OAuth — same Clerk app.
 - Invité sans app : QR / lien → site `/join/CODE` → vote navigateur.
+- Profil : liens `/legal/*` sur le site + suppression compte Clerk (activer delete self-serve dans Clerk).
 
 Navigation:
 - Tabs: Accueil, Historique, Profil
