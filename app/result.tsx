@@ -6,6 +6,12 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { FlipOn } from '@/constants/flipon';
 import { clearActiveSession, getSession } from '@/lib/session-store';
 
+/**
+ * Résultat Basique (gratuit)
+ * --------------------------
+ * Affiche uniquement l’idée commune issue du vote (titre + accroche + méta).
+ * Le plan détaillé (étapes) est réservé à Boost — ne pas le réintroduire ici.
+ */
 export default function ResultScreen() {
   const router = useRouter();
   const session = getSession();
@@ -60,20 +66,13 @@ export default function ResultScreen() {
         </View>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Étapes</Text>
-        {result.steps.map((step, index) => (
-          <Text key={step} style={styles.item}>
-            {index + 1}. {step}
-          </Text>
-        ))}
-      </View>
-
       <Pressable style={styles.primaryButton} onPress={share}>
         <Text style={styles.primaryText}>Partager le résultat</Text>
       </Pressable>
-      <Pressable style={styles.secondaryButton} onPress={() => router.push('/boost')}>
-        <Text style={styles.secondaryText}>Voir le plan Boost</Text>
+      <Pressable
+        style={styles.secondaryButton}
+        onPress={() => router.replace('/(tabs)')}>
+        <Text style={styles.secondaryText}>Retour à l’accueil</Text>
       </Pressable>
       <Pressable
         style={styles.ghostButton}
@@ -113,16 +112,6 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     overflow: 'hidden',
   },
-  card: {
-    backgroundColor: FlipOn.surface,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: FlipOn.line,
-    padding: 16,
-    gap: 8,
-  },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: FlipOn.ink },
-  item: { fontSize: 14, lineHeight: 20, color: FlipOn.muted },
   primaryButton: {
     minHeight: 52,
     borderRadius: 14,

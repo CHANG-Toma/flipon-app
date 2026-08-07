@@ -10,19 +10,23 @@ Prefer Expo SDK APIs and documented patterns over outdated Stack Overflow snippe
 ## Product context
 
 FlipOn helps people decide an activity quickly (duo or group):
-private votes → shared result → optional Boost plan.
+private votes → shared matched idea.
 
+- **Basique (gratuit, focus actuel)** : catalogue + filtres → vote → **idée retenue uniquement** (titre / blurb / méta). Pas d’IA / météo / abo.
+- **Boost (plus tard)** : plan détaillé (étapes) + idées IA / contexte. Ne pas réintroduire d’écran mock « Boost » ni d’étapes sur `/result` tant que Basique.
 - Session creation is step-by-step: type + cadre first, then invitation lobby.
-- Groupe lets the host pick party size (3–8). Voting starts when the lobby is full.
+- Groupe lets the host pick party size (3–8). Voting starts when the lobby is full. (API encore limitée duo.)
 - Active sessions + history are persisted locally; duo create/join/vote go through FlipOn API (`/api/duo`).
 - Postgres (DATABASE_URL on web API) stores durable sessions/users/history; Redis stays the hot lobby cache.
 - Google via Clerk on Profil (optional for joining by code); signed-in users sync history via `/api/history`.
 - Auth: email/password (créer un compte) **ou** Google OAuth — same Clerk app.
+- Invité sans app : QR / lien → site `/join/CODE` → vote navigateur.
 
 Navigation:
 - Tabs: Accueil, Historique, Profil
 - FAB `+`: create Session
-- Flow screens (not tabs): Session → Vote → Result → Boost
+- Flow screens (not tabs): Session → Vote → Result
+- Guest web join is first-class (no forced download)
 
 UI copy is French with correct accents and apostrophes.
 Do not invent auto-booking/reservation by FlipOn.

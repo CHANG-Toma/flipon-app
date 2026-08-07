@@ -29,13 +29,6 @@ export type SessionStatus =
   | 'waiting_partner'
   | 'done';
 
-export type BoostStep = {
-  id: string;
-  title: string;
-  detail: string;
-  duration: string;
-};
-
 type SessionState = {
   code: string;
   type: SessionType;
@@ -50,7 +43,6 @@ type SessionState = {
   hostLikes: string[] | null;
   guestLikes: string[] | null;
   result: Plan | null;
-  boostOpened: boolean;
   bothReady: boolean;
   hostReady: boolean;
   guestReady: boolean;
@@ -99,7 +91,6 @@ function emptyState(partial?: Partial<SessionState>): SessionState {
     hostLikes: null,
     guestLikes: null,
     result: null,
-    boostOpened: false,
     bothReady: false,
     hostReady: false,
     guestReady: false,
@@ -126,7 +117,6 @@ async function persistActive() {
         role: state.role,
         type: state.type,
         partySize: state.partySize,
-        boostOpened: state.boostOpened,
         status: state.status,
         index: state.index,
         myLikes: state.myLikes,
@@ -227,14 +217,6 @@ export function getHomeCta(session: SessionState = state) {
   }
 
   if (session.status === 'done') {
-    if (session.boostOpened) {
-      return {
-        title: session.result?.title ?? 'Résultat prêt',
-        cta: 'Voir le plan Boost',
-        target: '/boost' as const,
-        detail: 'Idée retenue · plan Boost',
-      };
-    }
     return {
       title: session.result ? 'Résultat prêt' : 'Pas de match',
       cta: 'Voir le résultat',
@@ -266,7 +248,6 @@ export async function hydrateSession() {
       role: saved.role,
       type: saved.type === 'Groupe' ? 'Groupe' : 'Duo',
       partySize: saved.partySize ?? 2,
-      boostOpened: Boolean(saved.boostOpened),
       status: saved.status ?? 'lobby',
       index: saved.index ?? 0,
       myLikes: saved.myLikes ?? [],
@@ -506,13 +487,6 @@ export async function voteCurrent(accepted: boolean) {
   return state;
 }
 
-export function markBoostOpened() {
-  state = { ...state, boostOpened: true };
-  void persistActive();
-  emit();
-  return state;
-}
-
 export async function clearActiveSession() {
   const code = state.code;
   if (code) await closeRoom(code);
@@ -535,16 +509,6 @@ export function getInviteLink(code: string) {
 export function getAppInviteLink(code: string) {
   const normalized = code.trim().toUpperCase().replace(/^FLIP-/, '');
   return `fliponapp://join/${normalized}`;
-}
-
-export function planToBoostSteps(plan: Plan | null): BoostStep[] {
-  if (!plan) return [];
-  return plan.steps.map((step, index) => ({
-    id: `${plan.id}-${index}`,
-    title: step,
-    detail: plan.blurb,
-    duration: index === 0 ? `${plan.durationMin} min au total` : '',
-  }));
 }
 
 /** @deprecated use createSessionOnServer */

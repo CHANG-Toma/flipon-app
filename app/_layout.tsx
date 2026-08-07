@@ -167,7 +167,6 @@ function RootNavigator({ gate }: { gate: 'auth' | 'missing' | 'none' }) {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="vote" />
         <Stack.Screen name="result" />
-        <Stack.Screen name="boost" />
         <Stack.Screen name="join/[code]" />
       </Stack>
       <StatusBar style="dark" />

@@ -2,7 +2,8 @@
  * Onglet Profil
  * -------------
  * AuthCard : identité + déconnexion (session obligatoire via AuthBridge).
- * Toggles confidentialité / abo : UI locale pour l’instant (pas encore persistés BDD).
+ * Toggles / abo : UI locale pour l’instant (pas encore persistés BDD).
+ * Boost payant volontairement absent tant que le Basique n’est pas figé.
  */
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
@@ -13,7 +14,6 @@ import { FlipOn } from '@/constants/flipon';
 
 export default function ProfileScreen() {
   const [sessionNotif, setSessionNotif] = useState(true);
-  const [boostNotif, setBoostNotif] = useState(true);
   const [shareStats, setShareStats] = useState(false);
 
   return (
@@ -32,7 +32,6 @@ export default function ProfileScreen() {
             value={sessionNotif}
             onValueChange={setSessionNotif}
           />
-          <ToggleRow label="Notifications Boost" value={boostNotif} onValueChange={setBoostNotif} />
           <ToggleRow
             label="Partager mes stats"
             value={shareStats}
@@ -44,8 +43,7 @@ export default function ProfileScreen() {
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Abonnement</Text>
-          <SettingRow label="Offre" value="Basique" />
-          <SettingRow label="Boost" value="Optionnel" last />
+          <SettingRow label="Offre" value="Basique (gratuit)" last />
         </View>
 
         <Pressable style={styles.dangerButton}>
