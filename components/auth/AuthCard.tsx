@@ -287,12 +287,18 @@ function AuthFormInner({ onSuccess, compact = false }: AuthFormProps) {
     );
   }
 
+  const isSignUp = mode === 'signUp';
+
   return (
     <View style={[styles.card, !compact && styles.cardFlush]}>
-      {/* Sur l’écran login le titre est déjà hors du formulaire. */}
-      {!compact ? null : (
-        <Text style={styles.cardTitle}>{mode === 'signIn' ? 'Connexion' : 'Créer un compte'}</Text>
-      )}
+      <Text style={compact ? styles.cardTitle : styles.screenTitle}>
+        {isSignUp ? 'Créer un compte' : 'Connexion'}
+      </Text>
+      {isSignUp ? (
+        <Text style={styles.hint}>
+          Tu recevras un code par e-mail pour valider ton compte.
+        </Text>
+      ) : null}
 
       <TextInput
         value={email}
@@ -310,11 +316,11 @@ function AuthFormInner({ onSuccess, compact = false }: AuthFormProps) {
       <TextInput
         value={password}
         onChangeText={setPassword}
-        placeholder="Mot de passe"
+        placeholder={isSignUp ? 'Mot de passe (8 caractères min.)' : 'Mot de passe'}
         placeholderTextColor={FlipOn.muted}
         secureTextEntry
-        autoComplete={mode === 'signIn' ? 'password' : 'new-password'}
-        textContentType={mode === 'signIn' ? 'password' : 'newPassword'}
+        autoComplete={isSignUp ? 'new-password' : 'password'}
+        textContentType={isSignUp ? 'newPassword' : 'password'}
         style={styles.input}
         accessibilityLabel="Mot de passe"
       />
@@ -329,9 +335,7 @@ function AuthFormInner({ onSuccess, compact = false }: AuthFormProps) {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.primaryText}>
-            {mode === 'signIn' ? 'Se connecter' : "S'inscrire"}
-          </Text>
+          <Text style={styles.primaryText}>{isSignUp ? "S'inscrire" : 'Se connecter'}</Text>
         )}
       </Pressable>
 
@@ -350,15 +354,18 @@ function AuthFormInner({ onSuccess, compact = false }: AuthFormProps) {
       </Pressable>
 
       <Pressable
+        accessibilityRole="button"
         onPress={() => {
-          setMode(mode === 'signIn' ? 'signUp' : 'signIn');
+          setMode(isSignUp ? 'signIn' : 'signUp');
           setError(null);
+          setPendingVerification(false);
+          setCode('');
         }}
         hitSlop={8}>
         <Text style={styles.link}>
-          {mode === 'signIn'
-            ? "Pas encore de compte ? S'inscrire"
-            : 'Déjà un compte ? Se connecter'}
+          {isSignUp
+            ? 'Déjà un compte ? Se connecter'
+            : "Pas encore de compte ? S'inscrire"}
         </Text>
       </Pressable>
     </View>
@@ -381,6 +388,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
   cardTitle: { fontSize: 15, fontWeight: '700', color: FlipOn.ink },
+  screenTitle: { fontSize: 18, fontWeight: '800', color: FlipOn.ink, marginBottom: 2 },
   hint: { fontSize: 12, lineHeight: 18, color: FlipOn.muted },
   error: { fontSize: 13, color: FlipOn.danger, lineHeight: 18 },
   input: {

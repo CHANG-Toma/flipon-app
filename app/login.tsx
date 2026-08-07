@@ -48,7 +48,6 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.formBlock}>
-            <Text style={styles.formTitle}>Connexion</Text>
             <AuthForm
               onSuccess={() => {
                 router.replace('/(tabs)' as Href);
@@ -98,10 +97,5 @@ const styles = StyleSheet.create({
     borderColor: FlipOn.line,
     padding: 18,
     gap: 12,
-  },
-  formTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: FlipOn.ink,
   },
 });

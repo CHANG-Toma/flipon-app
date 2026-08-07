@@ -69,18 +69,40 @@ function AuthBridge({ children }: { children: ReactNode }) {
     return () => setAuthTokenGetter(null);
   }, [getToken]);
 
-  // Sync best-effort : ne bloque pas l’UI si API / réseau down.
+  // Sync best-effort après login : attendre un JWT valide avant /api/me.
   useEffect(() => {
     if (!isSignedIn) return;
+
+    let cancelled = false;
     void (async () => {
       try {
+        // Évite la course : token getter + JWT prêts avant l’upsert BDD
+        let token: string | null = null;
+        for (let i = 0; i < 10; i++) {
+          token = await getToken();
+          if (token) break;
+          await new Promise((r) => setTimeout(r, 150));
+        }
+        if (cancelled) return;
+        if (!token) {
+          if (__DEV__) {
+            console.warn('[FlipOn] syncMe: pas de JWT Clerk — User non créé en BDD');
+          }
+          return;
+        }
         await syncMe();
         await pullCloudHistory();
-      } catch {
-        /* offline / API non configurée */
+      } catch (e) {
+        if (__DEV__) {
+          console.warn('[FlipOn] syncMe / history failed', e);
+        }
       }
     })();
-  }, [isSignedIn]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isSignedIn, getToken]);
 
   // Garde de navigation (toutes les routes app sauf /login).
   useEffect(() => {
