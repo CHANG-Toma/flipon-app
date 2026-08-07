@@ -169,6 +169,7 @@ function RootNavigator({ gate }: { gate: 'auth' | 'missing' | 'none' }) {
         <Stack.Screen name="result" />
         <Stack.Screen name="subscription" />
         <Stack.Screen name="edit-profile" />
+        <Stack.Screen name="history-entry/[id]" />
         <Stack.Screen name="join/[code]" />
       </Stack>
       <StatusBar style="dark" />

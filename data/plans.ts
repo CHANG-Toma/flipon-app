@@ -513,6 +513,11 @@ export function buildDeck(constraints: Constraints): Plan[] {
   return shuffle(filterPlans(constraints)).slice(0, 6);
 }
 
+export function getPlanById(id: string | undefined | null) {
+  if (!id) return null;
+  return PLANS.find((p) => p.id === id) ?? null;
+}
+
 export function vibeLabel(v: Vibe): string {
   switch (v) {
     case "potes":

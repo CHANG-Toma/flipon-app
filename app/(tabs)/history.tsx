@@ -1,77 +1,132 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+/**
+ * Onglet Historique
+ * -----------------
+ * Liste groupée par jour, pull-to-refresh (sync cloud), détail via /history-entry/[id].
+ */
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useRouter, type Href } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FlipOn } from '@/constants/flipon';
 import {
   formatHistoryMeta,
   getHistory,
+  groupHistoryByDay,
   hydrateHistory,
+  pullCloudHistory,
   subscribeHistory,
   type HistoryEntry,
 } from '@/lib/history-store';
-import { getSession, isActiveSession } from '@/lib/session-store';
 
 export default function HistoryScreen() {
   const router = useRouter();
   const [sessions, setSessions] = useState<HistoryEntry[]>(getHistory());
+  const [refreshing, setRefreshing] = useState(false);
+
+  const reloadLocal = useCallback(async () => {
+    const items = await hydrateHistory();
+    setSessions(items);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      void hydrateHistory().then(setSessions);
-    }, []),
+      void reloadLocal();
+    }, [reloadLocal]),
   );
 
   useEffect(() => subscribeHistory(() => setSessions(getHistory())), []);
 
-  const openEntry = (entry: HistoryEntry) => {
-    const active = getSession();
-    if (isActiveSession(active) && active.status === 'done' && active.code === entry.id) {
-      router.push('/result');
-      return;
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await hydrateHistory();
+      const merged = await pullCloudHistory();
+      setSessions(merged);
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } finally {
+      setRefreshing(false);
     }
-    router.push('/(tabs)/history');
+  }, []);
+
+  const groups = useMemo(() => groupHistoryByDay(sessions), [sessions]);
+
+  const openEntry = (entry: HistoryEntry) => {
+    router.push(`/history-entry/${encodeURIComponent(entry.id)}` as Href);
   };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => void onRefresh()}
+            tintColor={FlipOn.accent}
+            colors={[FlipOn.accent]}
+          />
+        }>
         <View style={styles.top}>
           <Text style={styles.title}>Historique</Text>
-          <Text style={styles.subtitle}>Uniquement tes sessions. Rien n’est partagé sans toi.</Text>
+          <Text style={styles.subtitle}>
+            Tes sessions sur cet appareil. Tire pour synchroniser le cloud.
+          </Text>
         </View>
 
         {sessions.length === 0 ? (
           <EmptyState
             title="Aucune session pour l’instant"
-            text="Quand tu valides une activité, elle apparaît ici."
+            text="Quand vous validez une activité ensemble, elle apparaît ici."
             actionLabel="Nouvelle session"
-            onAction={() => router.push('/session')}
+            onAction={() => router.push('/session' as Href)}
             icon="history"
           />
         ) : (
           <>
-            <Text style={styles.count}>{sessions.length} sessions</Text>
-            <View style={styles.list}>
-              {sessions.map((session) => {
-                const muted = session.status !== 'Validée';
-                return (
-                  <Pressable key={session.id} style={styles.row} onPress={() => openEntry(session)}>
-                    <View style={styles.rowBody}>
-                      <Text style={styles.rowTitle}>{session.title}</Text>
-                      <Text style={styles.rowMeta}>{formatHistoryMeta(session)}</Text>
-                    </View>
-                    <Text style={[styles.pill, muted ? styles.pillMuted : styles.pillOk]}>
-                      {session.status}
-                    </Text>
-                    <MaterialIcons name="chevron-right" size={22} color={FlipOn.muted} />
-                  </Pressable>
-                );
-              })}
-            </View>
+            <Text style={styles.count}>
+              {sessions.length} session{sessions.length > 1 ? 's' : ''}
+            </Text>
+            {groups.map((group) => (
+              <View key={group.label} style={styles.group}>
+                <Text style={styles.groupLabel}>{group.label}</Text>
+                <View style={styles.list}>
+                  {group.items.map((session) => {
+                    const muted = session.status !== 'Validée';
+                    return (
+                      <Pressable
+                        key={session.id}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${session.title}, ${session.status}`}
+                        style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+                        onPress={() => openEntry(session)}>
+                        <View style={styles.rowBody}>
+                          <Text style={styles.rowTitle} numberOfLines={2}>
+                            {session.title}
+                          </Text>
+                          <Text style={styles.rowMeta}>{formatHistoryMeta(session)}</Text>
+                        </View>
+                        <Text style={[styles.pill, muted ? styles.pillMuted : styles.pillOk]}>
+                          {session.status}
+                        </Text>
+                        <MaterialIcons name="chevron-right" size={22} color={FlipOn.muted} />
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            ))}
           </>
         )}
       </ScrollView>
@@ -93,6 +148,14 @@ const styles = StyleSheet.create({
   title: { fontSize: 30, fontWeight: '800', color: FlipOn.ink, letterSpacing: -0.5 },
   subtitle: { fontSize: 14, lineHeight: 20, color: FlipOn.muted },
   count: { marginTop: 4, fontSize: 13, fontWeight: '600', color: FlipOn.muted },
+  group: { gap: 8, marginTop: 4 },
+  groupLabel: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: FlipOn.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
   list: { gap: 10 },
   row: {
     backgroundColor: FlipOn.surface,
@@ -105,6 +168,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
+  rowPressed: { opacity: 0.72 },
   rowBody: { flex: 1, gap: 3 },
   rowTitle: { fontSize: 16, fontWeight: '700', color: FlipOn.ink },
   rowMeta: { fontSize: 13, color: FlipOn.muted },

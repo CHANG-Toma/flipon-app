@@ -43,6 +43,18 @@ export function getLatestHistory() {
   return entries[0] ?? null;
 }
 
+export function getHistoryEntry(id: string) {
+  return entries.find((item) => item.id === id) ?? null;
+}
+
+export async function removeHistoryEntry(id: string) {
+  await hydrateHistory();
+  entries = entries.filter((item) => item.id !== id);
+  await persist();
+  emit();
+  return entries;
+}
+
 export async function hydrateHistory() {
   if (hydrated) return entries;
   try {
@@ -113,6 +125,29 @@ export function formatHistoryMeta(entry: HistoryEntry) {
       ? `${Math.round(entry.durationMin / 60)}h${entry.durationMin % 60 ? entry.durationMin % 60 : ''}`
       : `${entry.durationMin} min`;
   return `${entry.type} · ${when} · ${duration}`;
+}
+
+/** Libellé de section pour grouper la liste (Aujourd'hui / Hier / date). */
+export function formatHistoryDayLabel(ts: number) {
+  return formatRelativeDay(ts);
+}
+
+export function groupHistoryByDay(items: HistoryEntry[]) {
+  const groups: { label: string; items: HistoryEntry[] }[] = [];
+  const indexByLabel = new Map<string, number>();
+
+  for (const entry of items) {
+    const label = formatHistoryDayLabel(entry.createdAt);
+    const existing = indexByLabel.get(label);
+    if (existing === undefined) {
+      indexByLabel.set(label, groups.length);
+      groups.push({ label, items: [entry] });
+    } else {
+      groups[existing].items.push(entry);
+    }
+  }
+
+  return groups;
 }
 
 function formatRelativeDay(ts: number) {
