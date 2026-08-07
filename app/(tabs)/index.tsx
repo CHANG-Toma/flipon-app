@@ -1,5 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useFocusEffect, useRouter } from 'expo-router';
+/**
+ * Accueil
+ * -------
+ * Session en cours (CTA), rejoindre par code, dernière activité → détail historique.
+ */
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useFocusEffect, useRouter, type Href } from 'expo-router';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -12,8 +17,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useUser } from '@clerk/clerk-expo';
+import * as Haptics from 'expo-haptics';
 
-import { EmptyState } from '@/components/ui/EmptyState';
 import { FlipOn } from '@/constants/flipon';
 import {
   formatHistoryMeta,
@@ -24,6 +30,7 @@ import {
 } from '@/lib/history-store';
 import { isValidSessionCode, normalizeSessionCode } from '@/lib/session-code';
 import {
+  clearActiveSession,
   getHomeCta,
   getSession,
   hydrateSession,
@@ -31,13 +38,22 @@ import {
   subscribeSession,
 } from '@/lib/session-store';
 
+function greetingLabel(firstName?: string | null) {
+  const hour = new Date().getHours();
+  const hello = hour < 18 ? 'Bonjour' : 'Bonsoir';
+  const name = firstName?.trim();
+  return name ? `${hello}, ${name}` : hello;
+}
+
 export default function HomeScreen() {
   const router = useRouter();
+  const { user } = useUser();
   const [joinCode, setJoinCode] = useState('');
   const [session, setSession] = useState(getSession());
   const [latest, setLatest] = useState<HistoryEntry | null>(getLatestHistory());
   const [ready, setReady] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
+  const [clearing, setClearing] = useState(false);
 
   const refreshLocal = useCallback(async () => {
     await Promise.all([hydrateSession(), hydrateHistory()]);
@@ -55,14 +71,33 @@ export default function HomeScreen() {
   useEffect(() => subscribeSession(() => setSession(getSession())), []);
   useEffect(() => subscribeHistory(() => setLatest(getLatestHistory())), []);
 
+  const hello = useMemo(
+    () => greetingLabel(user?.firstName ?? user?.username),
+    [user?.firstName, user?.username],
+  );
+
   const joinSession = () => {
     const code = normalizeSessionCode(joinCode);
     if (!isValidSessionCode(code)) {
       setJoinError('Entre un code à 4 caractères.');
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
     setJoinError(null);
-    router.push(`/join/${code}`);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push(`/join/${code}` as Href);
+  };
+
+  const dismissDoneSession = async () => {
+    if (clearing) return;
+    try {
+      setClearing(true);
+      await clearActiveSession();
+      setSession(getSession());
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } finally {
+      setClearing(false);
+    }
   };
 
   const hasActive = isActiveSession(session);
@@ -85,61 +120,92 @@ export default function HomeScreen() {
           keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}>
           <View style={styles.top}>
-            <Text style={styles.hello}>Bonjour</Text>
+            <Text style={styles.hello}>{hello}</Text>
             <Text style={styles.title}>Que fait-on ?</Text>
             <Text style={styles.subtitle}>
-              Où tu veux, quand tu veux : une idée claire pour tous.
+              Votez en privé, une idée pour tout le monde. Ambiance d’idées — pas
+              une app de rencontres.
             </Text>
           </View>
 
           {hasActive ? (
+            <View style={styles.heroWrap}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${home.cta}. ${home.title}`}
+                style={({ pressed }) => [styles.hero, pressed && styles.pressed]}
+                onPress={() => router.push(home.target as Href)}>
+                <View style={styles.heroTop}>
+                  <View style={styles.badgeLive}>
+                    <View style={styles.dot} />
+                    <Text style={styles.badgeLiveText}>
+                      {session.status === 'done' ? 'Terminée' : 'En cours'}
+                    </Text>
+                  </View>
+                  <Text style={styles.heroCode}>{session.code}</Text>
+                </View>
+
+                <Text style={styles.heroTitle}>
+                  {session.type} · {home.title}
+                </Text>
+                <Text style={styles.heroText}>{home.detail}</Text>
+
+                {session.status === 'voting' || session.status === 'waiting_partner' ? (
+                  <View style={styles.progressBlock}>
+                    <View style={styles.progressTrack}>
+                      <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
+                    </View>
+                    <Text style={styles.progressLabel}>
+                      {Math.min(session.index, session.deck.length)}/
+                      {session.deck.length || 6} idées vues
+                    </Text>
+                  </View>
+                ) : null}
+
+                <View style={styles.heroCta}>
+                  <Text style={styles.heroCtaText}>{home.cta}</Text>
+                  <MaterialIcons name="arrow-forward" size={18} color="#fff" />
+                </View>
+              </Pressable>
+
+              {session.status === 'done' ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Archiver la session terminée"
+                  style={styles.dismissBtn}
+                  onPress={() => void dismissDoneSession()}
+                  disabled={clearing}>
+                  <Text style={styles.dismissText}>
+                    {clearing ? '…' : 'Archiver et revenir à l’accueil'}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
+          ) : ready ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`${home.cta}. ${home.title}`}
-              style={styles.hero}
-              onPress={() => router.push(home.target)}>
-              <View style={styles.heroTop}>
-                <View style={styles.badgeLive}>
-                  <View style={styles.dot} />
-                  <Text style={styles.badgeLiveText}>En cours</Text>
-                </View>
-                <Text style={styles.heroExpire}>{session.code}</Text>
+              accessibilityLabel="Nouvelle session"
+              style={({ pressed }) => [styles.startCard, pressed && styles.pressed]}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/session' as Href);
+              }}>
+              <View style={styles.startIcon}>
+                <MaterialIcons name="bolt" size={26} color={FlipOn.accent} />
               </View>
-
-              <Text style={styles.heroTitle}>
-                {session.type} · {home.title}
+              <Text style={styles.startTitle}>Lancer une session</Text>
+              <Text style={styles.startText}>
+                Choisis le cadre, invite avec un code, votez chacun de votre côté.
               </Text>
-              <Text style={styles.heroText}>{home.detail}</Text>
-
-              {session.status === 'voting' || session.status === 'waiting_partner' ? (
-                <View style={styles.progressBlock}>
-                  <View style={styles.progressTrack}>
-                    <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
-                  </View>
-                  <Text style={styles.progressLabel}>
-                    {Math.min(session.index, session.deck.length)}/{session.deck.length || 6} idées
-                    vues
-                  </Text>
-                </View>
-              ) : null}
-
-              <View style={styles.heroCta}>
-                <Text style={styles.heroCtaText}>{home.cta}</Text>
+              <View style={styles.startCta}>
+                <Text style={styles.startCtaText}>Nouvelle session</Text>
                 <MaterialIcons name="arrow-forward" size={18} color="#fff" />
               </View>
             </Pressable>
-          ) : ready ? (
-            <EmptyState
-              title="Aucune session en cours"
-              text="Lance une session ou rejoins un ami avec un code."
-              actionLabel="Nouvelle session"
-              onAction={() => router.push('/session')}
-              icon="add-circle-outline"
-            />
           ) : null}
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Rejoindre</Text>
+            <Text style={styles.sectionTitle}>Rejoindre avec un code</Text>
             <View style={styles.joinRow}>
               <TextInput
                 value={joinCode}
@@ -147,7 +213,7 @@ export default function HomeScreen() {
                   setJoinCode(normalizeSessionCode(value));
                   setJoinError(null);
                 }}
-                placeholder="Code session"
+                placeholder="ABCD"
                 placeholderTextColor={FlipOn.muted}
                 autoCapitalize="characters"
                 autoCorrect={false}
@@ -169,7 +235,9 @@ export default function HomeScreen() {
               </Pressable>
             </View>
             {joinError ? <Text style={styles.joinError}>{joinError}</Text> : null}
-            <Text style={styles.hint}>Code temporaire · aucun vote exposé</Text>
+            <Text style={styles.hint}>
+              4 lettres · votes privés · pas besoin d’avoir créé la session
+            </Text>
           </View>
 
           {latest ? (
@@ -179,7 +247,7 @@ export default function HomeScreen() {
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="Voir tout l’historique"
-                  onPress={() => router.push('/(tabs)/history')}
+                  onPress={() => router.push('/(tabs)/history' as Href)}
                   hitSlop={8}>
                   <Text style={styles.sectionLink}>Voir tout</Text>
                 </Pressable>
@@ -188,10 +256,14 @@ export default function HomeScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`Dernière activité ${latest.title}`}
-                style={styles.row}
-                onPress={() => router.push('/(tabs)/history')}>
+                style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+                onPress={() =>
+                  router.push(`/history-entry/${encodeURIComponent(latest.id)}` as Href)
+                }>
                 <View style={styles.rowBody}>
-                  <Text style={styles.rowTitle}>{latest.title}</Text>
+                  <Text style={styles.rowTitle} numberOfLines={2}>
+                    {latest.title}
+                  </Text>
                   <Text style={styles.rowMeta}>{formatHistoryMeta(latest)}</Text>
                 </View>
                 <Text
@@ -203,6 +275,14 @@ export default function HomeScreen() {
                 </Text>
                 <MaterialIcons name="chevron-right" size={22} color={FlipOn.muted} />
               </Pressable>
+            </View>
+          ) : ready && !hasActive ? (
+            <View style={styles.tipCard}>
+              <MaterialIcons name="lightbulb-outline" size={20} color={FlipOn.accentInk} />
+              <Text style={styles.tipText}>
+                Astuce : après un match, la session apparaît dans Historique. Tu
+                peux la partager ou en relancer une.
+              </Text>
             </View>
           ) : null}
         </ScrollView>
@@ -225,7 +305,10 @@ const styles = StyleSheet.create({
   top: { gap: 2 },
   hello: { fontSize: 14, fontWeight: '600', color: FlipOn.muted },
   title: { fontSize: 32, fontWeight: '800', color: FlipOn.ink, letterSpacing: -0.6 },
-  subtitle: { marginTop: 4, fontSize: 15, lineHeight: 22, color: FlipOn.muted },
+  subtitle: { marginTop: 6, fontSize: 15, lineHeight: 22, color: FlipOn.muted },
+  pressed: { opacity: 0.88 },
+
+  heroWrap: { gap: 10 },
   hero: { backgroundColor: FlipOn.dark, borderRadius: 24, padding: 18, gap: 10 },
   heroTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   badgeLive: {
@@ -239,7 +322,7 @@ const styles = StyleSheet.create({
   },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: FlipOn.accent },
   badgeLiveText: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  heroExpire: { color: '#A8ADB5', fontSize: 12, fontWeight: '700', letterSpacing: 0.4 },
+  heroCode: { color: '#A8ADB5', fontSize: 13, fontWeight: '800', letterSpacing: 1.2 },
   heroTitle: { color: '#fff', fontSize: 22, fontWeight: '800', letterSpacing: -0.3 },
   heroText: { color: '#C7CBD1', fontSize: 14, lineHeight: 20 },
   progressBlock: { gap: 6, marginTop: 2 },
@@ -263,6 +346,48 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   heroCtaText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  dismissBtn: {
+    minHeight: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: FlipOn.line,
+    backgroundColor: FlipOn.surface,
+  },
+  dismissText: { fontSize: 13, fontWeight: '700', color: FlipOn.ink },
+
+  startCard: {
+    backgroundColor: FlipOn.surface,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: FlipOn.line,
+    padding: 18,
+    gap: 8,
+  },
+  startIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: FlipOn.accentSoft,
+    marginBottom: 2,
+  },
+  startTitle: { fontSize: 20, fontWeight: '800', color: FlipOn.ink },
+  startText: { fontSize: 14, lineHeight: 21, color: FlipOn.muted },
+  startCta: {
+    marginTop: 8,
+    minHeight: 48,
+    borderRadius: 14,
+    backgroundColor: FlipOn.accent,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  startCtaText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+
   section: { gap: 10 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitle: { fontSize: 14, fontWeight: '700', color: FlipOn.muted },
@@ -282,10 +407,10 @@ const styles = StyleSheet.create({
     minHeight: 44,
     borderRadius: 12,
     paddingHorizontal: 12,
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '800',
     color: FlipOn.ink,
-    letterSpacing: 0.4,
+    letterSpacing: 4,
   },
   joinButton: {
     minHeight: 44,
@@ -324,4 +449,16 @@ const styles = StyleSheet.create({
   },
   rowStatusOk: { color: FlipOn.success, backgroundColor: FlipOn.successSoft },
   rowStatusMuted: { color: FlipOn.muted, backgroundColor: FlipOn.soft },
+
+  tipCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: FlipOn.accentSoft,
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#FED7AA',
+  },
+  tipText: { flex: 1, fontSize: 13, lineHeight: 19, color: FlipOn.accentInk, fontWeight: '600' },
 });
