@@ -21,23 +21,16 @@ import * as Haptics from 'expo-haptics';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { Screen } from '@/components/ui/Screen';
+import { ChangePasswordSection } from '@/components/auth/ChangePasswordSection';
 import { FlipOn } from '@/constants/flipon';
 import { syncMe } from '@/lib/api';
+import { humanClerkError } from '@/lib/auth/human-clerk-error';
+import { canChangeFlipOnPassword } from '@/lib/auth/user-capabilities';
 
 type Feedback =
   | { type: 'success'; message: string }
   | { type: 'error'; message: string }
   | null;
-
-function humanClerkError(e: unknown): string {
-  if (e && typeof e === 'object' && 'errors' in e) {
-    const first = (e as { errors?: { longMessage?: string; message?: string }[] }).errors?.[0];
-    if (first?.longMessage) return first.longMessage;
-    if (first?.message) return first.message;
-  }
-  if (e instanceof Error && e.message) return e.message;
-  return 'Impossible d’enregistrer le profil. Réessaie dans un instant.';
-}
 
 function initialsFrom(first: string, last: string, email: string) {
   const a = first.trim()[0] ?? '';
@@ -138,7 +131,7 @@ export default function EditProfileScreen() {
       }, 1400);
     } catch (e) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      setFeedback({ type: 'error', message: humanClerkError(e) });
+      setFeedback({ type: 'error', message: humanClerkError(e, 'Impossible d’enregistrer le profil. Réessaie dans un instant.') });
     } finally {
       setSaving(false);
     }
@@ -163,6 +156,7 @@ export default function EditProfileScreen() {
   }
 
   const formLocked = saving || feedback?.type === 'success';
+  const showPasswordSection = canChangeFlipOnPassword(user);
 
   return (
     <Screen showBack title="Modifier mon profil">
@@ -259,11 +253,12 @@ export default function EditProfileScreen() {
               </Text>
             </View>
             <Text style={styles.hint}>
-              L’e-mail est lié à ta connexion (Google ou mot de passe). Pour le
-              changer, contacte le support.
+              L’e-mail est lié à ta connexion. Pour le changer, contacte le support.
             </Text>
           </View>
         </View>
+
+        {showPasswordSection ? <ChangePasswordSection /> : null}
 
         <Pressable
           accessibilityRole="button"
