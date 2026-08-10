@@ -17,10 +17,12 @@ import { useAuth } from '@clerk/clerk-expo';
 import { AuthForm } from '@/components/auth/AuthCard';
 import { PremiumLoader } from '@/components/ui/PremiumLoader';
 import { FlipOn } from '@/constants/flipon';
+import { useI18n } from '@/lib/i18n';
 
 export default function LoginScreen() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useAuth();
+  const { t } = useI18n();
 
   // Clerk charge encore la session SecureStore
   if (!isLoaded) {
@@ -35,7 +37,7 @@ export default function LoginScreen() {
   if (isSignedIn) {
     return (
       <View style={styles.restoring}>
-        <PremiumLoader fullScreen message="Reconnexion…" />
+        <PremiumLoader fullScreen message={t('login.reconnecting')} />
       </View>
     );
   }
@@ -53,10 +55,10 @@ export default function LoginScreen() {
             <Image
               source={require('../assets/images/logo.png')}
               style={styles.logo}
-              accessibilityLabel="Logo FlipOn"
+              accessibilityLabel={t('login.logoA11y')}
             />
             <Text style={styles.brandName}>FlipOn</Text>
-            <Text style={styles.tagline}>Connecte-toi pour choisir quoi faire.</Text>
+            <Text style={styles.tagline}>{t('login.tagline')}</Text>
           </View>
 
           <View style={styles.formBlock}>

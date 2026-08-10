@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Screen } from '@/components/ui/Screen';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FlipOn } from '@/constants/flipon';
+import { useI18n } from '@/lib/i18n';
 import { clearActiveSession, getSession } from '@/lib/session/store';
 
 /**
@@ -14,16 +15,17 @@ import { clearActiveSession, getSession } from '@/lib/session/store';
  */
 export default function ResultScreen() {
   const router = useRouter();
+  const { t } = useI18n();
   const session = getSession();
   const result = session.result;
 
   if (session.status !== 'done' && !result) {
     return (
-      <Screen showBack title="Résultat">
+      <Screen showBack title={t('result.title')}>
         <EmptyState
-          title="Pas encore de résultat"
-          text="Termine un vote pour afficher l’idée retenue."
-          actionLabel="Aller au vote"
+          title={t('result.emptyTitle')}
+          text={t('result.emptyText')}
+          actionLabel={t('result.emptyAction')}
           onAction={() => router.replace('/vote')}
           icon="emoji-events"
         />
@@ -33,11 +35,11 @@ export default function ResultScreen() {
 
   if (!result) {
     return (
-      <Screen showBack title="Résultat">
+      <Screen showBack title={t('result.title')}>
         <EmptyState
-          title="Pas de match"
-          text="Aucun Oui en commun. Élargis le cadre ou dis Oui à plus d’idées."
-          actionLabel="Relancer une session"
+          title={t('result.noMatchTitle')}
+          text={t('result.noMatchText')}
+          actionLabel={t('result.relaunch')}
           onAction={() => {
             void clearActiveSession().then(() => router.replace('/session'));
           }}
@@ -49,14 +51,18 @@ export default function ResultScreen() {
 
   const share = async () => {
     await Share.share({
-      message: `On a tranché avec FlipOn : ${result.title} (${result.durationMin} min, ≤ ${result.budgetMax} EUR).`,
+      message: t('result.share', {
+        title: result.title,
+        duration: result.durationMin,
+        budget: result.budgetMax,
+      }),
     });
   };
 
   return (
-    <Screen showBack title="Résultat">
+    <Screen showBack title={t('result.title')}>
       <View style={styles.hero}>
-        <Text style={styles.kicker}>Idée retenue</Text>
+        <Text style={styles.kicker}>{t('result.ideaKept')}</Text>
         <Text style={styles.title}>{result.title}</Text>
         <Text style={styles.subtitle}>{result.blurb}</Text>
         <View style={styles.metaRow}>
@@ -67,19 +73,19 @@ export default function ResultScreen() {
       </View>
 
       <Pressable style={styles.primaryButton} onPress={share}>
-        <Text style={styles.primaryText}>Partager le résultat</Text>
+        <Text style={styles.primaryText}>{t('result.shareResult')}</Text>
       </Pressable>
       <Pressable
         style={styles.secondaryButton}
         onPress={() => router.replace('/(tabs)')}>
-        <Text style={styles.secondaryText}>Retour à l’accueil</Text>
+        <Text style={styles.secondaryText}>{t('result.home')}</Text>
       </Pressable>
       <Pressable
         style={styles.ghostButton}
         onPress={() => {
           void clearActiveSession().then(() => router.replace('/session'));
         }}>
-        <Text style={styles.ghostText}>Relancer une session</Text>
+        <Text style={styles.ghostText}>{t('result.relaunch')}</Text>
       </Pressable>
     </Screen>
   );

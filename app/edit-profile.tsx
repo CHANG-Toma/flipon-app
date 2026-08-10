@@ -26,6 +26,7 @@ import { FlipOn } from '@/constants/flipon';
 import { syncMe } from '@/lib/api';
 import { humanClerkError } from '@/lib/auth/human-clerk-error';
 import { canChangeFlipOnPassword } from '@/lib/auth/user-capabilities';
+import { useI18n } from '@/lib/i18n';
 
 type Feedback =
   | { type: 'success'; message: string }
@@ -42,6 +43,7 @@ function initialsFrom(first: string, last: string, email: string) {
 
 export default function EditProfileScreen() {
   const router = useRouter();
+  const { t } = useI18n();
   const { user, isLoaded } = useUser();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -79,8 +81,8 @@ export default function EditProfileScreen() {
 
   const displayPreview = useMemo(() => {
     const full = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
-    return full || email || 'Compte FlipOn';
-  }, [firstName, lastName, email]);
+    return full || email || t('profile.accountFallback');
+  }, [firstName, lastName, email, t]);
 
   const onSave = useCallback(async () => {
     if (!user || saving) return;
@@ -91,7 +93,7 @@ export default function EditProfileScreen() {
     if (!first && !last) {
       setFeedback({
         type: 'error',
-        message: 'Indique au moins un prénom ou un nom pour ton profil.',
+        message: t('editProfile.needName'),
       });
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
@@ -100,7 +102,7 @@ export default function EditProfileScreen() {
     if (!dirty) {
       setFeedback({
         type: 'success',
-        message: 'Aucune modification — ton profil est déjà à jour.',
+        message: t('editProfile.noChanges'),
       });
       return;
     }
@@ -121,7 +123,7 @@ export default function EditProfileScreen() {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setFeedback({
         type: 'success',
-        message: `C’est enregistré — ton profil s’affiche maintenant comme « ${label} ».`,
+        message: t('editProfile.savedAs', { label }),
       });
 
       if (leaveTimer.current) clearTimeout(leaveTimer.current);
@@ -131,15 +133,18 @@ export default function EditProfileScreen() {
       }, 1400);
     } catch (e) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      setFeedback({ type: 'error', message: humanClerkError(e, 'Impossible d’enregistrer le profil. Réessaie dans un instant.') });
+      setFeedback({
+        type: 'error',
+        message: humanClerkError(e, t('editProfile.saveFailed')),
+      });
     } finally {
       setSaving(false);
     }
-  }, [user, saving, firstName, lastName, dirty, router]);
+  }, [user, saving, firstName, lastName, dirty, router, t]);
 
   if (!isLoaded) {
     return (
-      <Screen showBack title="Modifier mon profil">
+      <Screen showBack title={t('editProfile.title')}>
         <View style={styles.center}>
           <ActivityIndicator color={FlipOn.accent} size="large" />
         </View>
@@ -149,8 +154,8 @@ export default function EditProfileScreen() {
 
   if (!user) {
     return (
-      <Screen showBack title="Modifier mon profil">
-        <Text style={styles.hint}>Connecte-toi pour modifier ton profil.</Text>
+      <Screen showBack title={t('editProfile.title')}>
+        <Text style={styles.hint}>{t('editProfile.signInHint')}</Text>
       </Screen>
     );
   }
@@ -159,7 +164,7 @@ export default function EditProfileScreen() {
   const showPasswordSection = canChangeFlipOnPassword(user);
 
   return (
-    <Screen showBack title="Modifier mon profil">
+    <Screen showBack title={t('editProfile.title')}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}>
@@ -171,7 +176,7 @@ export default function EditProfileScreen() {
             <Text style={styles.previewName} numberOfLines={1}>
               {displayPreview}
             </Text>
-            <Text style={styles.previewSub}>Aperçu sur ton compte FlipOn</Text>
+            <Text style={styles.previewSub}>{t('editProfile.previewSub')}</Text>
           </View>
         </View>
 
@@ -200,14 +205,14 @@ export default function EditProfileScreen() {
 
         <View style={styles.formCard}>
           <View style={styles.field}>
-            <Text style={styles.label}>Prénom</Text>
+            <Text style={styles.label}>{t('editProfile.firstName')}</Text>
             <TextInput
               value={firstName}
               onChangeText={(v) => {
                 setFirstName(v);
                 if (feedback?.type === 'error') setFeedback(null);
               }}
-              placeholder="Ex. Camille"
+              placeholder={t('editProfile.firstNamePlaceholder')}
               placeholderTextColor={FlipOn.muted}
               autoCapitalize="words"
               autoCorrect={false}
@@ -216,20 +221,20 @@ export default function EditProfileScreen() {
               onFocus={() => setFirstFocused(true)}
               onBlur={() => setFirstFocused(false)}
               style={[styles.input, firstFocused && styles.inputFocused]}
-              accessibilityLabel="Prénom"
+              accessibilityLabel={t('editProfile.firstName')}
               editable={!formLocked}
             />
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Nom</Text>
+            <Text style={styles.label}>{t('editProfile.lastName')}</Text>
             <TextInput
               value={lastName}
               onChangeText={(v) => {
                 setLastName(v);
                 if (feedback?.type === 'error') setFeedback(null);
               }}
-              placeholder="Ex. Martin"
+              placeholder={t('editProfile.lastNamePlaceholder')}
               placeholderTextColor={FlipOn.muted}
               autoCapitalize="words"
               autoCorrect={false}
@@ -239,22 +244,20 @@ export default function EditProfileScreen() {
               onFocus={() => setLastFocused(true)}
               onBlur={() => setLastFocused(false)}
               style={[styles.input, lastFocused && styles.inputFocused]}
-              accessibilityLabel="Nom"
+              accessibilityLabel={t('editProfile.lastName')}
               editable={!formLocked}
             />
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>E-mail</Text>
+            <Text style={styles.label}>{t('editProfile.email')}</Text>
             <View style={styles.inputReadonly}>
               <MaterialIcons name="lock-outline" size={16} color={FlipOn.muted} />
               <Text style={styles.emailText} numberOfLines={1}>
                 {email || '—'}
               </Text>
             </View>
-            <Text style={styles.hint}>
-              L’e-mail est lié à ta connexion. Pour le changer, contacte le support.
-            </Text>
+            <Text style={styles.hint}>{t('editProfile.emailHint')}</Text>
           </View>
         </View>
 
@@ -270,13 +273,13 @@ export default function EditProfileScreen() {
             <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.primaryText}>
-              {feedback?.type === 'success' ? 'Enregistré' : 'Enregistrer'}
+              {feedback?.type === 'success' ? t('editProfile.saved') : t('editProfile.save')}
             </Text>
           )}
         </Pressable>
 
         {dirty && feedback?.type !== 'success' ? (
-          <Text style={styles.dirtyHint}>Modifications non enregistrées</Text>
+          <Text style={styles.dirtyHint}>{t('editProfile.dirtyHint')}</Text>
         ) : null}
       </KeyboardAvoidingView>
     </Screen>

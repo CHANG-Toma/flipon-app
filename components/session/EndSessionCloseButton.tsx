@@ -4,6 +4,7 @@ import * as Haptics from 'expo-haptics';
 
 import { useEndSession } from '@/hooks/use-end-session';
 import { FlipOn } from '@/constants/flipon';
+import { useI18n } from '@/lib/i18n';
 
 type Props = {
   afterEnd?: () => void;
@@ -25,6 +26,7 @@ export function EndSessionCloseButton({
   variant = 'default',
   style,
 }: Props) {
+  const { t } = useI18n();
   const { endSession, ending } = useEndSession();
   const onDark = variant === 'onDark';
 
@@ -37,12 +39,9 @@ export function EndSessionCloseButton({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={confirm ? 'Mettre fin à la session' : 'Archiver la session'}
-      accessibilityHint={
-        confirm
-          ? 'Ouvre une confirmation avant de fermer la session pour tout le monde'
-          : undefined
-      }
+      accessibilityLabel={confirm ? t('endSession.a11yEnd') : t('endSession.a11yArchive')}
+      accessibilityHint={confirm ? t('endSession.a11yHint') : undefined}
+
       accessibilityState={{ disabled: ending, busy: ending }}
       style={({ pressed }) => [
         styles.hit,

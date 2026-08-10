@@ -4,6 +4,7 @@ import { useUser } from '@clerk/clerk-expo';
 import { changeFlipOnPassword } from '@/lib/auth/change-password';
 import { validatePasswordPair } from '@/lib/auth/password-policy';
 import { canChangeFlipOnPassword } from '@/lib/auth/user-capabilities';
+import { tr } from '@/lib/i18n';
 
 type Feedback =
   | { type: 'success'; message: string }
@@ -28,7 +29,7 @@ export function useChangePassword() {
     if (!user || !available || busy) return;
 
     if (!currentPassword) {
-      setFeedback({ type: 'error', message: 'Indique ton mot de passe actuel.' });
+      setFeedback({ type: 'error', message: tr('password.needCurrent') });
       return;
     }
 
@@ -45,11 +46,11 @@ export function useChangePassword() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setFeedback({ type: 'success', message: 'Mot de passe mis à jour.' });
+      setFeedback({ type: 'success', message: tr('password.success') });
     } catch (e) {
       setFeedback({
         type: 'error',
-        message: e instanceof Error ? e.message : 'Impossible de mettre à jour le mot de passe.',
+        message: e instanceof Error ? e.message : tr('password.failed'),
       });
     } finally {
       setBusy(false);

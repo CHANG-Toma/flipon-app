@@ -10,6 +10,7 @@ import 'react-native-reanimated';
 
 import { AuthBridge } from '@/providers/AuthBridge';
 import { ClerkMissingGate } from '@/providers/ClerkMissingGate';
+import { I18nProvider } from '@/providers/I18nProvider';
 import { ConfirmHost } from '@/components/ui/ConfirmHost';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { FlipOn } from '@/constants/flipon';
@@ -46,24 +47,26 @@ function RootNavigator({ gate }: { gate: 'auth' | 'missing' | 'none' }) {
   }, []);
 
   const tree = (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: FlipOn.bg },
-        }}>
-        <Stack.Screen name="login" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="vote" />
-        <Stack.Screen name="result" />
-        <Stack.Screen name="subscription" />
-        <Stack.Screen name="edit-profile" />
-        <Stack.Screen name="history-entry/[id]" />
-        <Stack.Screen name="join/[code]" />
-      </Stack>
-      <ConfirmHost />
-      <StatusBar style="dark" />
-    </ThemeProvider>
+    <I18nProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: FlipOn.bg },
+          }}>
+          <Stack.Screen name="login" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="vote" />
+          <Stack.Screen name="result" />
+          <Stack.Screen name="subscription" />
+          <Stack.Screen name="edit-profile" />
+          <Stack.Screen name="history-entry/[id]" />
+          <Stack.Screen name="join/[code]" />
+        </Stack>
+        <ConfirmHost />
+        <StatusBar style="dark" />
+      </ThemeProvider>
+    </I18nProvider>
   );
 
   if (gate === 'auth') {

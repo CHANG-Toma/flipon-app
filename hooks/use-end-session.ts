@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 
 import { confirmDialog } from '@/lib/confirm-dialog';
+import { tr } from '@/lib/i18n';
 import { clearActiveSession } from '@/lib/session/store';
 
 type EndSessionOptions = {
@@ -14,10 +15,6 @@ type EndSessionOptions = {
   confirmLabel?: string;
   afterEnd?: () => void;
 };
-
-const DEFAULT_TITLE = 'Mettre fin à la session ?';
-const DEFAULT_MESSAGE =
-  'La session sera fermée pour tout le monde. Les votes en cours ne seront pas comptés.';
 
 /**
  * Ferme la session active (API close + purge locale) avec confirmation optionnelle.
@@ -41,9 +38,9 @@ export function useEndSession() {
 
       const {
         confirm = true,
-        title = DEFAULT_TITLE,
-        message = DEFAULT_MESSAGE,
-        confirmLabel = 'Mettre fin',
+        title = tr('endSession.title'),
+        message = tr('endSession.message'),
+        confirmLabel = tr('endSession.confirm'),
         afterEnd,
       } = options ?? {};
 
@@ -58,7 +55,7 @@ export function useEndSession() {
         title,
         message,
         confirmLabel,
-        cancelLabel: 'Annuler',
+        cancelLabel: tr('common.cancel'),
         destructive: true,
       }).then((ok) => {
         if (ok) proceed();

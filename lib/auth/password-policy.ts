@@ -1,3 +1,5 @@
+import { tr } from '@/lib/i18n';
+
 const MIN_LENGTH = 8;
 
 export type PasswordValidationResult =
@@ -9,16 +11,16 @@ export function validatePasswordPair(
   confirmPassword: string,
 ): PasswordValidationResult {
   if (!password) {
-    return { ok: false, message: 'Indique un nouveau mot de passe.' };
+    return { ok: false, message: tr('password.needNew') };
   }
   if (password.length < MIN_LENGTH) {
     return {
       ok: false,
-      message: `Le mot de passe doit contenir au moins ${MIN_LENGTH} caractères.`,
+      message: tr('password.minLength', { n: MIN_LENGTH }),
     };
   }
   if (password !== confirmPassword) {
-    return { ok: false, message: 'Les mots de passe ne correspondent pas.' };
+    return { ok: false, message: tr('password.mismatch') };
   }
   return { ok: true };
 }

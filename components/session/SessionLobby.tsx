@@ -5,6 +5,7 @@ import { sessionStyles as styles } from '@/components/session/session-styles';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { InviteQr } from '@/components/ui/InviteQr';
 import { FlipOn } from '@/constants/flipon';
+import { useI18n } from '@/lib/i18n';
 import { getInviteLink } from '@/lib/session/invite';
 import type { SessionType } from '@/lib/session/types';
 
@@ -34,26 +35,31 @@ export function SessionLobby({
   onShare,
   onLaunchVote,
 }: Props) {
+  const { t } = useI18n();
+  const joined = Math.min(joinedCount, sessionPartySize);
+
   return (
     <>
       <View style={styles.hero}>
-        <Text style={styles.kicker}>Étape 2</Text>
-        <Text style={styles.title}>Invite et attends</Text>
-        <Text style={styles.subtitle}>
-          Partage le code. Le vote démarre quand tout le monde a rejoint.
-        </Text>
+        <Text style={styles.kicker}>{t('sessionLobby.step2')}</Text>
+        <Text style={styles.title}>{t('sessionLobby.title')}</Text>
+        <Text style={styles.subtitle}>{t('sessionLobby.subtitle')}</Text>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Invitation</Text>
+        <Text style={styles.cardTitle}>{t('sessionLobby.invite')}</Text>
         <SessionLine
-          label="Type"
-          value={type === 'Groupe' ? `Groupe · ${sessionPartySize}` : 'Duo'}
+          label={t('session.typeLabel')}
+          value={
+            type === 'Groupe'
+              ? t('session.typeGroup', { size: sessionPartySize })
+              : t('session.typeDuo')
+          }
         />
-        <SessionLine label="Code temporaire" value={code || '—'} />
+        <SessionLine label={t('session.codeLabel')} value={code || '—'} />
         <SessionLine
-          label="Participants"
-          value={`${Math.min(joinedCount, sessionPartySize)}/${sessionPartySize}`}
+          label={t('session.participantsLabel')}
+          value={t('session.participants', { joined, size: sessionPartySize })}
           last
         />
 
@@ -67,28 +73,26 @@ export function SessionLobby({
                 backgroundColor={FlipOn.surface}
               />
             </View>
-            <Text style={styles.qrHint}>Scanne pour ouvrir FlipOn (app ou site)</Text>
+            <Text style={styles.qrHint}>{t('sessionLobby.qrHint')}</Text>
           </View>
         ) : null}
 
-        <Text style={styles.hint}>Les likes restent privés. Le code expire automatiquement.</Text>
+        <Text style={styles.hint}>{t('sessionLobby.likesPrivate')}</Text>
         <Pressable style={styles.secondaryButton} onPress={onShare}>
-          <Text style={styles.secondaryButtonText}>Partager le lien</Text>
+          <Text style={styles.secondaryButtonText}>{t('sessionLobby.share')}</Text>
         </Pressable>
         {!readyToVote ? (
           <View style={styles.waitBox}>
             <Text style={styles.waitTitle}>
-              {type === 'Groupe' ? 'En attente du groupe' : 'En attente du partenaire'}
+              {type === 'Groupe' ? t('sessionLobby.waitGroup') : t('sessionLobby.waitPartner')}
             </Text>
             <Text style={styles.waitText}>
-              {missing <= 1
-                ? 'Encore 1 personne à rejoindre.'
-                : `Encore ${missing} personnes à rejoindre.`}
+              {missing <= 1 ? t('session.waitOne') : t('session.waitMany', { n: missing })}
             </Text>
           </View>
         ) : (
           <View style={styles.readyBox}>
-            <Text style={styles.readyText}>Tout le monde est là. Tu peux lancer le vote.</Text>
+            <Text style={styles.readyText}>{t('sessionLobby.ready')}</Text>
           </View>
         )}
       </View>
@@ -102,10 +106,10 @@ export function SessionLobby({
           disabled={loading || !readyToVote}>
           <Text style={styles.primaryButtonText}>
             {loading
-              ? 'Lancement…'
+              ? t('sessionLobby.launching')
               : !readyToVote
-                ? `En attente (${Math.min(joinedCount, sessionPartySize)}/${sessionPartySize})`
-                : 'Lancer le vote'}
+                ? t('sessionLobby.waitingBtn', { joined, size: sessionPartySize })
+                : t('sessionLobby.launchVote')}
           </Text>
         </Pressable>
       )}

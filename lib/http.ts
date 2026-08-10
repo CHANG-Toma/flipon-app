@@ -1,4 +1,5 @@
 import { getDeviceKey } from '@/lib/device';
+import { tr } from '@/lib/i18n';
 
 /**
  * Transport HTTP FlipOn (app → API Next.js)
@@ -8,8 +9,8 @@ import { getDeviceKey } from '@/lib/device';
  * Device : header x-flipon-device-key.
  */
 export class NetworkError extends Error {
-  constructor(message = 'Connexion impossible. Réessaie dans un instant.') {
-    super(message);
+  constructor(message?: string) {
+    super(message ?? tr('errors.network'));
     this.name = 'NetworkError';
   }
 }
@@ -61,7 +62,7 @@ export function getApiBase() {
 
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!isAllowedApiBase(API_BASE)) {
-    throw new NetworkError('URL API non sécurisée.');
+    throw new NetworkError(tr('errors.apiInsecure'));
   }
 
   const deviceKey = await getDeviceKey();
@@ -95,8 +96,8 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
       body && typeof body === 'object' && 'error' in body && typeof (body as { error: unknown }).error === 'string'
         ? (body as { error: string }).error
         : res.status === 404
-          ? 'Code invalide ou session expirée.'
-          : 'Impossible de contacter FlipOn.';
+          ? tr('errors.codeOrSessionExpired')
+          : tr('errors.apiUnreachable');
     throw new ApiError(message, res.status);
   }
 

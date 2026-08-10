@@ -4,6 +4,7 @@ import { useRouter, type Href } from 'expo-router';
 
 import { EndSessionCloseButton } from '@/components/session/EndSessionCloseButton';
 import { homeStyles as styles } from '@/components/home/home-styles';
+import { useI18n } from '@/lib/i18n';
 import { getHomeCta } from '@/lib/session/home-cta';
 import type { SessionState } from '@/lib/session/types';
 
@@ -14,25 +15,23 @@ type Props = {
 
 export function HomeActiveSession({ session, onClosed }: Props) {
   const router = useRouter();
+  const { t } = useI18n();
   const home = getHomeCta(session);
   const progressPct = Math.max(
     10,
     (Math.min(session.index, session.deck.length) / Math.max(session.deck.length, 1)) * 100,
   );
   const isDone = session.status === 'done';
+  const typeLabel = session.type === 'Groupe' ? t('type.group') : t('type.duo');
 
   return (
     <View style={styles.heroWrap}>
       <View style={styles.hero} pointerEvents="box-none">
         <EndSessionCloseButton
           confirm
-          title={isDone ? 'Archiver la session ?' : undefined}
-          message={
-            isDone
-              ? 'La session sera retirée de l’accueil. L’historique reste accessible.'
-              : undefined
-          }
-          confirmLabel={isDone ? 'Archiver' : undefined}
+          title={isDone ? t('endSession.archiveTitle') : undefined}
+          message={isDone ? t('endSession.archiveMessage') : undefined}
+          confirmLabel={isDone ? t('endSession.archiveConfirm') : undefined}
           afterEnd={onClosed}
           variant="onDark"
           style={styles.heroClose}
@@ -41,7 +40,9 @@ export function HomeActiveSession({ session, onClosed }: Props) {
         <View style={styles.heroTop}>
           <View style={styles.badgeLive}>
             <View style={styles.dot} />
-            <Text style={styles.badgeLiveText}>{isDone ? 'Terminée' : 'En cours'}</Text>
+            <Text style={styles.badgeLiveText}>
+              {isDone ? t('home.badgeDone') : t('home.badgeLive')}
+            </Text>
           </View>
           <Text style={styles.heroCode}>{session.code}</Text>
         </View>
@@ -52,7 +53,7 @@ export function HomeActiveSession({ session, onClosed }: Props) {
           style={({ pressed }) => [styles.heroBody, pressed && styles.pressed]}
           onPress={() => router.push(home.target as Href)}>
           <Text style={styles.heroTitle}>
-            {session.type} · {home.title}
+            {typeLabel} · {home.title}
           </Text>
           <Text style={styles.heroText}>{home.detail}</Text>
 
@@ -62,8 +63,10 @@ export function HomeActiveSession({ session, onClosed }: Props) {
                 <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
               </View>
               <Text style={styles.progressLabel}>
-                {Math.min(session.index, session.deck.length)}/{session.deck.length || 6} idées
-                vues
+                {t('home.ideasSeen', {
+                  current: Math.min(session.index, session.deck.length),
+                  total: session.deck.length || 6,
+                })}
               </Text>
             </View>
           ) : null}

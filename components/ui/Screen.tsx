@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 
 import { FlipOn } from '@/constants/flipon';
+import { useI18n } from '@/lib/i18n';
 
 type Props = {
   children: ReactNode;
@@ -24,6 +25,7 @@ export function Screen({
   headerRight,
   contentStyle,
 }: Props) {
+  const { t } = useI18n();
   const router = useRouter();
   const tabBarHeight = useContext(BottomTabBarHeightContext) ?? 0;
 
@@ -43,7 +45,8 @@ export function Screen({
             {showBack ? (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Retour"
+                accessibilityLabel={t('common.back')}
+
                 onPress={() => {
                   if (onBack) {
                     onBack();

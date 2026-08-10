@@ -11,6 +11,7 @@ import Animated, {
 import Svg, { Circle } from 'react-native-svg';
 
 import { FlipOn } from '@/constants/flipon';
+import { tr } from '@/lib/i18n';
 
 export type PulseRingSize = 'sm' | 'md' | 'lg';
 
@@ -117,7 +118,7 @@ export function PulseRing({
     <View
       style={[styles.wrap, { width: box, height: box }, style]}
       accessibilityRole="progressbar"
-      accessibilityLabel="Chargement">
+      accessibilityLabel={tr('loader.loadingA11y')}>
       {/* Anneau fixe discret — ancrage visuel */}
       <View style={styles.ringLayer} pointerEvents="none">
         <Svg width={box} height={box} viewBox={`0 0 ${box} ${box}`}>

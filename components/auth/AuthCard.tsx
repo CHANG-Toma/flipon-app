@@ -16,6 +16,7 @@ import { AuthGoogleButton } from '@/components/auth/AuthGoogleButton';
 import { AuthProfileCard } from '@/components/auth/AuthProfileCard';
 import { authStyles as styles } from '@/components/auth/auth-styles';
 import { isClerkConfigured } from '@/lib/clerk';
+import { useI18n } from '@/lib/i18n';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -30,14 +31,13 @@ export function GoogleAuthCard() {
 }
 
 export function AuthCard() {
+  const { t } = useI18n();
+
   if (!isClerkConfigured) {
     return (
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Compte</Text>
-        <Text style={styles.hint}>
-          Ajoute `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` dans ton `.env`, puis active Email + Google dans
-          Clerk.
-        </Text>
+        <Text style={styles.cardTitle}>{t('auth.accountTitle')}</Text>
+        <Text style={styles.hint}>{t('auth.accountConfigHint')}</Text>
       </View>
     );
   }
@@ -46,14 +46,13 @@ export function AuthCard() {
 }
 
 export function AuthForm({ onSuccess, compact = false }: AuthFormProps) {
+  const { t } = useI18n();
+
   if (!isClerkConfigured) {
     return (
       <View style={[styles.card, !compact && styles.cardFlush]}>
-        <Text style={styles.cardTitle}>Configuration requise</Text>
-        <Text style={styles.hint}>
-          Ajoute `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` dans `flipon-app/.env`, redémarre Expo, et active
-          Email/Password + Google dans le dashboard Clerk (redirect `fliponapp://oauth-native-callback`).
-        </Text>
+        <Text style={styles.cardTitle}>{t('auth.configRequiredTitle')}</Text>
+        <Text style={styles.hint}>{t('auth.configRequiredHint')}</Text>
       </View>
     );
   }
@@ -62,6 +61,7 @@ export function AuthForm({ onSuccess, compact = false }: AuthFormProps) {
 }
 
 function AuthFormInner({ onSuccess, compact = false }: AuthFormProps) {
+  const { t } = useI18n();
   const [mode, setMode] = useState<AuthMode>('signIn');
   const [loading, setLoading] = useState(false);
   const [oauthError, setOauthError] = useState<string | null>(null);
@@ -79,7 +79,7 @@ function AuthFormInner({ onSuccess, compact = false }: AuthFormProps) {
         <>
           <View style={styles.dividerRow}>
             <View style={styles.divider} />
-            <Text style={styles.dividerText}>ou</Text>
+            <Text style={styles.dividerText}>{t('auth.or')}</Text>
             <View style={styles.divider} />
           </View>
 
@@ -101,9 +101,7 @@ function AuthFormInner({ onSuccess, compact = false }: AuthFormProps) {
             }}
             hitSlop={8}>
             <Text style={styles.link}>
-              {isSignUp
-                ? 'Déjà un compte ? Se connecter'
-                : "Pas encore de compte ? S'inscrire"}
+              {isSignUp ? t('auth.hasAccount') : t('auth.noAccount')}
             </Text>
           </Pressable>
         </>

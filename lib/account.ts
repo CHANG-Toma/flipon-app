@@ -1,5 +1,6 @@
 import { humanClerkError } from '@/lib/auth/human-clerk-error';
 import { runAccountCleanup } from '@/lib/account-cleanup';
+import { tr } from '@/lib/i18n';
 
 type DeletableUser = {
   delete: () => Promise<unknown>;
@@ -16,8 +17,5 @@ export async function deleteAccountLocalAndClerk(user: DeletableUser) {
 }
 
 export function humanDeleteError(e: unknown): string {
-  return humanClerkError(
-    e,
-    'Impossible de supprimer le compte. Vérifie la config Clerk ou réessaie plus tard.',
-  );
+  return humanClerkError(e, tr('errors.deleteAccount'));
 }

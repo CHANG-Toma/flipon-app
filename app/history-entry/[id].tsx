@@ -12,7 +12,7 @@ import { Screen } from '@/components/ui/Screen';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FlipOn } from '@/constants/flipon';
 import { getPlanById } from '@/data/plans';
-import { formatHistoryMeta } from '@/lib/history/format';
+import { displayHistoryTitle, formatHistoryMeta } from '@/lib/history/format';
 import {
   getHistoryEntry,
   hydrateHistory,
@@ -20,10 +20,19 @@ import {
   subscribeHistory,
 } from '@/lib/history/store';
 import type { HistoryEntry } from '@/lib/history/types';
+import { useI18n } from '@/lib/i18n';
+import type { TranslationKey } from '@/lib/i18n';
 import { clearActiveSession } from '@/lib/session/store';
+
+function statusKey(status: HistoryEntry['status']): TranslationKey {
+  if (status === 'Validée') return 'status.validated';
+  if (status === 'Sans match') return 'status.noMatch';
+  return 'status.expired';
+}
 
 export default function HistoryEntryScreen() {
   const router = useRouter();
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const entryId = String(id ?? '');
   const [entry, setEntry] = useState<HistoryEntry | null>(
@@ -45,11 +54,11 @@ export default function HistoryEntryScreen() {
 
   if (!entry) {
     return (
-      <Screen showBack title="Session">
+      <Screen showBack title={t('historyEntry.title')}>
         <EmptyState
-          title="Session introuvable"
-          text="Cette entrée n’est plus dans ton historique local."
-          actionLabel="Retour à l’historique"
+          title={t('historyEntry.notFoundTitle')}
+          text={t('historyEntry.notFoundText')}
+          actionLabel={t('historyEntry.notFoundAction')}
           onAction={() => router.replace('/(tabs)/history' as Href)}
           icon="history"
         />
@@ -60,14 +69,22 @@ export default function HistoryEntryScreen() {
   const plan = getPlanById(entry.planId);
   const muted = entry.status !== 'Validée';
   const blurb = plan?.blurb;
+  const statusText = t(statusKey(entry.status));
+  const title = displayHistoryTitle(entry.title);
 
   const share = async () => {
     const message =
       entry.status === 'Validée'
-        ? `On a tranché avec FlipOn : ${entry.title}${
-            entry.durationMin ? ` (${entry.durationMin} min)` : ''
-          }.`
-        : `Session FlipOn « ${entry.title} » — ${entry.status}.`;
+        ? t('historyEntry.shareValidated', {
+            title,
+            duration: entry.durationMin
+              ? t('historyEntry.shareValidatedDuration', { n: entry.durationMin })
+              : '',
+          })
+        : t('historyEntry.shareOther', {
+            title,
+            status: statusText,
+          });
     await Share.share({ message });
   };
 
@@ -78,53 +95,47 @@ export default function HistoryEntryScreen() {
   };
 
   const onDelete = () => {
-    Alert.alert(
-      'Retirer de l’historique ?',
-      'La session disparaît de cet appareil. Ça ne relance pas de suppression cloud pour l’instant.',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Retirer',
-          style: 'destructive',
-          onPress: () => {
-            void (async () => {
-              await removeHistoryEntry(entry.id);
-              void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-              if (router.canGoBack()) router.back();
-              else router.replace('/(tabs)/history' as Href);
-            })();
-          },
+    Alert.alert(t('historyEntry.removeAlertTitle'), t('historyEntry.removeAlertBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('historyEntry.removeAlertConfirm'),
+        style: 'destructive',
+        onPress: () => {
+          void (async () => {
+            await removeHistoryEntry(entry.id);
+            void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            if (router.canGoBack()) router.back();
+            else router.replace('/(tabs)/history' as Href);
+          })();
         },
-      ],
-    );
+      },
+    ]);
   };
 
   return (
-    <Screen showBack title="Session">
+    <Screen showBack title={t('historyEntry.title')}>
       <View style={[styles.hero, muted && styles.heroMuted]}>
-        <Text style={styles.kicker}>{entry.status}</Text>
-        <Text style={styles.title}>{entry.title}</Text>
+        <Text style={styles.kicker}>{statusText}</Text>
+        <Text style={styles.title}>{title}</Text>
         {blurb ? <Text style={styles.subtitle}>{blurb}</Text> : null}
         <Text style={styles.meta}>{formatHistoryMeta(entry)}</Text>
       </View>
 
       {entry.status === 'Sans match' ? (
         <View style={styles.tip}>
-          <Text style={styles.tipTitle}>Pas de match cette fois</Text>
-          <Text style={styles.tipText}>
-            Élargis le cadre ou dis Oui à plus d’idées au prochain vote.
-          </Text>
+          <Text style={styles.tipTitle}>{t('historyEntry.tipTitle')}</Text>
+          <Text style={styles.tipText}>{t('historyEntry.tipText')}</Text>
         </View>
       ) : null}
 
       <Pressable style={styles.primary} onPress={() => void share()}>
-        <Text style={styles.primaryText}>Partager</Text>
+        <Text style={styles.primaryText}>{t('historyEntry.share')}</Text>
       </Pressable>
       <Pressable style={styles.secondary} onPress={relance}>
-        <Text style={styles.secondaryText}>Relancer une session</Text>
+        <Text style={styles.secondaryText}>{t('historyEntry.relaunch')}</Text>
       </Pressable>
       <Pressable style={styles.ghost} onPress={onDelete}>
-        <Text style={styles.ghostText}>Retirer de l’historique</Text>
+        <Text style={styles.ghostText}>{t('historyEntry.remove')}</Text>
       </Pressable>
     </Screen>
   );

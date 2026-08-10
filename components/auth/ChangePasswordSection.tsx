@@ -10,9 +10,11 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { FlipOn } from '@/constants/flipon';
 import { useChangePassword } from '@/hooks/use-change-password';
+import { useI18n } from '@/lib/i18n';
 
 /** Section MDP FlipOn — visible seulement si `useChangePassword().available`. */
 export function ChangePasswordSection() {
+  const { t } = useI18n();
   const {
     available,
     currentPassword,
@@ -33,10 +35,8 @@ export function ChangePasswordSection() {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>Mot de passe</Text>
-      <Text style={styles.sub}>
-        Change le mot de passe utilisé pour te connecter par e-mail sur FlipOn.
-      </Text>
+      <Text style={styles.title}>{t('password.title')}</Text>
+      <Text style={styles.sub}>{t('password.subtitle')}</Text>
 
       {feedback ? (
         <View
@@ -62,52 +62,52 @@ export function ChangePasswordSection() {
       ) : null}
 
       <View style={styles.field}>
-        <Text style={styles.label}>Mot de passe actuel</Text>
+        <Text style={styles.label}>{t('password.current')}</Text>
         <TextInput
           value={currentPassword}
           onChangeText={(v) => {
             setCurrentPassword(v);
             clearError();
           }}
-          placeholder="Ton mot de passe actuel"
+          placeholder={t('password.currentPlaceholder')}
           placeholderTextColor={FlipOn.muted}
           secureTextEntry
           autoComplete="password"
           textContentType="password"
           style={styles.input}
-          accessibilityLabel="Mot de passe actuel"
+          accessibilityLabel={t('password.current')}
           editable={!locked}
         />
       </View>
 
       <View style={styles.field}>
-        <Text style={styles.label}>Nouveau mot de passe</Text>
+        <Text style={styles.label}>{t('password.next')}</Text>
         <TextInput
           value={newPassword}
           onChangeText={(v) => {
             setNewPassword(v);
             clearError();
           }}
-          placeholder="8 caractères minimum"
+          placeholder={t('password.nextPlaceholder')}
           placeholderTextColor={FlipOn.muted}
           secureTextEntry
           autoComplete="new-password"
           textContentType="newPassword"
           style={styles.input}
-          accessibilityLabel="Nouveau mot de passe"
+          accessibilityLabel={t('password.next')}
           editable={!locked}
         />
       </View>
 
       <View style={styles.field}>
-        <Text style={styles.label}>Confirmer</Text>
+        <Text style={styles.label}>{t('password.confirm')}</Text>
         <TextInput
           value={confirmPassword}
           onChangeText={(v) => {
             setConfirmPassword(v);
             clearError();
           }}
-          placeholder="Répète le nouveau mot de passe"
+          placeholder={t('password.confirmPlaceholder')}
           placeholderTextColor={FlipOn.muted}
           secureTextEntry
           autoComplete="new-password"
@@ -115,7 +115,7 @@ export function ChangePasswordSection() {
           returnKeyType="done"
           onSubmitEditing={() => void submit()}
           style={styles.input}
-          accessibilityLabel="Confirmer le mot de passe"
+          accessibilityLabel={t('password.confirm')}
           editable={!locked}
         />
       </View>
@@ -129,7 +129,7 @@ export function ChangePasswordSection() {
           <ActivityIndicator color="#fff" />
         ) : (
           <Text style={styles.primaryText}>
-            {feedback?.type === 'success' ? 'Mis à jour' : 'Mettre à jour le mot de passe'}
+            {feedback?.type === 'success' ? t('password.updated') : t('password.submit')}
           </Text>
         )}
       </Pressable>

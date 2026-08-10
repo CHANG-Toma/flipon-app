@@ -2,6 +2,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { FlipOn } from '@/constants/flipon';
+import { useI18n } from '@/lib/i18n';
 
 type Props = {
   title?: string;
@@ -10,25 +11,23 @@ type Props = {
   loading?: boolean;
 };
 
-export function ErrorState({
-  title = 'Oups, problème réseau',
-  text,
-  onRetry,
-  loading = false,
-}: Props) {
+export function ErrorState({ title, text, onRetry, loading = false }: Props) {
+  const { t } = useI18n();
+  const resolvedTitle = title ?? t('emptyError.networkTitle');
+
   return (
     <View style={styles.wrap}>
       <View style={styles.iconWrap}>
         <MaterialIcons name="wifi-off" size={26} color={FlipOn.danger} />
       </View>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.title}>{resolvedTitle}</Text>
       <Text style={styles.text}>{text}</Text>
       {onRetry ? (
         <Pressable style={styles.button} onPress={onRetry} disabled={loading}>
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Réessayer</Text>
+            <Text style={styles.buttonText}>{t('common.retry')}</Text>
           )}
         </Pressable>
       ) : null}

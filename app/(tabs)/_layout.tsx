@@ -8,6 +8,7 @@ import { HapticTab } from '@/components/haptic-tab';
 import { Colors } from '@/constants/theme';
 import { FlipOn } from '@/constants/flipon';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useI18n } from '@/lib/i18n';
 
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 68;
 
@@ -15,6 +16,7 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useI18n();
 
   return (
     <View style={styles.root}>
@@ -30,21 +32,21 @@ export default function TabLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: 'Accueil',
+            title: t('tabs.home'),
             tabBarIcon: ({ color }) => <MaterialIcons size={24} name="home" color={color} />,
           }}
         />
         <Tabs.Screen
           name="history"
           options={{
-            title: 'Historique',
+            title: t('tabs.history'),
             tabBarIcon: ({ color }) => <MaterialIcons size={24} name="history" color={color} />,
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
-            title: 'Profil',
+            title: t('tabs.profile'),
             tabBarIcon: ({ color }) => <MaterialIcons size={24} name="person" color={color} />,
           }}
         />
@@ -52,14 +54,14 @@ export default function TabLayout() {
           name="session"
           options={{
             href: null,
-            title: 'Session',
+            title: t('tabs.newSession'),
           }}
         />
       </Tabs>
 
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Nouvelle session"
+        accessibilityLabel={t('tabs.newSession')}
         onPress={() => router.push('/session')}
         hitSlop={4}
         style={[

@@ -7,6 +7,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { authStyles as styles } from '@/components/auth/auth-styles';
 import { FlipOn } from '@/constants/flipon';
 import { signOutAndClearHint } from '@/lib/auth/sign-out';
+import { useI18n } from '@/lib/i18n';
 import { getSubscription } from '@/lib/subscription';
 
 type Props = {
@@ -22,7 +23,9 @@ export function AuthProfileCard({ fallback = null }: Props) {
   const { isSignedIn, signOut } = useAuth();
   const { user } = useUser();
   const router = useRouter();
-  const planLabel = getSubscription().label;
+  const { t } = useI18n();
+  const planLabel =
+    getSubscription().plan === 'boost' ? t('subscription.boostTitle') : t('subscription.freeTitle');
 
   if (!isSignedIn || !user) {
     return <>{fallback}</>;
@@ -33,7 +36,7 @@ export function AuthProfileCard({ fallback = null }: Props) {
     user.firstName ||
     user.username ||
     user.primaryEmailAddress?.emailAddress ||
-    'Compte FlipOn';
+    t('profile.accountFallback');
   const mail = user.primaryEmailAddress?.emailAddress ?? '';
   const initials = name
     .split(' ')
@@ -46,8 +49,7 @@ export function AuthProfileCard({ fallback = null }: Props) {
     <View style={styles.card}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Modifier mon profil"
-        accessibilityHint="Ouvre l’édition du prénom et du nom"
+        accessibilityLabel={t('profile.editProfile')}
         onPress={() => router.push('/edit-profile' as Href)}
         style={({ pressed }) => [styles.identityHit, pressed && styles.pressed]}>
         <View style={styles.avatar}>
@@ -67,7 +69,7 @@ export function AuthProfileCard({ fallback = null }: Props) {
               {mail}
             </Text>
           ) : null}
-          <Text style={styles.editHint}>Modifier mon profil</Text>
+          <Text style={styles.editHint}>{t('profile.editProfile')}</Text>
         </View>
         <MaterialIcons name="chevron-right" size={22} color={FlipOn.muted} />
       </Pressable>
@@ -78,7 +80,7 @@ export function AuthProfileCard({ fallback = null }: Props) {
         onPress={() => {
           void signOutAndClearHint(signOut).then(() => router.replace('/login' as Href));
         }}>
-        <Text style={styles.secondaryText}>Se déconnecter</Text>
+        <Text style={styles.secondaryText}>{t('profile.signOut')}</Text>
       </Pressable>
     </View>
   );

@@ -19,7 +19,7 @@ import * as Haptics from 'expo-haptics';
 
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FlipOn } from '@/constants/flipon';
-import { formatHistoryMeta, groupHistoryByDay } from '@/lib/history/format';
+import { displayHistoryTitle, formatHistoryMeta, groupHistoryByDay } from '@/lib/history/format';
 import {
   getHistory,
   hydrateHistory,
@@ -27,9 +27,18 @@ import {
   subscribeHistory,
 } from '@/lib/history/store';
 import type { HistoryEntry } from '@/lib/history/types';
+import { useI18n } from '@/lib/i18n';
+import type { TranslationKey } from '@/lib/i18n';
+
+function statusKey(status: HistoryEntry['status']): TranslationKey {
+  if (status === 'Validée') return 'status.validated';
+  if (status === 'Sans match') return 'status.noMatch';
+  return 'status.expired';
+}
 
 export default function HistoryScreen() {
   const router = useRouter();
+  const { t } = useI18n();
   const [sessions, setSessions] = useState<HistoryEntry[]>(getHistory());
   const [refreshing, setRefreshing] = useState(false);
 
@@ -78,24 +87,24 @@ export default function HistoryScreen() {
           />
         }>
         <View style={styles.top}>
-          <Text style={styles.title}>Historique</Text>
-          <Text style={styles.subtitle}>
-            Tes sessions sur cet appareil. Tire pour synchroniser le cloud.
-          </Text>
+          <Text style={styles.title}>{t('history.title')}</Text>
+          <Text style={styles.subtitle}>{t('history.subtitle')}</Text>
         </View>
 
         {sessions.length === 0 ? (
           <EmptyState
-            title="Aucune session pour l’instant"
-            text="Quand vous validez une activité ensemble, elle apparaît ici."
-            actionLabel="Nouvelle session"
+            title={t('history.emptyTitle')}
+            text={t('history.emptyText')}
+            actionLabel={t('history.emptyAction')}
             onAction={() => router.push('/session' as Href)}
             icon="history"
           />
         ) : (
           <>
             <Text style={styles.count}>
-              {sessions.length} session{sessions.length > 1 ? 's' : ''}
+              {sessions.length > 1
+                ? t('history.countPlural', { n: sessions.length })
+                : t('history.count', { n: sessions.length })}
             </Text>
             {groups.map((group) => (
               <View key={group.label} style={styles.group}>
@@ -103,21 +112,23 @@ export default function HistoryScreen() {
                 <View style={styles.list}>
                   {group.items.map((session) => {
                     const muted = session.status !== 'Validée';
+                    const statusText = t(statusKey(session.status));
+                    const title = displayHistoryTitle(session.title);
                     return (
                       <Pressable
                         key={session.id}
                         accessibilityRole="button"
-                        accessibilityLabel={`${session.title}, ${session.status}`}
+                        accessibilityLabel={`${title}, ${statusText}`}
                         style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
                         onPress={() => openEntry(session)}>
                         <View style={styles.rowBody}>
                           <Text style={styles.rowTitle} numberOfLines={2}>
-                            {session.title}
+                            {title}
                           </Text>
                           <Text style={styles.rowMeta}>{formatHistoryMeta(session)}</Text>
                         </View>
                         <Text style={[styles.pill, muted ? styles.pillMuted : styles.pillOk]}>
-                          {session.status}
+                          {statusText}
                         </Text>
                         <MaterialIcons name="chevron-right" size={22} color={FlipOn.muted} />
                       </Pressable>

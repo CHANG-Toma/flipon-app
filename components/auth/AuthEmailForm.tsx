@@ -13,6 +13,7 @@ import {
   validateVerificationCode,
 } from '@/lib/auth/auth-form-validation';
 import { humanClerkError } from '@/lib/auth/human-clerk-error';
+import { useI18n } from '@/lib/i18n';
 
 export type AuthMode = 'signIn' | 'signUp';
 
@@ -35,6 +36,7 @@ export function AuthEmailForm({
   onSuccess,
   footer,
 }: Props) {
+  const { t } = useI18n();
   const { signIn, setActive: setActiveSignIn, isLoaded: signInLoaded } = useSignIn();
   const { signUp, setActive: setActiveSignUp, isLoaded: signUpLoaded } = useSignUp();
 
@@ -111,9 +113,9 @@ export function AuthEmailForm({
         finish();
         return;
       }
-      setError('Vérification incomplète. Vérifie le code.');
+      setError(t('errors.authVerifyIncomplete'));
     } catch (e) {
-      setError(humanClerkError(e, 'Code invalide. Réessaie.'));
+      setError(humanClerkError(e, t('errors.authCodeInvalid')));
     } finally {
       onLoadingChange(false);
     }
@@ -122,21 +124,23 @@ export function AuthEmailForm({
   if (pendingVerification) {
     return (
       <View style={[styles.card, !compact && styles.cardFlush]}>
-        <Text style={styles.cardTitle}>Confirme ton e-mail</Text>
-        <Text style={styles.hint}>Un code a été envoyé à {normalizeEmail(email)}.</Text>
+        <Text style={styles.cardTitle}>{t('auth.confirmEmailTitle')}</Text>
+        <Text style={styles.hint}>
+          {t('auth.confirmEmailHint', { email: normalizeEmail(email) })}
+        </Text>
         <TextInput
           value={code}
           onChangeText={(v) => {
             setCode(v);
             if (error) setError(null);
           }}
-          placeholder="Code à 6 chiffres"
+          placeholder={t('auth.codePlaceholder')}
           placeholderTextColor={FlipOn.muted}
           keyboardType="number-pad"
           autoComplete="one-time-code"
           textContentType="oneTimeCode"
           style={styles.input}
-          accessibilityLabel="Code de vérification"
+          accessibilityLabel={t('auth.codePlaceholder')}
         />
         {error ? (
           <Text style={styles.error} accessibilityRole="alert">
@@ -151,7 +155,7 @@ export function AuthEmailForm({
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.primaryText}>Valider le compte</Text>
+            <Text style={styles.primaryText}>{t('auth.validateAccount')}</Text>
           )}
         </Pressable>
         <Pressable
@@ -161,7 +165,7 @@ export function AuthEmailForm({
             setError(null);
           }}
           hitSlop={8}>
-          <Text style={styles.link}>Retour</Text>
+          <Text style={styles.link}>{t('common.back')}</Text>
         </Pressable>
       </View>
     );
@@ -172,11 +176,9 @@ export function AuthEmailForm({
   return (
     <View style={[styles.card, !compact && styles.cardFlush]}>
       <Text style={compact ? styles.cardTitle : styles.screenTitle}>
-        {isSignUp ? 'Créer un compte' : 'Connexion'}
+        {isSignUp ? t('auth.signUp') : t('auth.signIn')}
       </Text>
-      {isSignUp ? (
-        <Text style={styles.hint}>Tu recevras un code par e-mail pour valider ton compte.</Text>
-      ) : null}
+      {isSignUp ? <Text style={styles.hint}>{t('auth.signUpHint')}</Text> : null}
 
       <TextInput
         value={email}
@@ -184,7 +186,7 @@ export function AuthEmailForm({
           setEmail(v);
           if (error) setError(null);
         }}
-        placeholder="Email"
+        placeholder={t('auth.email')}
         placeholderTextColor={FlipOn.muted}
         autoCapitalize="none"
         autoCorrect={false}
@@ -192,7 +194,7 @@ export function AuthEmailForm({
         autoComplete="email"
         textContentType="emailAddress"
         style={styles.input}
-        accessibilityLabel="Email"
+        accessibilityLabel={t('auth.email')}
       />
       <PasswordInput
         value={password}
@@ -200,10 +202,10 @@ export function AuthEmailForm({
           setPassword(v);
           if (error) setError(null);
         }}
-        placeholder={isSignUp ? 'Mot de passe (8 caractères min.)' : 'Mot de passe'}
+        placeholder={isSignUp ? t('auth.passwordMin') : t('auth.password')}
         autoComplete={isSignUp ? 'new-password' : 'password'}
         textContentType={isSignUp ? 'newPassword' : 'password'}
-        accessibilityLabel="Mot de passe"
+        accessibilityLabel={t('auth.password')}
       />
       {isSignUp ? (
         <PasswordInput
@@ -212,10 +214,10 @@ export function AuthEmailForm({
             setConfirmPassword(v);
             if (error) setError(null);
           }}
-          placeholder="Confirmer le mot de passe"
+          placeholder={t('auth.confirmPassword')}
           autoComplete="new-password"
           textContentType="newPassword"
-          accessibilityLabel="Confirmer le mot de passe"
+          accessibilityLabel={t('auth.confirmPassword')}
         />
       ) : null}
 
@@ -233,7 +235,9 @@ export function AuthEmailForm({
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.primaryText}>{isSignUp ? "S'inscrire" : 'Se connecter'}</Text>
+          <Text style={styles.primaryText}>
+            {isSignUp ? t('auth.submitSignUp') : t('auth.submitSignIn')}
+          </Text>
         )}
       </Pressable>
 

@@ -6,6 +6,7 @@ import * as Linking from 'expo-linking';
 import { authStyles as styles } from '@/components/auth/auth-styles';
 import { FlipOn } from '@/constants/flipon';
 import { humanClerkError } from '@/lib/auth/human-clerk-error';
+import { useI18n } from '@/lib/i18n';
 
 type Props = {
   disabled?: boolean;
@@ -23,6 +24,7 @@ export function AuthGoogleButton({
   onError,
   onSuccess,
 }: Props) {
+  const { t } = useI18n();
   const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
 
   const onGoogle = useCallback(async () => {
@@ -52,7 +54,7 @@ export function AuthGoogleButton({
       {loading ? (
         <ActivityIndicator color={FlipOn.ink} />
       ) : (
-        <Text style={styles.secondaryText}>Continuer avec Google</Text>
+        <Text style={styles.secondaryText}>{t('auth.continueGoogle')}</Text>
       )}
     </Pressable>
   );

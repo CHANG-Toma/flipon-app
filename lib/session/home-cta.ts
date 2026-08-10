@@ -1,47 +1,50 @@
+import { tr } from '@/lib/i18n';
 import type { SessionState } from '@/lib/session/types';
 import { isActiveSession } from '@/lib/session/selectors';
 
 export function getHomeCta(session: SessionState) {
   if (!isActiveSession(session)) {
     return {
-      title: 'Aucune session',
-      cta: 'Nouvelle session',
+      title: tr('homeCta.none.title'),
+      cta: tr('homeCta.none.cta'),
       target: '/session' as const,
-      detail: '',
+      detail: tr('homeCta.none.detail'),
     };
   }
 
   if (session.status === 'lobby') {
     return {
-      title: 'Lobby · invitation',
-      cta: 'Retour au lobby',
+      title: tr('homeCta.lobby.title'),
+      cta: tr('homeCta.lobby.cta'),
       target: '/session' as const,
-      detail: 'Votes privés · En attente des participants',
+      detail: tr('homeCta.lobby.detail'),
     };
   }
 
   if (session.status === 'waiting_partner') {
     return {
-      title: 'En attente du partenaire',
-      cta: 'Voir le statut',
+      title: tr('homeCta.waiting.title'),
+      cta: tr('homeCta.waiting.cta'),
       target: '/vote' as const,
-      detail: 'Tes votes sont envoyés · match en cours',
+      detail: tr('homeCta.waiting.detail'),
     };
   }
 
   if (session.status === 'done') {
     return {
-      title: session.result ? 'Résultat prêt' : 'Pas de match',
-      cta: 'Voir le résultat',
+      title: session.result ? tr('homeCta.doneMatch.title') : tr('homeCta.doneNoMatch.title'),
+      cta: session.result ? tr('homeCta.doneMatch.cta') : tr('homeCta.doneNoMatch.cta'),
       target: '/result' as const,
-      detail: session.result ? 'Idée retenue · session terminée' : 'Aucun Oui en commun',
+      detail: session.result
+        ? tr('homeCta.doneMatch.detail')
+        : tr('homeCta.doneNoMatch.detail'),
     };
   }
 
   return {
-    title: 'Vote en cours',
-    cta: 'Reprendre le vote',
+    title: tr('homeCta.voting.title'),
+    cta: tr('homeCta.voting.cta'),
     target: '/vote' as const,
-    detail: 'Votes privés · Session active',
+    detail: tr('homeCta.voting.detail'),
   };
 }

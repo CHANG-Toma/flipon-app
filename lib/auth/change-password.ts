@@ -1,6 +1,7 @@
 import type { UserResource } from '@clerk/types';
 
 import { humanClerkError } from '@/lib/auth/human-clerk-error';
+import { tr } from '@/lib/i18n';
 
 /** Change le mot de passe FlipOn (compte e-mail déjà avec MDP). */
 export async function changeFlipOnPassword(
@@ -15,8 +16,6 @@ export async function changeFlipOnPassword(
       signOutOfOtherSessions: true,
     });
   } catch (e) {
-    throw new Error(
-      humanClerkError(e, 'Mot de passe actuel incorrect ou nouveau mot de passe refusé.'),
-    );
+    throw new Error(humanClerkError(e, tr('password.wrongCurrent')));
   }
 }

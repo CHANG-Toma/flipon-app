@@ -2,6 +2,7 @@ import { Pressable, Text, TextInput, View } from 'react-native';
 
 import { homeStyles as styles } from '@/components/home/home-styles';
 import { FlipOn } from '@/constants/flipon';
+import { useI18n } from '@/lib/i18n';
 import { normalizeSessionCode } from '@/lib/session-code';
 
 type Props = {
@@ -12,14 +13,16 @@ type Props = {
 };
 
 export function HomeJoinCode({ joinCode, joinError, onChangeCode, onJoin }: Props) {
+  const { t } = useI18n();
+
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Rejoindre avec un code</Text>
+      <Text style={styles.sectionTitle}>{t('home.joinTitle')}</Text>
       <View style={styles.joinRow}>
         <TextInput
           value={joinCode}
           onChangeText={(value) => onChangeCode(normalizeSessionCode(value))}
-          placeholder="ABCD"
+          placeholder={t('home.joinPlaceholder')}
           placeholderTextColor={FlipOn.muted}
           autoCapitalize="characters"
           autoCorrect={false}
@@ -28,22 +31,20 @@ export function HomeJoinCode({ joinCode, joinError, onChangeCode, onJoin }: Prop
           maxLength={4}
           returnKeyType="go"
           onSubmitEditing={onJoin}
-          accessibilityLabel="Code de session"
+          accessibilityLabel={t('home.joinCodeA11y')}
           style={styles.input}
         />
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Rejoindre la session"
+          accessibilityLabel={t('home.joinButtonA11y')}
           style={[styles.joinButton, !joinCode.trim() && styles.joinButtonDisabled]}
           onPress={onJoin}
           disabled={!joinCode.trim()}>
-          <Text style={styles.joinButtonText}>OK</Text>
+          <Text style={styles.joinButtonText}>{t('common.ok')}</Text>
         </Pressable>
       </View>
       {joinError ? <Text style={styles.joinError}>{joinError}</Text> : null}
-      <Text style={styles.hint}>
-        4 lettres · votes privés · pas besoin d’avoir créé la session
-      </Text>
+      <Text style={styles.hint}>{t('home.joinHint')}</Text>
     </View>
   );
 }

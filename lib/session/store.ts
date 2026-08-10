@@ -1,5 +1,6 @@
 import { normalizeConstraints, type Constraints } from '@/data/plans';
 import { ApiError } from '@/lib/http';
+import { tr } from '@/lib/i18n';
 import { getDuoSessionClient } from '@/lib/session/duo-client';
 import { DEFAULT_CONSTRAINTS, emptyState } from '@/lib/session/empty-state';
 import { recordSessionHistory } from '@/lib/session/history-port';
@@ -187,13 +188,13 @@ export async function refreshSession() {
 
 export async function startVoting() {
   if (!state.code) {
-    throw new Error('Crée d’abord une session.');
+    throw new Error(tr('errors.createFirst'));
   }
   if (!canStartVoting()) {
     throw new Error(
       state.type === 'Groupe'
-        ? `Attends que quelqu’un rejoigne (${state.joinedCount}/${state.partySize}).`
-        : 'Attends que quelqu’un rejoigne la session.',
+        ? tr('errors.waitToJoinCount', { joined: state.joinedCount, size: state.partySize })
+        : tr('errors.waitToJoin'),
     );
   }
 
@@ -214,7 +215,7 @@ export async function startVoting() {
 export async function joinByCode(code: string) {
   const normalized = normalizeSessionCode(code);
   if (!isValidSessionCode(normalized)) {
-    throw new ApiError('Code invalide ou expiré.', 400);
+    throw new ApiError(tr('errors.invalidOrExpiredCode'), 400);
   }
 
   const duo = getDuoSessionClient();

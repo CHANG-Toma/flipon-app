@@ -25,9 +25,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { AuthCard } from '@/components/auth/AuthCard';
+import { LanguagePreferenceBlock } from '@/components/profile/LanguagePreferenceBlock';
 import { FlipOn } from '@/constants/flipon';
 import { deleteAccountLocalAndClerk, humanDeleteError } from '@/lib/account';
 import { signOutAndClearHint } from '@/lib/auth/sign-out';
+import { useI18n } from '@/lib/i18n';
 import { legalUrl, SUPPORT_EMAIL, supportMailto } from '@/lib/legal';
 
 const APP_VERSION =
@@ -39,50 +41,50 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { signOut } = useAuth();
   const { user } = useUser();
+  const { t } = useI18n();
   const [deleting, setDeleting] = useState(false);
 
-  const openUrl = useCallback(async (url: string) => {
-    try {
-      const can = await Linking.canOpenURL(url);
-      if (!can) {
-        Alert.alert('Lien indisponible', 'Impossible d’ouvrir ce lien sur cet appareil.');
-        return;
+  const openUrl = useCallback(
+    async (url: string) => {
+      try {
+        const can = await Linking.canOpenURL(url);
+        if (!can) {
+          Alert.alert(t('common.linkUnavailableTitle'), t('common.linkUnavailableBody'));
+          return;
+        }
+        await Linking.openURL(url);
+      } catch {
+        Alert.alert(t('common.linkUnavailableTitle'), t('common.linkUnavailableTemp'));
       }
-      await Linking.openURL(url);
-    } catch {
-      Alert.alert('Lien indisponible', 'Impossible d’ouvrir ce lien pour le moment.');
-    }
-  }, []);
+    },
+    [t],
+  );
 
   const onDeleteAccount = useCallback(() => {
     if (!user || deleting) return;
 
-    Alert.alert(
-      'Supprimer mon compte ?',
-      'Cette action est définitive : ton compte FlipOn sera effacé. Les données locales (session, historique) seront aussi effacées sur cet appareil.',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Supprimer',
-          style: 'destructive',
-          onPress: () => {
-            void (async () => {
-              try {
-                setDeleting(true);
-                await deleteAccountLocalAndClerk(user);
-                await signOutAndClearHint(signOut);
-                router.replace('/login' as Href);
-              } catch (e) {
-                Alert.alert('Suppression impossible', humanDeleteError(e));
-              } finally {
-                setDeleting(false);
-              }
-            })();
-          },
+    Alert.alert(t('profile.deleteTitle'), t('profile.deleteBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('profile.deleteConfirm'),
+        style: 'destructive',
+        onPress: () => {
+          void (async () => {
+            try {
+              setDeleting(true);
+              await deleteAccountLocalAndClerk(user);
+              await signOutAndClearHint(signOut);
+              router.replace('/login' as Href);
+            } catch (e) {
+              Alert.alert(t('profile.deleteImpossible'), humanDeleteError(e));
+            } finally {
+              setDeleting(false);
+            }
+          })();
         },
-      ],
-    );
-  }, [user, deleting, signOut, router]);
+      },
+    ]);
+  }, [user, deleting, signOut, router, t]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -91,36 +93,38 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag">
-        <Text style={styles.screenTitle}>Profil</Text>
+        <Text style={styles.screenTitle}>{t('profile.title')}</Text>
 
         <AuthCard />
 
+        <LanguagePreferenceBlock />
+
         <View style={styles.block}>
-          <Text style={styles.blockTitle}>Offre</Text>
+          <Text style={styles.blockTitle}>{t('profile.offer')}</Text>
           <View style={[styles.row, styles.rowBorder]}>
-            <Text style={styles.rowLabel}>Plan</Text>
-            <Text style={styles.rowValue}>Basique (gratuit)</Text>
+            <Text style={styles.rowLabel}>{t('profile.plan')}</Text>
+            <Text style={styles.rowValue}>{t('profile.planBasic')}</Text>
           </View>
           <LinkRow
-            label="Gérer mon abonnement"
+            label={t('profile.manageSubscription')}
             onPress={() => router.push('/subscription' as Href)}
             last
           />
         </View>
 
         <View style={styles.block}>
-          <Text style={styles.blockTitle}>Informations légales</Text>
+          <Text style={styles.blockTitle}>{t('profile.legal')}</Text>
           <LinkRow
-            label="Politique de confidentialité"
+            label={t('profile.privacy')}
             onPress={() => void openUrl(legalUrl('confidentialite'))}
           />
-          <LinkRow label="CGU" onPress={() => void openUrl(legalUrl('cgu'))} />
+          <LinkRow label={t('profile.terms')} onPress={() => void openUrl(legalUrl('cgu'))} />
           <LinkRow
-            label="Mentions légales"
+            label={t('profile.mentions')}
             onPress={() => void openUrl(legalUrl('mentions'))}
           />
           <LinkRow
-            label="Contacter le support"
+            label={t('profile.support')}
             detail={SUPPORT_EMAIL}
             onPress={() => void openUrl(supportMailto())}
             last
@@ -136,11 +140,11 @@ export default function ProfileScreen() {
           {deleting ? (
             <ActivityIndicator color={FlipOn.danger} />
           ) : (
-            <Text style={styles.dangerButtonText}>Supprimer mon compte</Text>
+            <Text style={styles.dangerButtonText}>{t('profile.deleteAccount')}</Text>
           )}
         </Pressable>
 
-        <Text style={styles.version}>FlipOn · version {APP_VERSION}</Text>
+        <Text style={styles.version}>{t('profile.version', { version: APP_VERSION })}</Text>
       </ScrollView>
     </SafeAreaView>
   );

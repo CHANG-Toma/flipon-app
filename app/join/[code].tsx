@@ -8,11 +8,13 @@ import { FlipOn } from '@/constants/flipon';
 import { useMounted } from '@/hooks/use-mounted';
 import { usePolling } from '@/hooks/use-polling';
 import { ApiError, NetworkError } from '@/lib/http';
+import { useI18n } from '@/lib/i18n';
 import { isValidSessionCode, normalizeSessionCode } from '@/lib/session-code';
 import { joinByCode, refreshSession } from '@/lib/session/store';
 
 export default function JoinScreen() {
   const router = useRouter();
+  const { t } = useI18n();
   const isMounted = useMounted();
   const { code } = useLocalSearchParams<{ code: string }>();
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +29,7 @@ export default function JoinScreen() {
       setWaitingHost(false);
 
       if (!isValidSessionCode(displayCode)) {
-        throw new ApiError('Code invalide ou expiré.', 400);
+        throw new ApiError(t('join.invalidCode'), 400);
       }
 
       const session = await joinByCode(displayCode);
@@ -50,11 +52,11 @@ export default function JoinScreen() {
       setError(
         e instanceof NetworkError || e instanceof ApiError || e instanceof Error
           ? e.message
-          : 'Impossible de rejoindre la session.',
+          : t('join.joinFailed'),
       );
       setLoading(false);
     }
-  }, [displayCode, isMounted, router]);
+  }, [displayCode, isMounted, router, t]);
 
   useEffect(() => {
     void join();
@@ -76,19 +78,19 @@ export default function JoinScreen() {
   );
 
   return (
-    <Screen showBack title="Invitation">
+    <Screen showBack title={t('join.title')}>
       {loading && !error ? (
-        <View style={styles.center} accessibilityLabel="Connexion à la session">
+        <View style={styles.center} accessibilityLabel={t('join.connectingA11y')}>
           <ActivityIndicator color={FlipOn.accent} size="large" />
-          <Text style={styles.text}>Connexion à la session…</Text>
+          <Text style={styles.text}>{t('join.connecting')}</Text>
           <Text style={styles.code}>{displayCode || '—'}</Text>
         </View>
       ) : null}
       {waitingHost && !error ? (
         <View style={styles.center} accessibilityLiveRegion="polite">
-          <Text style={styles.title}>Tu as rejoint la session</Text>
+          <Text style={styles.title}>{t('join.joined')}</Text>
           <Text style={styles.code}>{displayCode}</Text>
-          <Text style={styles.text}>En attente que l’hôte lance le vote…</Text>
+          <Text style={styles.text}>{t('join.waitingHost')}</Text>
         </View>
       ) : null}
       {error ? <ErrorState text={error} onRetry={join} /> : null}

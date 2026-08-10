@@ -11,6 +11,7 @@ import { FlipOn } from '@/constants/flipon';
 import { useMounted } from '@/hooks/use-mounted';
 import { usePolling } from '@/hooks/use-polling';
 import { ApiError, NetworkError } from '@/lib/http';
+import { useI18n } from '@/lib/i18n';
 import {
   getSession,
   refreshSession,
@@ -21,6 +22,7 @@ import {
 
 export default function VoteScreen() {
   const router = useRouter();
+  const { t } = useI18n();
   const isMounted = useMounted();
   const [session, setSession] = useState(getSession());
   const [loading, setLoading] = useState(true);
@@ -57,12 +59,12 @@ export default function VoteScreen() {
       setError(
         e instanceof NetworkError || e instanceof ApiError || e instanceof Error
           ? e.message
-          : 'Impossible de charger les idées.',
+          : t('vote.loadFailed'),
       );
     } finally {
       if (isMounted()) setLoading(false);
     }
-  }, [router, isMounted]);
+  }, [router, isMounted, t]);
 
   useEffect(() => {
     void load();
@@ -102,7 +104,7 @@ export default function VoteScreen() {
       setError(
         e instanceof NetworkError || e instanceof ApiError || e instanceof Error
           ? e.message
-          : 'Impossible d’envoyer le vote.',
+          : t('vote.voteFailed'),
       );
     } finally {
       if (isMounted()) setSubmitting(false);
@@ -114,10 +116,10 @@ export default function VoteScreen() {
 
   if (loading) {
     return (
-      <Screen showBack title="Vote privé" headerRight={endSessionBtn}>
-        <View style={styles.center} accessibilityLabel="Chargement du vote">
+      <Screen showBack title={t('vote.title')} headerRight={endSessionBtn}>
+        <View style={styles.center} accessibilityLabel={t('vote.loadingA11y')}>
           <ActivityIndicator color={FlipOn.accent} size="large" />
-          <Text style={styles.loadingText}>Chargement du deck…</Text>
+          <Text style={styles.loadingText}>{t('vote.loading')}</Text>
         </View>
       </Screen>
     );
@@ -125,7 +127,7 @@ export default function VoteScreen() {
 
   if (error) {
     return (
-      <Screen showBack title="Vote privé" headerRight={endSessionBtn}>
+      <Screen showBack title={t('vote.title')} headerRight={endSessionBtn}>
         <ErrorState text={error} onRetry={load} />
       </Screen>
     );
@@ -133,10 +135,10 @@ export default function VoteScreen() {
 
   if (session.status === 'waiting_partner') {
     return (
-      <Screen showBack title="Vote privé" headerRight={endSessionBtn}>
+      <Screen showBack title={t('vote.title')} headerRight={endSessionBtn}>
         <EmptyState
-          title="En attente du partenaire"
-          text="Tes choix sont enregistrés. Dès que l’autre a fini, on calcule le match."
+          title={t('vote.waitingPartnerTitle')}
+          text={t('vote.waitingPartnerText')}
           icon="hourglass-empty"
         />
       </Screen>
@@ -145,11 +147,11 @@ export default function VoteScreen() {
 
   if (!idea) {
     return (
-      <Screen showBack title="Vote privé">
+      <Screen showBack title={t('vote.title')}>
         <EmptyState
-          title="Deck vide"
-          text="Relance une session avec un cadre plus large."
-          actionLabel="Nouvelle session"
+          title={t('vote.emptyDeckTitle')}
+          text={t('vote.emptyDeckText')}
+          actionLabel={t('vote.newSession')}
           onAction={() => router.replace('/session')}
           icon="style"
         />
@@ -162,11 +164,11 @@ export default function VoteScreen() {
   return (
     <Screen
       showBack
-      title="Vote privé"
+      title={t('vote.title')}
       headerRight={endSessionBtn}
       contentStyle={{ paddingBottom: 32 }}>
       <Text style={styles.progress} accessibilityLiveRegion="polite">
-        Idée {progress} · votes privés
+        {t('vote.progress', { progress })}
       </Text>
 
       <View
@@ -186,23 +188,23 @@ export default function VoteScreen() {
       <View style={styles.actions}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Passer cette idée"
+          accessibilityLabel={t('vote.passA11y')}
           style={[styles.passBtn, submitting && styles.disabled]}
           onPress={() => onVote(false)}
           disabled={submitting}>
-          <Text style={styles.passText}>Passer</Text>
+          <Text style={styles.passText}>{t('vote.pass')}</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Oui pour cette idée"
+          accessibilityLabel={t('vote.yesA11y')}
           style={[styles.yesBtn, submitting && styles.disabled]}
           onPress={() => onVote(true)}
           disabled={submitting}>
-          <Text style={styles.yesText}>{submitting ? '…' : 'Oui'}</Text>
+          <Text style={styles.yesText}>{submitting ? '…' : t('vote.yes')}</Text>
         </Pressable>
       </View>
 
-      <Text style={styles.hint}>Tes choix restent privés. On ne garde que les idées en commun.</Text>
+      <Text style={styles.hint}>{t('vote.hint')}</Text>
     </Screen>
   );
 }

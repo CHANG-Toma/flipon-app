@@ -6,10 +6,12 @@ import {
   registerConfirmDialog,
   type ConfirmDialogOptions,
 } from '@/lib/confirm-dialog';
+import { useI18n } from '@/lib/i18n';
 
 type Pending = ConfirmDialogOptions & { id: number };
 
 export function ConfirmHost() {
+  const { t } = useI18n();
   const [pending, setPending] = useState<Pending | null>(null);
   const resolveRef = useRef<((value: boolean) => void) | null>(null);
   const idRef = useRef(0);
@@ -48,7 +50,7 @@ export function ConfirmHost() {
               accessibilityRole="button"
               style={({ pressed }) => [styles.btn, styles.cancelBtn, pressed && styles.pressed]}
               onPress={() => close(false)}>
-              <Text style={styles.cancelText}>{pending?.cancelLabel ?? 'Annuler'}</Text>
+              <Text style={styles.cancelText}>{pending?.cancelLabel ?? t('common.cancel')}</Text>
             </Pressable>
             <Pressable
               accessibilityRole="button"
@@ -59,7 +61,7 @@ export function ConfirmHost() {
               ]}
               onPress={() => close(true)}>
               <Text style={pending?.destructive ? styles.dangerText : styles.confirmText}>
-                {pending?.confirmLabel ?? 'Confirmer'}
+                {pending?.confirmLabel ?? t('confirm.confirm')}
               </Text>
             </Pressable>
           </View>

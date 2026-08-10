@@ -10,53 +10,57 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { Screen } from '@/components/ui/Screen';
 import { FlipOn } from '@/constants/flipon';
+import { useI18n } from '@/lib/i18n';
+import type { TranslationKey } from '@/lib/i18n';
 import { getSubscription } from '@/lib/subscription';
 
-const BOOST_PRICE = '3,99';
-
-const FREE_FEATURES = [
-  'Vote privé → une idée commune',
-  'Catalogue + filtres intelligents',
-  'Sessions duo avec code / QR',
-  'Partage du résultat',
-  'Compte et suppression RGPD',
+const FREE_FEATURE_KEYS: TranslationKey[] = [
+  'subscription.freeFeature1',
+  'subscription.freeFeature2',
+  'subscription.freeFeature3',
+  'subscription.freeFeature4',
+  'subscription.freeFeature5',
 ];
 
-const BOOST_CHIPS = [
-  'Moins de débat',
-  'Autour en temps réel',
-  'Météo intelligente',
-  'Gain de temps',
+const BOOST_CHIP_KEYS: TranslationKey[] = [
+  'subscription.boostChip1',
+  'subscription.boostChip2',
+  'subscription.boostChip3',
+  'subscription.boostChip4',
 ];
 
-const BOOST_HIGHLIGHTS = [
-  'Où tu veux, quand tu veux',
-  'Contexte réel = meilleurs choix',
-  'Résultat commun, sans friction',
+const BOOST_HIGHLIGHT_KEYS: TranslationKey[] = [
+  'subscription.boostHighlight1',
+  'subscription.boostHighlight2',
+  'subscription.boostHighlight3',
 ];
 
-const BOOST_FEATURES = [
-  'Idées IA selon votre lieu et le moment',
-  'Nombre d’activités autour en temps réel',
-  'Suggestions selon la météo',
-  'Plan détaillé après le match',
-  'Décision plus rapide en quelques taps',
-  'Sessions Duo+ / Groupe+ sans friction',
+const BOOST_FEATURE_KEYS: TranslationKey[] = [
+  'subscription.boostFeature1',
+  'subscription.boostFeature2',
+  'subscription.boostFeature3',
+  'subscription.boostFeature4',
+  'subscription.boostFeature5',
+  'subscription.boostFeature6',
 ];
 
 export default function SubscriptionScreen() {
   const router = useRouter();
+  const { t } = useI18n();
   const sub = getSubscription();
   const onBasique = sub.plan === 'basique';
 
   return (
-    <Screen showBack title="Abonnement">
+    <Screen showBack title={t('subscription.title')}>
       <View style={styles.intro}>
-        <Text style={styles.introKicker}>Tarifs</Text>
-        <Text style={styles.introTitle}>Boost pour vos meilleurs moments.</Text>
+        <Text style={styles.introKicker}>{t('subscription.kicker')}</Text>
+        <Text style={styles.introTitle}>{t('subscription.introTitle')}</Text>
         <Text style={styles.introSub}>
-          Même vote. Des idées inventées pour <Text style={styles.em}>ici</Text> et{' '}
-          <Text style={styles.em}>maintenant</Text>, pas seulement le catalogue.
+          {t('subscription.introSubBefore')}
+          <Text style={styles.em}>{t('subscription.introHere')}</Text>
+          {t('subscription.introAnd')}
+          <Text style={styles.em}>{t('subscription.introNow')}</Text>
+          {t('subscription.introSubAfter')}
         </Text>
       </View>
 
@@ -64,25 +68,23 @@ export default function SubscriptionScreen() {
       <View style={styles.freeCard}>
         <View style={styles.freeTop}>
           <View>
-            <Text style={styles.freeEyebrow}>Gratuit</Text>
-            <Text style={styles.freeTitle}>Basique</Text>
+            <Text style={styles.freeEyebrow}>{t('subscription.freeEyebrow')}</Text>
+            <Text style={styles.freeTitle}>{t('subscription.freeTitle')}</Text>
           </View>
           {onBasique ? (
             <View style={styles.currentPill}>
-              <Text style={styles.currentPillText}>Actuel</Text>
+              <Text style={styles.currentPillText}>{t('subscription.current')}</Text>
             </View>
           ) : null}
         </View>
-        <Text style={styles.freeDesc}>
-          Catalogue FlipOn, bien filtré. Assez pour trancher maintenant.
-        </Text>
+        <Text style={styles.freeDesc}>{t('subscription.freeDesc')}</Text>
         <View style={styles.priceRow}>
-          <Text style={styles.freePrice}>0 €</Text>
-          <Text style={styles.priceUnit}>/ mois</Text>
+          <Text style={styles.freePrice}>{t('subscription.priceZero')}</Text>
+          <Text style={styles.priceUnit}>{t('subscription.perMonth')}</Text>
         </View>
         <View style={styles.featureList}>
-          {FREE_FEATURES.map((f) => (
-            <FeatureRow key={f} text={f} tone="light" />
+          {FREE_FEATURE_KEYS.map((key) => (
+            <FeatureRow key={key} text={t(key)} tone="light" />
           ))}
         </View>
       </View>
@@ -91,48 +93,46 @@ export default function SubscriptionScreen() {
       <View style={styles.boostCard}>
         <View style={styles.boostGlow} pointerEvents="none" />
         <View style={styles.boostInner}>
-          <Text style={styles.boostEyebrow}>Recommandé</Text>
-          <Text style={styles.boostTitle}>Boost</Text>
-          <Text style={styles.boostDesc}>
-            Pour passer vos meilleurs moments en toute simplicité.
-          </Text>
+          <Text style={styles.boostEyebrow}>{t('subscription.boostEyebrow')}</Text>
+          <Text style={styles.boostTitle}>{t('subscription.boostTitle')}</Text>
+          <Text style={styles.boostDesc}>{t('subscription.boostDesc')}</Text>
 
           <View style={styles.chipRow}>
-            {BOOST_CHIPS.map((chip) => (
-              <View key={chip} style={styles.chip}>
-                <Text style={styles.chipText}>{chip}</Text>
+            {BOOST_CHIP_KEYS.map((key) => (
+              <View key={key} style={styles.chip}>
+                <Text style={styles.chipText}>{t(key)}</Text>
               </View>
             ))}
           </View>
 
           <View style={styles.priceRow}>
-            <Text style={styles.boostPrice}>{BOOST_PRICE} €</Text>
-            <Text style={styles.boostPriceUnit}>/ mois</Text>
+            <Text style={styles.boostPrice}>{t('subscription.boostPrice')}</Text>
+            <Text style={styles.boostPriceUnit}>{t('subscription.perMonth')}</Text>
           </View>
 
           <View style={styles.highlightList}>
-            {BOOST_HIGHLIGHTS.map((item) => (
-              <View key={item} style={styles.highlightRow}>
+            {BOOST_HIGHLIGHT_KEYS.map((key) => (
+              <View key={key} style={styles.highlightRow}>
                 <View style={styles.highlightDot} />
-                <Text style={styles.highlightText}>{item}</Text>
+                <Text style={styles.highlightText}>{t(key)}</Text>
               </View>
             ))}
           </View>
 
           <View style={styles.featureList}>
-            {BOOST_FEATURES.map((f) => (
-              <FeatureRow key={f} text={f} tone="dark" />
+            {BOOST_FEATURE_KEYS.map((key) => (
+              <FeatureRow key={key} text={t(key)} tone="dark" />
             ))}
           </View>
 
           <Pressable
             accessibilityRole="button"
             accessibilityState={{ disabled: true }}
-            accessibilityLabel="Passer à Boost, bientôt disponible"
+            accessibilityLabel={t('subscription.boostCtaA11y')}
             disabled
             style={styles.boostCta}>
-            <Text style={styles.boostCtaText}>Passer à Boost</Text>
-            <Text style={styles.boostCtaSoon}>Bientôt disponible</Text>
+            <Text style={styles.boostCtaText}>{t('subscription.boostCta')}</Text>
+            <Text style={styles.boostCtaSoon}>{t('subscription.boostSoon')}</Text>
           </Pressable>
         </View>
       </View>
@@ -141,7 +141,7 @@ export default function SubscriptionScreen() {
         accessibilityRole="button"
         style={styles.secondary}
         onPress={() => router.back()}>
-        <Text style={styles.secondaryText}>Retour au profil</Text>
+        <Text style={styles.secondaryText}>{t('subscription.backToProfile')}</Text>
       </Pressable>
     </Screen>
   );

@@ -3,6 +3,7 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 import { PulseRing } from '@/components/ui/pulse-ring';
 import { FlipOn } from '@/constants/flipon';
+import { tr } from '@/lib/i18n';
 
 type Props = {
   message?: string;
@@ -19,7 +20,7 @@ export function PremiumLoader({ message, fullScreen = true }: Props) {
             <Image
               source={require('../../assets/images/logo.png')}
               style={styles.logo}
-              accessibilityLabel="FlipOn"
+              accessibilityLabel={tr('loader.brandA11y')}
             />
           </PulseRing>
         </Animated.View>
@@ -28,7 +29,7 @@ export function PremiumLoader({ message, fullScreen = true }: Props) {
           FlipOn
         </Animated.Text>
         <Animated.Text entering={FadeInDown.delay(200).duration(450)} style={styles.tagline}>
-          Décidez ensemble, en un clin d'œil
+          {tr('loader.tagline')}
         </Animated.Text>
 
         {message ? (
@@ -39,7 +40,7 @@ export function PremiumLoader({ message, fullScreen = true }: Props) {
       </View>
 
       <Animated.Text entering={FadeIn.delay(360).duration(350)} style={styles.footer}>
-        FlipOn · Basique
+        {tr('loader.footer')}
       </Animated.Text>
     </View>
   );

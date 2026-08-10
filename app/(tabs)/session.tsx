@@ -11,6 +11,7 @@ import { countMatchingPlans, type Constraints } from '@/data/plans';
 import { useMounted } from '@/hooks/use-mounted';
 import { usePolling } from '@/hooks/use-polling';
 import { ApiError, NetworkError } from '@/lib/http';
+import { useI18n } from '@/lib/i18n';
 import { getInviteLink } from '@/lib/session/invite';
 import { defaultPartySize } from '@/lib/session/party';
 import {
@@ -31,6 +32,7 @@ function stepFromSession(session: SessionState): Step {
 
 export default function SessionScreen() {
   const router = useRouter();
+  const { t } = useI18n();
   const isMounted = useMounted();
   const existing = getSession();
   const [step, setStep] = useState<Step>(() => stepFromSession(existing));
@@ -78,7 +80,7 @@ export default function SessionScreen() {
 
   const goToInvite = async () => {
     if (loading || matchCount === 0) {
-      if (matchCount === 0) setError('Aucun plan pour ce cadre. Élargis un critère.');
+      if (matchCount === 0) setError(t('session.noPlans'));
       return;
     }
     try {
@@ -97,7 +99,7 @@ export default function SessionScreen() {
       setError(
         e instanceof NetworkError || e instanceof ApiError || e instanceof Error
           ? e.message
-          : 'Impossible de créer la session.',
+          : t('session.createFailed'),
       );
     } finally {
       if (isMounted()) setLoading(false);
@@ -107,7 +109,7 @@ export default function SessionScreen() {
   const launchVote = async () => {
     if (loading) return;
     if (!canStartVoting()) {
-      setError('Attends que quelqu’un rejoigne la session.');
+      setError(t('session.waitToJoin'));
       return;
     }
     try {
@@ -122,7 +124,7 @@ export default function SessionScreen() {
       setError(
         e instanceof NetworkError || e instanceof ApiError || e instanceof Error
           ? e.message
-          : 'Impossible de lancer la session.',
+          : t('session.launchFailed'),
       );
     } finally {
       if (isMounted()) setLoading(false);
@@ -132,7 +134,7 @@ export default function SessionScreen() {
   const shareInvite = async () => {
     if (!code) return;
     await Share.share({
-      message: `Rejoins ma session FlipOn : ${code}\n${getInviteLink(code)}`,
+      message: t('session.shareMessage', { code, link: getInviteLink(code) }),
     });
   };
 
@@ -150,7 +152,7 @@ export default function SessionScreen() {
     <Screen
       showBack
       onBack={handleBack}
-      title={step === 'setup' ? 'Nouvelle session' : 'Invitation'}
+      title={step === 'setup' ? t('session.setupTitle') : t('session.lobbyTitle')}
       headerRight={
         step === 'invite' && code ? (
           <EndSessionCloseButton afterEnd={() => router.replace('/(tabs)')} />

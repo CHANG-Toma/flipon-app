@@ -32,17 +32,12 @@ import {
   hydrateSession,
   subscribeSession,
 } from '@/lib/session/store';
-
-function greetingLabel(firstName?: string | null) {
-  const hour = new Date().getHours();
-  const hello = hour < 18 ? 'Bonjour' : 'Bonsoir';
-  const name = firstName?.trim();
-  return name ? `${hello}, ${name}` : hello;
-}
+import { useI18n } from '@/lib/i18n';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useUser();
+  const { t } = useI18n();
   const [joinCode, setJoinCode] = useState('');
   const [session, setSession] = useState(getSession());
   const [latest, setLatest] = useState<HistoryEntry | null>(getLatestHistory());
@@ -65,15 +60,17 @@ export default function HomeScreen() {
   useEffect(() => subscribeSession(() => setSession(getSession())), []);
   useEffect(() => subscribeHistory(() => setLatest(getLatestHistory())), []);
 
-  const hello = useMemo(
-    () => greetingLabel(user?.firstName ?? user?.username),
-    [user?.firstName, user?.username],
-  );
+  const hello = useMemo(() => {
+    const hour = new Date().getHours();
+    const base = hour < 18 ? t('home.hello') : t('home.helloEvening');
+    const name = (user?.firstName ?? user?.username)?.trim();
+    return name ? `${base}, ${name}` : base;
+  }, [t, user?.firstName, user?.username]);
 
   const joinSession = () => {
     const code = normalizeSessionCode(joinCode);
     if (!isValidSessionCode(code)) {
-      setJoinError('Entre un code à 4 caractères.');
+      setJoinError(t('home.joinInvalid'));
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
@@ -108,11 +105,8 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}>
           <View style={styles.top}>
             <Text style={styles.hello}>{hello}</Text>
-            <Text style={styles.title}>Que fait-on ?</Text>
-            <Text style={styles.subtitle}>
-              Votez en privé, une idée pour tout le monde. Ambiance d’idées — pas une app de
-              rencontres.
-            </Text>
+            <Text style={styles.title}>{t('home.title')}</Text>
+            <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
           </View>
 
           {hasActive ? (

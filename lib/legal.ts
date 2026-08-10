@@ -2,6 +2,8 @@
  * Liens légaux / support — même source que le site FlipOn.
  * Base : EXPO_PUBLIC_WEB_URL (dev LAN ou prod Vercel).
  */
+import { tr } from '@/lib/i18n';
+
 const WEB_BASE =
   (typeof process !== 'undefined' &&
     (process.env.EXPO_PUBLIC_WEB_URL || process.env.EXPO_PUBLIC_API_URL)?.replace(/\/$/, '')) ||
@@ -19,5 +21,5 @@ export function legalUrl(path: 'confidentialite' | 'cgu' | 'mentions') {
 }
 
 export function supportMailto() {
-  return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('FlipOn — support')}`;
+  return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(tr('legal.supportSubject'))}`;
 }

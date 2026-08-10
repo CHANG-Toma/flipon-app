@@ -15,6 +15,7 @@ import {
 import { signOutAndClearHint } from '@/lib/auth/sign-out';
 import { validateRemoteSession } from '@/lib/auth/validate-session';
 import { pullCloudHistory } from '@/lib/history/store';
+import { tr } from '@/lib/i18n';
 
 /**
  * Pont Clerk ↔ app.
@@ -53,7 +54,7 @@ export function AuthBridge({ children }: { children: ReactNode }) {
     void (async () => {
       try {
         if (await hadAuthSessionHint()) {
-          setSplashMessage('Reconnexion…');
+          setSplashMessage(tr('login.reconnecting'));
         }
 
         if (isSignedIn) {

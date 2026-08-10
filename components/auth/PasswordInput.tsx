@@ -9,6 +9,7 @@ import {
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { FlipOn } from '@/constants/flipon';
+import { useI18n } from '@/lib/i18n';
 
 type Props = Omit<TextInputProps, 'secureTextEntry'> & {
   /** Affiche le champ masqué par défaut. */
@@ -22,6 +23,7 @@ export function PasswordInput({
   editable = true,
   ...rest
 }: Props) {
+  const { t } = useI18n();
   const [hidden, setHidden] = useState(defaultHidden);
 
   return (
@@ -35,7 +37,7 @@ export function PasswordInput({
       />
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={hidden ? 'Afficher le mot de passe' : 'Masquer le mot de passe'}
+        accessibilityLabel={hidden ? t('auth.showPassword') : t('auth.hidePassword')}
         onPress={() => setHidden((v) => !v)}
         disabled={editable === false}
         hitSlop={8}

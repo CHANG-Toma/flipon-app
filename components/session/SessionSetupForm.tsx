@@ -4,43 +4,11 @@ import { ChipRow } from '@/components/session/ChipRow';
 import { sessionStyles as styles } from '@/components/session/session-styles';
 import { ErrorState } from '@/components/ui/ErrorState';
 import type { Constraints } from '@/data/plans';
+import { useI18n } from '@/lib/i18n';
 import type { SessionType } from '@/lib/session/types';
 
 const TYPES: SessionType[] = ['Duo', 'Groupe'];
 const GROUP_SIZES = [3, 4, 5, 6, 7, 8] as const;
-
-const DURATION_OPTIONS: { value: Constraints['duration']; label: string }[] = [
-  { value: '30', label: '30 min' },
-  { value: '60', label: '1h' },
-  { value: '120', label: '2h' },
-  { value: 'soirée', label: 'Soirée' },
-];
-
-const BUDGET_OPTIONS: { value: Constraints['budget']; label: string }[] = [
-  { value: '0', label: '0 EUR' },
-  { value: '20', label: '≤ 20' },
-  { value: '50', label: '≤ 50' },
-  { value: '80+', label: '80+' },
-];
-
-const ENERGY_OPTIONS: { value: Constraints['energy']; label: string }[] = [
-  { value: 'basse', label: 'Calme' },
-  { value: 'moyenne', label: 'Mixte' },
-  { value: 'haute', label: 'Dynamique' },
-];
-
-const PLACE_OPTIONS: { value: Constraints['place']; label: string }[] = [
-  { value: 'dedans', label: 'Dedans' },
-  { value: 'dehors', label: 'Dehors' },
-  { value: 'peu-importe', label: 'Peu importe' },
-];
-
-const VIBE_OPTIONS: { value: Constraints['vibe']; label: string }[] = [
-  { value: 'potes', label: 'Potes' },
-  { value: 'date', label: 'Date' },
-  { value: 'groupe', label: 'Groupe' },
-  { value: 'peu-importe', label: 'Tous' },
-];
 
 type Props = {
   type: SessionType;
@@ -68,26 +36,62 @@ export function SessionSetupForm({
   onConstraintsPatch,
   onContinue,
 }: Props) {
+  const { t } = useI18n();
+
+  const durationOptions: { value: Constraints['duration']; label: string }[] = [
+    { value: '30', label: t('sessionSetup.duration30') },
+    { value: '60', label: t('sessionSetup.duration60') },
+    { value: '120', label: t('sessionSetup.duration120') },
+    { value: 'soirée', label: t('sessionSetup.durationEvening') },
+  ];
+
+  const budgetOptions: { value: Constraints['budget']; label: string }[] = [
+    { value: '0', label: t('sessionSetup.budget0') },
+    { value: '20', label: t('sessionSetup.budget20') },
+    { value: '50', label: t('sessionSetup.budget50') },
+    { value: '80+', label: t('sessionSetup.budget80') },
+  ];
+
+  const energyOptions: { value: Constraints['energy']; label: string }[] = [
+    { value: 'basse', label: t('sessionSetup.energyLow') },
+    { value: 'moyenne', label: t('sessionSetup.energyMid') },
+    { value: 'haute', label: t('sessionSetup.energyHigh') },
+  ];
+
+  const placeOptions: { value: Constraints['place']; label: string }[] = [
+    { value: 'dedans', label: t('sessionSetup.placeIn') },
+    { value: 'dehors', label: t('sessionSetup.placeOut') },
+    { value: 'peu-importe', label: t('sessionSetup.placeAny') },
+  ];
+
+  const vibeOptions: { value: Constraints['vibe']; label: string }[] = [
+    { value: 'potes', label: t('sessionSetup.vibeFriends') },
+    { value: 'date', label: t('sessionSetup.vibeDate') },
+    { value: 'groupe', label: t('sessionSetup.vibeGroup') },
+    { value: 'peu-importe', label: t('sessionSetup.vibeAny') },
+  ];
+
   return (
     <>
       <View style={styles.hero}>
-        <Text style={styles.kicker}>Étape 1</Text>
-        <Text style={styles.title}>Type et cadre</Text>
-        <Text style={styles.subtitle}>
-          Choisis le format, puis le cadre. L’invitation vient ensuite.
-        </Text>
+        <Text style={styles.kicker}>{t('sessionSetup.step1')}</Text>
+        <Text style={styles.title}>{t('sessionSetup.title')}</Text>
+        <Text style={styles.subtitle}>{t('sessionSetup.subtitle')}</Text>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Type</Text>
+        <Text style={styles.cardTitle}>{t('sessionSetup.type')}</Text>
         <ChipRow
-          options={TYPES.map((t) => ({ value: t, label: t }))}
+          options={TYPES.map((value) => ({
+            value,
+            label: value === 'Groupe' ? t('sessionSetup.groupe') : t('sessionSetup.duo'),
+          }))}
           value={type}
           onChange={onTypeChange}
         />
         {type === 'Groupe' ? (
           <>
-            <Text style={styles.groupLabel}>Nombre de personnes</Text>
+            <Text style={styles.groupLabel}>{t('sessionSetup.partySize')}</Text>
             <ChipRow
               options={GROUP_SIZES.map((n) => ({
                 value: String(n),
@@ -102,36 +106,36 @@ export function SessionSetupForm({
 
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>Cadre</Text>
-          <Text style={styles.count}>{matchCount} idées</Text>
+          <Text style={styles.cardTitle}>{t('sessionSetup.frame')}</Text>
+          <Text style={styles.count}>{t('sessionSetup.ideasCount', { n: matchCount })}</Text>
         </View>
-        <Text style={styles.groupLabel}>Durée</Text>
+        <Text style={styles.groupLabel}>{t('sessionSetup.duration')}</Text>
         <ChipRow
-          options={DURATION_OPTIONS}
+          options={durationOptions}
           value={constraints.duration}
           onChange={(duration) => onConstraintsPatch({ duration })}
         />
-        <Text style={styles.groupLabel}>Budget</Text>
+        <Text style={styles.groupLabel}>{t('sessionSetup.budget')}</Text>
         <ChipRow
-          options={BUDGET_OPTIONS}
+          options={budgetOptions}
           value={constraints.budget}
           onChange={(budget) => onConstraintsPatch({ budget })}
         />
-        <Text style={styles.groupLabel}>Énergie</Text>
+        <Text style={styles.groupLabel}>{t('sessionSetup.energy')}</Text>
         <ChipRow
-          options={ENERGY_OPTIONS}
+          options={energyOptions}
           value={constraints.energy}
           onChange={(energy) => onConstraintsPatch({ energy })}
         />
-        <Text style={styles.groupLabel}>Lieu</Text>
+        <Text style={styles.groupLabel}>{t('sessionSetup.place')}</Text>
         <ChipRow
-          options={PLACE_OPTIONS}
+          options={placeOptions}
           value={constraints.place}
           onChange={(place) => onConstraintsPatch({ place })}
         />
-        <Text style={styles.groupLabel}>Ambiance</Text>
+        <Text style={styles.groupLabel}>{t('sessionSetup.vibe')}</Text>
         <ChipRow
-          options={VIBE_OPTIONS}
+          options={vibeOptions}
           value={constraints.vibe}
           onChange={(vibe) => onConstraintsPatch({ vibe })}
         />
@@ -145,7 +149,7 @@ export function SessionSetupForm({
           onPress={onContinue}
           disabled={matchCount === 0 || loading}>
           <Text style={styles.primaryButtonText}>
-            {loading ? 'Création…' : 'Continuer vers l’invitation'}
+            {loading ? t('sessionSetup.creating') : t('sessionSetup.continue')}
           </Text>
         </Pressable>
       )}
