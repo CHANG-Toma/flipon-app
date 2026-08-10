@@ -12,15 +12,15 @@ import { Screen } from '@/components/ui/Screen';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FlipOn } from '@/constants/flipon';
 import { getPlanById } from '@/data/plans';
+import { formatHistoryMeta } from '@/lib/history/format';
 import {
-  formatHistoryMeta,
   getHistoryEntry,
   hydrateHistory,
   removeHistoryEntry,
   subscribeHistory,
-  type HistoryEntry,
-} from '@/lib/history-store';
-import { clearActiveSession } from '@/lib/session-store';
+} from '@/lib/history/store';
+import type { HistoryEntry } from '@/lib/history/types';
+import { clearActiveSession } from '@/lib/session/store';
 
 export default function HistoryEntryScreen() {
   const router = useRouter();

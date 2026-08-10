@@ -7,13 +7,9 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { FlipOn } from '@/constants/flipon';
 import { useMounted } from '@/hooks/use-mounted';
 import { usePolling } from '@/hooks/use-polling';
+import { ApiError, NetworkError } from '@/lib/http';
 import { isValidSessionCode, normalizeSessionCode } from '@/lib/session-code';
-import {
-  ApiError,
-  NetworkError,
-  joinByCode,
-  refreshSession,
-} from '@/lib/session-store';
+import { joinByCode, refreshSession } from '@/lib/session/store';
 
 export default function JoinScreen() {
   const router = useRouter();

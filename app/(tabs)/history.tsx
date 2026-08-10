@@ -19,15 +19,14 @@ import * as Haptics from 'expo-haptics';
 
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FlipOn } from '@/constants/flipon';
+import { formatHistoryMeta, groupHistoryByDay } from '@/lib/history/format';
 import {
-  formatHistoryMeta,
   getHistory,
-  groupHistoryByDay,
   hydrateHistory,
   pullCloudHistory,
   subscribeHistory,
-  type HistoryEntry,
-} from '@/lib/history-store';
+} from '@/lib/history/store';
+import type { HistoryEntry } from '@/lib/history/types';
 
 export default function HistoryScreen() {
   const router = useRouter();

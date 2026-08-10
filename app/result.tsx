@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { Screen } from '@/components/ui/Screen';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FlipOn } from '@/constants/flipon';
-import { clearActiveSession, getSession } from '@/lib/session-store';
+import { clearActiveSession, getSession } from '@/lib/session/store';
 
 /**
  * Résultat Basique (gratuit)

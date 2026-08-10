@@ -9,15 +9,14 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { FlipOn } from '@/constants/flipon';
 import { useMounted } from '@/hooks/use-mounted';
 import { usePolling } from '@/hooks/use-polling';
+import { ApiError, NetworkError } from '@/lib/http';
 import {
-  ApiError,
-  NetworkError,
   getSession,
   refreshSession,
   startVoting,
   subscribeSession,
   voteCurrent,
-} from '@/lib/session-store';
+} from '@/lib/session/store';
 
 export default function VoteScreen() {
   const router = useRouter();
