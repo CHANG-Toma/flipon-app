@@ -12,10 +12,18 @@ type Props = {
   title?: string;
   showBack?: boolean;
   onBack?: () => void;
+  headerRight?: ReactNode;
   contentStyle?: object;
 };
 
-export function Screen({ children, title, showBack = false, onBack, contentStyle }: Props) {
+export function Screen({
+  children,
+  title,
+  showBack = false,
+  onBack,
+  headerRight,
+  contentStyle,
+}: Props) {
   const router = useRouter();
   const tabBarHeight = useContext(BottomTabBarHeightContext) ?? 0;
 
@@ -30,7 +38,7 @@ export function Screen({ children, title, showBack = false, onBack, contentStyle
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
-        {(showBack || title) && (
+        {(showBack || title || headerRight) && (
           <View style={styles.header}>
             {showBack ? (
               <Pressable
@@ -44,14 +52,17 @@ export function Screen({ children, title, showBack = false, onBack, contentStyle
                   if (router.canGoBack()) router.back();
                   else router.replace('/(tabs)');
                 }}
-                style={styles.backBtn}>
-                <MaterialIcons name="arrow-back" size={22} color={FlipOn.ink} />
+                style={({ pressed }) => [styles.backBtn, pressed && styles.backBtnPressed]}
+                hitSlop={6}>
+                <View style={styles.backBtnInner}>
+                  <MaterialIcons name="arrow-back" size={18} color={FlipOn.ink} />
+                </View>
               </Pressable>
             ) : (
               <View style={styles.backSpacer} />
             )}
-            {title ? <Text style={styles.headerTitle}>{title}</Text> : <View style={styles.backSpacer} />}
-            <View style={styles.backSpacer} />
+            {title ? <Text style={styles.headerTitle}>{title}</Text> : <View style={styles.flexSpacer} />}
+            {headerRight ?? <View style={styles.backSpacer} />}
           </View>
         )}
         {children}
@@ -77,15 +88,26 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backBtnInner: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: FlipOn.surface,
     borderWidth: 1,
     borderColor: FlipOn.line,
   },
-  backSpacer: { width: 40 },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: FlipOn.ink },
+  backBtnPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.94 }],
+  },
+  backSpacer: { width: 36 },
+  flexSpacer: { flex: 1 },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: FlipOn.ink, flex: 1, textAlign: 'center' },
 });

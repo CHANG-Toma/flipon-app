@@ -1,32 +1,39 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter, useSegments, type Href } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
+import { useAuthSessionGuard } from '@/hooks/use-auth-session-guard';
 import { SplashBoot } from '@/providers/SplashBoot';
-import { setAuthTokenGetter, syncMe } from '@/lib/api';
+import { setAuthTokenGetter } from '@/lib/api';
+import {
+  markAuthSessionActive,
+  clearAuthSessionHint,
+  hadAuthSessionHint,
+} from '@/lib/auth/session-hint';
+import { signOutAndClearHint } from '@/lib/auth/sign-out';
+import { validateRemoteSession } from '@/lib/auth/validate-session';
 import { pullCloudHistory } from '@/lib/history/store';
 
 /**
  * Pont Clerk ↔ app.
- * Le Stack (children) est toujours monté dès le 1er render — obligatoire pour
- * Expo Router. Le splash premium est un overlay avec sortie en fondu.
+ * Bootstrap une seule fois (évite boucle infinie + spam /api/me).
  */
 export function AuthBridge({ children }: { children: ReactNode }) {
-  const { getToken, isSignedIn, isLoaded } = useAuth();
+  const { getToken, isSignedIn, isLoaded, signOut } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  const [navReady, setNavReady] = useState(false);
+  const bootstrapped = useRef(false);
+  const historyPulled = useRef(false);
   const [gateDone, setGateDone] = useState(false);
   const [splashMounted, setSplashMounted] = useState(true);
+  const [splashMessage, setSplashMessage] = useState<string | undefined>();
   const overlayOpacity = useSharedValue(1);
 
-  const showSplash = !isLoaded || !gateDone;
+  useAuthSessionGuard({ enabled: gateDone });
 
-  useEffect(() => {
-    setNavReady(true);
-  }, []);
+  const showSplash = !isLoaded || !gateDone;
 
   useEffect(() => {
     setAuthTokenGetter(async () => {
@@ -40,40 +47,44 @@ export function AuthBridge({ children }: { children: ReactNode }) {
   }, [getToken]);
 
   useEffect(() => {
-    if (!isSignedIn) return;
+    if (!isLoaded || bootstrapped.current) return;
+    bootstrapped.current = true;
 
-    let cancelled = false;
     void (async () => {
       try {
-        let token: string | null = null;
-        for (let i = 0; i < 10; i++) {
-          token = await getToken();
-          if (token) break;
-          await new Promise((r) => setTimeout(r, 150));
+        if (await hadAuthSessionHint()) {
+          setSplashMessage('Reconnexion…');
         }
-        if (cancelled) return;
-        if (!token) {
-          if (__DEV__) {
-            console.warn('[FlipOn] syncMe: pas de JWT Clerk — User non créé en BDD');
+
+        if (isSignedIn) {
+          const validation = await validateRemoteSession(getToken);
+
+          if (validation === 'invalid') {
+            await signOutAndClearHint(signOut);
+            return;
           }
-          return;
+
+          await markAuthSessionActive();
+
+          if (validation === 'valid' && !historyPulled.current) {
+            historyPulled.current = true;
+            try {
+              await pullCloudHistory();
+            } catch {
+              /* best-effort */
+            }
+          }
+        } else {
+          await clearAuthSessionHint();
         }
-        await syncMe();
-        await pullCloudHistory();
-      } catch (e) {
-        if (__DEV__) {
-          console.warn('[FlipOn] syncMe / history failed', e);
-        }
+      } finally {
+        setGateDone(true);
       }
     })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isSignedIn, getToken]);
+  }, [isLoaded, isSignedIn, getToken, signOut]);
 
   useEffect(() => {
-    if (!isLoaded || !navReady) return;
+    if (!isLoaded || !gateDone) return;
 
     const onLogin = segments[0] === ('login' as (typeof segments)[0]);
 
@@ -82,9 +93,7 @@ export function AuthBridge({ children }: { children: ReactNode }) {
     } else if (isSignedIn && onLogin) {
       router.replace('/(tabs)' as Href);
     }
-
-    setGateDone(true);
-  }, [isLoaded, isSignedIn, segments, router, navReady]);
+  }, [isLoaded, gateDone, isSignedIn, segments, router]);
 
   useEffect(() => {
     if (showSplash) {
@@ -109,7 +118,7 @@ export function AuthBridge({ children }: { children: ReactNode }) {
         <Animated.View
           style={[styles.splashOverlay, overlayStyle]}
           pointerEvents={showSplash ? 'auto' : 'none'}>
-          <SplashBoot />
+          <SplashBoot message={splashMessage} />
         </Animated.View>
       ) : null}
     </View>

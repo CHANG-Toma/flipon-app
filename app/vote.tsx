@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
 import { Screen } from '@/components/ui/Screen';
+import { EndSessionCloseButton } from '@/components/session/EndSessionCloseButton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { FlipOn } from '@/constants/flipon';
@@ -108,9 +109,12 @@ export default function VoteScreen() {
     }
   };
 
+  const endSessionAction = () => router.replace('/(tabs)');
+  const endSessionBtn = <EndSessionCloseButton afterEnd={endSessionAction} />;
+
   if (loading) {
     return (
-      <Screen showBack title="Vote privé">
+      <Screen showBack title="Vote privé" headerRight={endSessionBtn}>
         <View style={styles.center} accessibilityLabel="Chargement du vote">
           <ActivityIndicator color={FlipOn.accent} size="large" />
           <Text style={styles.loadingText}>Chargement du deck…</Text>
@@ -121,7 +125,7 @@ export default function VoteScreen() {
 
   if (error) {
     return (
-      <Screen showBack title="Vote privé">
+      <Screen showBack title="Vote privé" headerRight={endSessionBtn}>
         <ErrorState text={error} onRetry={load} />
       </Screen>
     );
@@ -129,7 +133,7 @@ export default function VoteScreen() {
 
   if (session.status === 'waiting_partner') {
     return (
-      <Screen showBack title="Vote privé">
+      <Screen showBack title="Vote privé" headerRight={endSessionBtn}>
         <EmptyState
           title="En attente du partenaire"
           text="Tes choix sont enregistrés. Dès que l’autre a fini, on calcule le match."
@@ -156,7 +160,11 @@ export default function VoteScreen() {
   const progress = `${Math.min(session.index + 1, session.deck.length)}/${session.deck.length}`;
 
   return (
-    <Screen showBack title="Vote privé" contentStyle={{ paddingBottom: 32 }}>
+    <Screen
+      showBack
+      title="Vote privé"
+      headerRight={endSessionBtn}
+      contentStyle={{ paddingBottom: 32 }}>
       <Text style={styles.progress} accessibilityLiveRegion="polite">
         Idée {progress} · votes privés
       </Text>

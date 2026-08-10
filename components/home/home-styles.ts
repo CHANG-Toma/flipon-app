@@ -20,8 +20,10 @@ export const homeStyles = StyleSheet.create({
   pressed: { opacity: 0.88 },
 
   heroWrap: { gap: 10 },
-  hero: { backgroundColor: FlipOn.dark, borderRadius: 24, padding: 18, gap: 10 },
-  heroTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  hero: { backgroundColor: FlipOn.dark, borderRadius: 24, padding: 18, gap: 10, position: 'relative' },
+  heroClose: { position: 'absolute', top: 12, right: 12, zIndex: 2 },
+  heroTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 36 },
+  heroBody: { gap: 10 },
   badgeLive: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -57,16 +59,6 @@ export const homeStyles = StyleSheet.create({
     gap: 8,
   },
   heroCtaText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  dismissBtn: {
-    minHeight: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: FlipOn.line,
-    backgroundColor: FlipOn.surface,
-  },
-  dismissText: { fontSize: 13, fontWeight: '700', color: FlipOn.ink },
 
   startCard: {
     backgroundColor: FlipOn.surface,

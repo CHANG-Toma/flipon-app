@@ -6,6 +6,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { authStyles as styles } from '@/components/auth/auth-styles';
 import { FlipOn } from '@/constants/flipon';
+import { signOutAndClearHint } from '@/lib/auth/sign-out';
 import { getSubscription } from '@/lib/subscription';
 
 type Props = {
@@ -75,7 +76,7 @@ export function AuthProfileCard({ fallback = null }: Props) {
         accessibilityRole="button"
         style={styles.secondaryButton}
         onPress={() => {
-          void signOut().then(() => router.replace('/login' as Href));
+          void signOutAndClearHint(signOut).then(() => router.replace('/login' as Href));
         }}>
         <Text style={styles.secondaryText}>Se déconnecter</Text>
       </Pressable>

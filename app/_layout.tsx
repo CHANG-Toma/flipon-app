@@ -10,16 +10,18 @@ import 'react-native-reanimated';
 
 import { AuthBridge } from '@/providers/AuthBridge';
 import { ClerkMissingGate } from '@/providers/ClerkMissingGate';
+import { ConfirmHost } from '@/components/ui/ConfirmHost';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { FlipOn } from '@/constants/flipon';
 import { setAccountCleanup } from '@/lib/account-cleanup';
+import { clearAuthSessionHint } from '@/lib/auth/session-hint';
 import { clerkPublishableKey, isClerkConfigured, tokenCache } from '@/lib/clerk';
 import { addHistoryEntry, clearHistory, hydrateHistory } from '@/lib/history/store';
 import { setSessionHistoryWriter } from '@/lib/session/history-port';
 import { clearActiveSession, hydrateSession } from '@/lib/session/store';
 
 export const unstable_settings = {
-  anchor: 'login',
+  anchor: '(tabs)',
 };
 
 function wirePorts() {
@@ -27,7 +29,7 @@ function wirePorts() {
     await addHistoryEntry(entry);
   });
   setAccountCleanup(async () => {
-    await Promise.all([clearActiveSession(), clearHistory()]);
+    await Promise.all([clearActiveSession(), clearHistory(), clearAuthSessionHint()]);
   });
 }
 
@@ -58,8 +60,8 @@ function RootNavigator({ gate }: { gate: 'auth' | 'missing' | 'none' }) {
         <Stack.Screen name="edit-profile" />
         <Stack.Screen name="history-entry/[id]" />
         <Stack.Screen name="join/[code]" />
-        <Stack.Screen name="loader-preview" />
       </Stack>
+      <ConfirmHost />
       <StatusBar style="dark" />
     </ThemeProvider>
   );

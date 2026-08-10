@@ -5,6 +5,7 @@ import * as Haptics from 'expo-haptics';
 
 import { SessionLobby } from '@/components/session/SessionLobby';
 import { SessionSetupForm } from '@/components/session/SessionSetupForm';
+import { EndSessionCloseButton } from '@/components/session/EndSessionCloseButton';
 import { Screen } from '@/components/ui/Screen';
 import { countMatchingPlans, type Constraints } from '@/data/plans';
 import { useMounted } from '@/hooks/use-mounted';
@@ -138,7 +139,12 @@ export default function SessionScreen() {
     <Screen
       showBack
       onBack={handleBack}
-      title={step === 'setup' ? 'Nouvelle session' : 'Invitation'}>
+      title={step === 'setup' ? 'Nouvelle session' : 'Invitation'}
+      headerRight={
+        step === 'invite' && code ? (
+          <EndSessionCloseButton afterEnd={() => router.replace('/(tabs)')} />
+        ) : undefined
+      }>
       {step === 'setup' ? (
         <SessionSetupForm
           type={type}

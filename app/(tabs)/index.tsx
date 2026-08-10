@@ -28,7 +28,6 @@ import type { HistoryEntry } from '@/lib/history/types';
 import { isValidSessionCode, normalizeSessionCode } from '@/lib/session-code';
 import { isActiveSession } from '@/lib/session/selectors';
 import {
-  clearActiveSession,
   getSession,
   hydrateSession,
   subscribeSession,
@@ -49,7 +48,6 @@ export default function HomeScreen() {
   const [latest, setLatest] = useState<HistoryEntry | null>(getLatestHistory());
   const [ready, setReady] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
-  const [clearing, setClearing] = useState(false);
 
   const refreshLocal = useCallback(async () => {
     await Promise.all([hydrateSession(), hydrateHistory()]);
@@ -84,15 +82,13 @@ export default function HomeScreen() {
     router.push(`/join/${code}` as Href);
   };
 
-  const dismissDoneSession = async () => {
-    if (clearing) return;
-    try {
-      setClearing(true);
-      await clearActiveSession();
-      setSession(getSession());
+  const onSessionClosed = () => {
+    setSession(getSession());
+    const isDone = session.status === 'done';
+    if (isDone) {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } finally {
-      setClearing(false);
+    } else {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
   };
 
@@ -120,11 +116,7 @@ export default function HomeScreen() {
           </View>
 
           {hasActive ? (
-            <HomeActiveSession
-              session={session}
-              clearing={clearing}
-              onDismiss={() => void dismissDoneSession()}
-            />
+            <HomeActiveSession session={session} onClosed={onSessionClosed} />
           ) : ready ? (
             <HomeStartCard />
           ) : null}

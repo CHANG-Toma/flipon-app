@@ -27,6 +27,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { AuthCard } from '@/components/auth/AuthCard';
 import { FlipOn } from '@/constants/flipon';
 import { deleteAccountLocalAndClerk, humanDeleteError } from '@/lib/account';
+import { signOutAndClearHint } from '@/lib/auth/sign-out';
 import { legalUrl, SUPPORT_EMAIL, supportMailto } from '@/lib/legal';
 
 const APP_VERSION =
@@ -69,7 +70,7 @@ export default function ProfileScreen() {
               try {
                 setDeleting(true);
                 await deleteAccountLocalAndClerk(user);
-                await signOut();
+                await signOutAndClearHint(signOut);
                 router.replace('/login' as Href);
               } catch (e) {
                 Alert.alert('Suppression impossible', humanDeleteError(e));
@@ -109,13 +110,6 @@ export default function ProfileScreen() {
 
         <View style={styles.block}>
           <Text style={styles.blockTitle}>Informations légales</Text>
-          {__DEV__ ? (
-            <LinkRow
-              label="Aperçu chargement (dev)"
-              detail="Pulse Ring · splash"
-              onPress={() => router.push('/loader-preview' as Href)}
-            />
-          ) : null}
           <LinkRow
             label="Politique de confidentialité"
             onPress={() => void openUrl(legalUrl('confidentialite'))}

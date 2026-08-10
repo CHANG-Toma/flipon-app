@@ -1,14 +1,5 @@
 /**
- * Écran d’accueil / login (`/login`)
- * ---------------------------------
- * Première surface visible (gate auth dans `app/_layout`).
- *
- * Contenu :
- * - Logo brand (`assets/images/logo.png` — placeholder à remplacer plus tard)
- * - Formulaire via `AuthForm` (email, inscription, Google)
- *
- * Après succès : `router.replace('/(tabs)')` ;
- * le gate root ferait aussi cette redirection si on reste sur /login connecté.
+ * Écran login — formulaire uniquement si pas de session Clerk.
  */
 import {
   Image,
@@ -21,12 +12,33 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, type Href } from 'expo-router';
+import { useAuth } from '@clerk/clerk-expo';
 
 import { AuthForm } from '@/components/auth/AuthCard';
+import { PremiumLoader } from '@/components/ui/PremiumLoader';
 import { FlipOn } from '@/constants/flipon';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { isLoaded, isSignedIn } = useAuth();
+
+  // Clerk charge encore la session SecureStore
+  if (!isLoaded) {
+    return (
+      <View style={styles.restoring}>
+        <PremiumLoader fullScreen />
+      </View>
+    );
+  }
+
+  // Session active : AuthBridge redirige vers (tabs)
+  if (isSignedIn) {
+    return (
+      <View style={styles.restoring}>
+        <PremiumLoader fullScreen message="Reconnexion…" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
@@ -61,6 +73,7 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
+  restoring: { flex: 1 },
   safe: { flex: 1, backgroundColor: FlipOn.bg },
   flex: { flex: 1 },
   container: {
