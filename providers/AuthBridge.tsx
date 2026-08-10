@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter, useSegments, type Href } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { SplashBoot } from '@/providers/SplashBoot';
 import { setAuthTokenGetter, syncMe } from '@/lib/api';
@@ -10,16 +11,18 @@ import { pullCloudHistory } from '@/lib/history/store';
 /**
  * Pont Clerk ↔ app.
  * Le Stack (children) est toujours monté dès le 1er render — obligatoire pour
- * Expo Router. Le splash est un overlay jusqu’à ce que Clerk + gate soient prêts.
+ * Expo Router. Le splash premium est un overlay avec sortie en fondu.
  */
 export function AuthBridge({ children }: { children: ReactNode }) {
   const { getToken, isSignedIn, isLoaded } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  /** Navigator monté (après 1er paint avec le Stack). */
   const [navReady, setNavReady] = useState(false);
-  /** Gate auth déjà évalué — on peut retirer le splash. */
   const [gateDone, setGateDone] = useState(false);
+  const [splashMounted, setSplashMounted] = useState(true);
+  const overlayOpacity = useSharedValue(1);
+
+  const showSplash = !isLoaded || !gateDone;
 
   useEffect(() => {
     setNavReady(true);
@@ -83,15 +86,31 @@ export function AuthBridge({ children }: { children: ReactNode }) {
     setGateDone(true);
   }, [isLoaded, isSignedIn, segments, router, navReady]);
 
-  const showSplash = !isLoaded || !gateDone;
+  useEffect(() => {
+    if (showSplash) {
+      overlayOpacity.value = 1;
+      setSplashMounted(true);
+      return;
+    }
+
+    overlayOpacity.value = withTiming(0, { duration: 420 }, (finished) => {
+      if (finished) runOnJS(setSplashMounted)(false);
+    });
+  }, [showSplash, overlayOpacity]);
+
+  const overlayStyle = useAnimatedStyle(() => ({
+    opacity: overlayOpacity.value,
+  }));
 
   return (
     <View style={styles.root}>
       {children}
-      {showSplash ? (
-        <View style={styles.splashOverlay} pointerEvents="auto">
+      {splashMounted ? (
+        <Animated.View
+          style={[styles.splashOverlay, overlayStyle]}
+          pointerEvents={showSplash ? 'auto' : 'none'}>
           <SplashBoot />
-        </View>
+        </Animated.View>
       ) : null}
     </View>
   );

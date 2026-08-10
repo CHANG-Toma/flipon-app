@@ -109,6 +109,13 @@ export default function ProfileScreen() {
 
         <View style={styles.block}>
           <Text style={styles.blockTitle}>Informations légales</Text>
+          {__DEV__ ? (
+            <LinkRow
+              label="Aperçu chargement (dev)"
+              detail="Pulse Ring · splash"
+              onPress={() => router.push('/loader-preview' as Href)}
+            />
+          ) : null}
           <LinkRow
             label="Politique de confidentialité"
             onPress={() => void openUrl(legalUrl('confidentialite'))}

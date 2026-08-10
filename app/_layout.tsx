@@ -58,6 +58,7 @@ function RootNavigator({ gate }: { gate: 'auth' | 'missing' | 'none' }) {
         <Stack.Screen name="edit-profile" />
         <Stack.Screen name="history-entry/[id]" />
         <Stack.Screen name="join/[code]" />
+        <Stack.Screen name="loader-preview" />
       </Stack>
       <StatusBar style="dark" />
     </ThemeProvider>
