@@ -51,7 +51,11 @@ export function SessionLobby({
           value={type === 'Groupe' ? `Groupe · ${sessionPartySize}` : 'Duo'}
         />
         <SessionLine label="Code temporaire" value={code || '—'} />
-        <SessionLine label="Participants" value={`${Math.min(joinedCount, 2)}/2`} last />
+        <SessionLine
+          label="Participants"
+          value={`${Math.min(joinedCount, sessionPartySize)}/${sessionPartySize}`}
+          last
+        />
 
         {code ? (
           <View style={styles.qrBlock}>
@@ -100,7 +104,7 @@ export function SessionLobby({
             {loading
               ? 'Lancement…'
               : !readyToVote
-                ? `En attente (${Math.min(joinedCount, 2)}/2)`
+                ? `En attente (${Math.min(joinedCount, sessionPartySize)}/${sessionPartySize})`
                 : 'Lancer le vote'}
           </Text>
         </Pressable>

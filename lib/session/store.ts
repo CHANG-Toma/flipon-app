@@ -48,6 +48,7 @@ export function getSession() {
 }
 
 export function canStartVoting() {
+  // Snapshot API actuel : guestJoined (1 ou 2). On ne bloque pas les groupes sur partySize tant que le serveur ne remonte pas le compte réel.
   return state.joinedCount >= 2;
 }
 
@@ -300,7 +301,11 @@ export async function voteCurrent(accepted: boolean) {
 
 export async function clearActiveSession() {
   const code = state.code;
-  if (code) await getDuoSessionClient().closeRoom(code);
+  try {
+    if (code) await getDuoSessionClient().closeRoom(code);
+  } catch {
+    /* Purge locale même si la room est déjà fermée / offline. */
+  }
   state = emptyState({ type: state.type, constraints: state.constraints });
   historyRecordedForCode = null;
   await persistActive();

@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Share } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
 import { SessionLobby } from '@/components/session/SessionLobby';
@@ -21,17 +21,19 @@ import {
   startVoting,
   subscribeSession,
 } from '@/lib/session/store';
-import type { SessionType } from '@/lib/session/types';
+import type { SessionState, SessionType } from '@/lib/session/types';
 
 type Step = 'setup' | 'invite';
+
+function stepFromSession(session: SessionState): Step {
+  return session.status === 'lobby' && Boolean(session.code) ? 'invite' : 'setup';
+}
 
 export default function SessionScreen() {
   const router = useRouter();
   const isMounted = useMounted();
   const existing = getSession();
-  const [step, setStep] = useState<Step>(
-    existing.status === 'lobby' && existing.code ? 'invite' : 'setup',
-  );
+  const [step, setStep] = useState<Step>(() => stepFromSession(existing));
   const [type, setType] = useState<SessionType>(
     existing.type === 'Groupe' ? 'Groupe' : 'Duo',
   );
@@ -45,15 +47,24 @@ export default function SessionScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(
-    () =>
-      subscribeSession(() => {
-        const session = getSession();
-        setCode(session.code);
-        setJoinedCount(session.joinedCount);
-        setSessionPartySize(session.partySize);
-      }),
-    [],
+  const syncFromStore = useCallback(() => {
+    const session = getSession();
+    setCode(session.code);
+    setJoinedCount(session.joinedCount);
+    setSessionPartySize(session.partySize);
+    // Session terminée / absente → toujours revenir à l’étape 1 (évite l’étape 2 fantôme).
+    if (!session.code || session.status === 'idle') {
+      setStep('setup');
+      setError(null);
+    }
+  }, []);
+
+  useEffect(() => subscribeSession(syncFromStore), [syncFromStore]);
+
+  useFocusEffect(
+    useCallback(() => {
+      syncFromStore();
+    }, [syncFromStore]),
   );
 
   usePolling(() => refreshSession().then(() => undefined).catch(() => undefined), {
@@ -63,7 +74,7 @@ export default function SessionScreen() {
 
   const matchCount = useMemo(() => countMatchingPlans(constraints), [constraints]);
   const readyToVote = canStartVoting();
-  const missing = Math.max(0, 2 - joinedCount);
+  const missing = Math.max(0, sessionPartySize - joinedCount);
 
   const goToInvite = async () => {
     if (loading || matchCount === 0) {

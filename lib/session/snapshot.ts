@@ -8,7 +8,7 @@ export function applySnapshot(
   role: SessionRole,
 ): SessionState {
   const partySize = state.partySize || 2;
-  const joinedCount = snapshot.guestJoined ? 2 : 1;
+  const joinedCount = snapshot.guestJoined ? Math.min(2, partySize) : 1;
 
   let status: SessionStatus = state.status;
   if (snapshot.bothVoted) {

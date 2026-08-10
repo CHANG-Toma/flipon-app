@@ -11,5 +11,5 @@ export function isActiveSession(session: SessionState) {
 }
 
 export function isLobbyReady(session: SessionState) {
-  return session.joinedCount >= 2 || session.joinedCount >= session.partySize;
+  return session.joinedCount >= 2;
 }
