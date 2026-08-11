@@ -2,7 +2,10 @@ import { fetchRemoteHistory } from '@/lib/api/history';
 import type { HistoryEntry } from '@/lib/history/types';
 import { getKeyValueStore } from '@/lib/storage';
 
-const STORAGE_KEY = 'flipon:history:v1';
+const STORAGE_KEY_PREFIX = 'flipon:history:v1';
+const GUEST_SCOPE = 'guest';
+
+let storageScope = GUEST_SCOPE;
 
 let entries: HistoryEntry[] = [];
 let hydrated = false;
@@ -14,10 +17,14 @@ function emit() {
 
 async function persist() {
   try {
-    await getKeyValueStore().setItem(STORAGE_KEY, JSON.stringify(entries));
+    await getKeyValueStore().setItem(getStorageKey(), JSON.stringify(entries));
   } catch {
     /* ignore */
   }
+}
+
+function getStorageKey() {
+  return `${STORAGE_KEY_PREFIX}:${storageScope}`;
 }
 
 export function subscribeHistory(listener: () => void) {
@@ -50,7 +57,7 @@ export async function removeHistoryEntry(id: string) {
 export async function hydrateHistory() {
   if (hydrated) return entries;
   try {
-    const raw = await getKeyValueStore().getItem(STORAGE_KEY);
+    const raw = await getKeyValueStore().getItem(getStorageKey());
     if (raw) {
       const parsed = JSON.parse(raw) as HistoryEntry[];
       if (Array.isArray(parsed)) entries = parsed;
@@ -109,4 +116,19 @@ export async function clearHistory() {
   entries = [];
   await persist();
   emit();
+}
+
+/**
+ * Cloisonne l'historique local par scope (ex: userId Clerk).
+ * Appelée depuis AuthBridge quand l'identité change.
+ */
+export async function setHistoryScope(scope: string | null | undefined) {
+  const nextScope = scope?.trim() || GUEST_SCOPE;
+  if (nextScope === storageScope) return entries;
+
+  storageScope = nextScope;
+  hydrated = false;
+  entries = [];
+  emit();
+  return hydrateHistory();
 }

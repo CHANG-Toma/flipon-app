@@ -13,6 +13,7 @@ export {
   mergeRemoteHistory,
   pullCloudHistory,
   removeHistoryEntry,
+  setHistoryScope,
   subscribeHistory,
 } from '@/lib/history/store';
 export {

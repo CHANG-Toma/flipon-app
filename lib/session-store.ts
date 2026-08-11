@@ -27,6 +27,7 @@ export {
   joinByCode,
   prepareLocalDraft,
   refreshSession,
+  setSessionScope,
   startVoting,
   subscribeSession,
   updateConstraints,

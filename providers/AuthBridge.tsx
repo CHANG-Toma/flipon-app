@@ -14,7 +14,8 @@ import {
 } from '@/lib/auth/session-hint';
 import { signOutAndClearHint } from '@/lib/auth/sign-out';
 import { validateRemoteSession } from '@/lib/auth/validate-session';
-import { pullCloudHistory } from '@/lib/history/store';
+import { pullCloudHistory, setHistoryScope } from '@/lib/history/store';
+import { setSessionScope } from '@/lib/session/store';
 import { tr } from '@/lib/i18n';
 
 /**
@@ -22,11 +23,12 @@ import { tr } from '@/lib/i18n';
  * Bootstrap une seule fois (évite boucle infinie + spam /api/me).
  */
 export function AuthBridge({ children }: { children: ReactNode }) {
-  const { getToken, isSignedIn, isLoaded, signOut } = useAuth();
+  const { getToken, isSignedIn, isLoaded, signOut, userId } = useAuth();
   const segments = useSegments();
   const router = useRouter();
   const bootstrapped = useRef(false);
   const historyPulled = useRef(false);
+  const identityScopeRef = useRef<string>('guest');
   const [gateDone, setGateDone] = useState(false);
   const [splashMounted, setSplashMounted] = useState(true);
   const [splashMessage, setSplashMessage] = useState<string | undefined>();
@@ -46,6 +48,27 @@ export function AuthBridge({ children }: { children: ReactNode }) {
     });
     return () => setAuthTokenGetter(null);
   }, [getToken]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    const nextScope = isSignedIn && userId ? userId : 'guest';
+    if (identityScopeRef.current === nextScope) return;
+
+    identityScopeRef.current = nextScope;
+    historyPulled.current = false;
+    void (async () => {
+      await setHistoryScope(nextScope);
+      setSessionScope(nextScope);
+      if (isSignedIn) {
+        try {
+          await pullCloudHistory();
+          historyPulled.current = true;
+        } catch {
+          /* best-effort */
+        }
+      }
+    })();
+  }, [isLoaded, isSignedIn, userId]);
 
   useEffect(() => {
     if (!isLoaded || bootstrapped.current) return;

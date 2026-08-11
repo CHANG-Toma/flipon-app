@@ -80,8 +80,7 @@ const fr = {
     hello: 'Bonjour',
     helloEvening: 'Bonsoir',
     title: 'Que fait-on ?',
-    subtitle:
-      'Votez en privé, une idée pour tout le monde. Ambiance d’idées — pas une app de rencontres.',
+    subtitle: 'Votez en privé, une idée pour tout le monde.',
     startTitle: 'Lancer une session',
     startText: 'Choisis le cadre, invite avec un code, votez chacun de votre côté.',
     startCta: 'Nouvelle session',

@@ -5,7 +5,7 @@ import { getDuoSessionClient } from '@/lib/session/duo-client';
 import { DEFAULT_CONSTRAINTS, emptyState } from '@/lib/session/empty-state';
 import { recordSessionHistory } from '@/lib/session/history-port';
 import { clampPartySize, defaultPartySize } from '@/lib/session/party';
-import { loadPersistedSession, persistSession } from '@/lib/session/persist';
+import { loadPersistedSession, persistSession, setSessionPersistScope } from '@/lib/session/persist';
 import { applySnapshot } from '@/lib/session/snapshot';
 import { isValidSessionCode, normalizeSessionCode } from '@/lib/session-code';
 import type { SessionState, SessionType } from '@/lib/session/types';
@@ -312,6 +312,15 @@ export async function clearActiveSession() {
   await persistActive();
   emit();
   return state;
+}
+
+/** Aligne la persistance session locale sur le compte courant. */
+export function setSessionScope(scope: string | null | undefined) {
+  setSessionPersistScope(scope);
+  hydrated = false;
+  state = emptyState();
+  historyRecordedForCode = null;
+  emit();
 }
 
 /** @deprecated use createSessionOnServer */

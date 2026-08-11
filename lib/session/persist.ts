@@ -1,7 +1,17 @@
 import type { SessionRole, SessionState } from '@/lib/session/types';
 import { getKeyValueStore } from '@/lib/storage';
 
-export const PERSIST_KEY = 'flipon:active-session:v1';
+export const PERSIST_KEY_PREFIX = 'flipon:active-session:v1';
+const GUEST_SCOPE = 'guest';
+let persistScope = GUEST_SCOPE;
+
+function getPersistKey() {
+  return `${PERSIST_KEY_PREFIX}:${persistScope}`;
+}
+
+export function setSessionPersistScope(scope: string | null | undefined) {
+  persistScope = scope?.trim() || GUEST_SCOPE;
+}
 
 export type PersistedSession = {
   code: string;
@@ -18,7 +28,7 @@ export type PersistedSession = {
 
 export async function clearPersistedSession() {
   try {
-    await getKeyValueStore().removeItem(PERSIST_KEY);
+    await getKeyValueStore().removeItem(getPersistKey());
   } catch {
     /* ignore */
   }
@@ -42,7 +52,7 @@ export async function persistSession(state: SessionState) {
       constraints: state.constraints,
       deck: state.deck,
     };
-    await getKeyValueStore().setItem(PERSIST_KEY, JSON.stringify(payload));
+    await getKeyValueStore().setItem(getPersistKey(), JSON.stringify(payload));
   } catch {
     /* ignore */
   }
@@ -53,7 +63,7 @@ export async function loadPersistedSession(): Promise<Partial<SessionState> & {
   role?: SessionRole;
 } | null> {
   try {
-    const raw = await getKeyValueStore().getItem(PERSIST_KEY);
+    const raw = await getKeyValueStore().getItem(getPersistKey());
     if (!raw) return null;
     return JSON.parse(raw) as Partial<SessionState> & { code?: string; role?: SessionRole };
   } catch {

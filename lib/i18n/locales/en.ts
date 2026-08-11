@@ -82,8 +82,7 @@ const en: MessageTree = {
     hello: 'Good morning',
     helloEvening: 'Good evening',
     title: 'What should we do?',
-    subtitle:
-      'Vote privately, one idea for everyone. Activity ideas — not a dating app.',
+    subtitle: 'Vote privately, one idea for everyone.',
     startTitle: 'Start a session',
     startText: 'Pick the frame, invite with a code, vote on your own side.',
     startCta: 'New session',
