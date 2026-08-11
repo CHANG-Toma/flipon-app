@@ -16,6 +16,15 @@ export type Plan = {
   category: string;
   /** Ambiances où cette idée a du sens. */
   vibes: Exclude<Vibe, "peu-importe">[];
+  /** Feuille de route Premium (optionnel). */
+  roadmap?: PlanRoadmapStep[];
+};
+
+export type PlanRoadmapStep = {
+  phase: string;
+  title: string;
+  detail: string;
+  minutes?: number;
 };
 
 export const PLANS: Plan[] = [
@@ -413,6 +422,28 @@ export type Constraints = {
   vibe: Vibe;
 };
 
+/** Contexte dérivé (jamais de lat/lng) — biais Soft sur le deck Premium. */
+export type ContextWeather =
+  | "clear"
+  | "mainlyClear"
+  | "fog"
+  | "drizzle"
+  | "rain"
+  | "snow"
+  | "showers"
+  | "thunderstorm"
+  | "unknown";
+
+export type ContextMoment = "morning" | "afternoon" | "evening" | "night";
+
+export type ContextHint = {
+  /** Ville / quartier (affichage + futur IA) — pas de GPS */
+  cityLabel?: string;
+  weather: ContextWeather;
+  moment: ContextMoment;
+  temperatureC?: number;
+};
+
 export function durationToMin(d: Duration): number {
   switch (d) {
     case "30":
@@ -472,8 +503,100 @@ function shuffle<T>(arr: T[]): T[] {
   return copy;
 }
 
+const HARSH_WEATHER: ContextWeather[] = [
+  "rain",
+  "snow",
+  "showers",
+  "thunderstorm",
+  "drizzle",
+];
+
+/** Préférence lieu soft : ne remplace jamais un choix explicite dedans/dehors. */
+export function preferredPlaceFromContext(
+  ctx: ContextHint | null | undefined,
+): "dedans" | "dehors" | null {
+  if (!ctx) return null;
+  if (HARSH_WEATHER.includes(ctx.weather)) return "dedans";
+  if (ctx.weather === "fog") return "dedans";
+  if (typeof ctx.temperatureC === "number" && ctx.temperatureC <= 5) return "dedans";
+  if (ctx.moment === "night") return "dedans";
+  if (
+    (ctx.weather === "clear" || ctx.weather === "mainlyClear") &&
+    (ctx.moment === "morning" || ctx.moment === "afternoon") &&
+    (ctx.temperatureC === undefined || ctx.temperatureC >= 8)
+  ) {
+    return "dehors";
+  }
+  if (ctx.moment === "evening") return null;
+  return null;
+}
+
+function preferredMaxEnergyFromContext(
+  ctx: ContextHint | null | undefined,
+): Energy | null {
+  if (!ctx) return null;
+  if (ctx.moment === "night") return "basse";
+  if (ctx.moment === "evening") return "moyenne";
+  if (HARSH_WEATHER.includes(ctx.weather)) return "moyenne";
+  return null;
+}
+
+/**
+ * Si lieu = peu-importe + météo rude → force dedans dans le filtre.
+ * Sinon les filtres utilisateur restent inchangés ; le score oriente le deck.
+ */
+function constraintsWithContext(
+  c: Constraints,
+  context?: ContextHint | null,
+): Constraints {
+  if (!context || c.place !== "peu-importe") return c;
+  if (!HARSH_WEATHER.includes(context.weather) && context.weather !== "fog") {
+    if (!(typeof context.temperatureC === "number" && context.temperatureC <= 5)) {
+      return c;
+    }
+  }
+  return { ...c, place: "dedans" };
+}
+
+function planContextScore(p: Plan, context?: ContextHint | null): number {
+  if (!context) return 0;
+  let score = 0;
+  const placeBias = preferredPlaceFromContext(context);
+  if (placeBias) {
+    if (p.place === placeBias) score += 3;
+    else score -= 1.5;
+  }
+  const maxEnergy = preferredMaxEnergyFromContext(context);
+  if (maxEnergy) {
+    const rank = { basse: 1, moyenne: 2, haute: 3 };
+    if (rank[p.energy] <= rank[maxEnergy]) score += 1.2;
+    else score -= 0.8;
+  }
+  if (
+    typeof context.temperatureC === "number" &&
+    context.temperatureC >= 26 &&
+    p.place === "dehors" &&
+    (context.weather === "clear" || context.weather === "mainlyClear")
+  ) {
+    score += 0.8;
+  }
+  return score;
+}
+
+function rankByContext(plans: Plan[], context?: ContextHint | null): Plan[] {
+  if (!context) return shuffle(plans);
+  return plans
+    .map((p) => ({ p, key: planContextScore(p, context) + Math.random() }))
+    .sort((a, b) => b.key - a.key)
+    .map((x) => x.p);
+}
+
 /** Filtre progressif : ambiance d’abord, puis on assouplit le cadre si besoin. */
-export function filterPlans(c: Constraints): Plan[] {
+export function filterPlans(
+  c: Constraints,
+  context?: ContextHint | null,
+): Plan[] {
+  const effective = constraintsWithContext(c, context);
   const stages = [
     { looseDuration: false, looseBudget: false, looseEnergy: false },
     { looseDuration: true, looseBudget: false, looseEnergy: false },
@@ -483,24 +606,28 @@ export function filterPlans(c: Constraints): Plan[] {
 
   for (const stage of stages) {
     const withVibe = PLANS.filter(
-      (p) => matchesVibe(p, c.vibe) && matchesCore(p, c, stage),
+      (p) => matchesVibe(p, effective.vibe) && matchesCore(p, effective, stage),
     );
     if (withVibe.length >= 3) return withVibe;
   }
 
   // Dernier recours : garder l’ambiance, ignorer le reste du cadre
-  const vibeOnly = PLANS.filter((p) => matchesVibe(p, c.vibe));
+  const vibeOnly = PLANS.filter((p) => matchesVibe(p, effective.vibe));
   if (vibeOnly.length) return vibeOnly;
 
   return [...PLANS];
 }
 
-/** Nombre d’idées qui collent exactement au cadre affiché (filtres stricts). */
-export function countMatchingPlans(c: Constraints): number {
+/** Nombre d’idées qui collent au cadre (+ biais lieu si contexte + peu-importe). */
+export function countMatchingPlans(
+  c: Constraints,
+  context?: ContextHint | null,
+): number {
+  const effective = constraintsWithContext(c, context);
   return PLANS.filter(
     (p) =>
-      matchesVibe(p, c.vibe) &&
-      matchesCore(p, c, {
+      matchesVibe(p, effective.vibe) &&
+      matchesCore(p, effective, {
         looseDuration: false,
         looseBudget: false,
         looseEnergy: false,
@@ -508,9 +635,12 @@ export function countMatchingPlans(c: Constraints): number {
   ).length;
 }
 
-/** Deck prêt à voter : filtré, mélangé, max 6. */
-export function buildDeck(constraints: Constraints): Plan[] {
-  return shuffle(filterPlans(constraints)).slice(0, 6);
+/** Deck prêt à voter : filtré, orienté par contexte, max 6. */
+export function buildDeck(
+  constraints: Constraints,
+  context?: ContextHint | null,
+): Plan[] {
+  return rankByContext(filterPlans(constraints, context), context).slice(0, 6);
 }
 
 export function getPlanById(id: string | undefined | null) {
@@ -536,6 +666,23 @@ const VALID_DURATIONS: Duration[] = ["30", "60", "120", "soirée"];
 const VALID_BUDGETS: Budget[] = ["0", "20", "50", "80+"];
 const VALID_ENERGIES: Energy[] = ["basse", "moyenne", "haute"];
 const VALID_PLACES: Place[] = ["dedans", "dehors", "peu-importe"];
+const VALID_WEATHER: ContextWeather[] = [
+  "clear",
+  "mainlyClear",
+  "fog",
+  "drizzle",
+  "rain",
+  "snow",
+  "showers",
+  "thunderstorm",
+  "unknown",
+];
+const VALID_MOMENTS: ContextMoment[] = [
+  "morning",
+  "afternoon",
+  "evening",
+  "night",
+];
 
 /** Sécurise le payload API / sessionStorage. */
 export function normalizeConstraints(
@@ -557,5 +704,32 @@ export function normalizeConstraints(
     vibe: VALID_VIBES.includes(raw?.vibe as Vibe)
       ? (raw!.vibe as Vibe)
       : "potes",
+  };
+}
+
+/** Accepte uniquement des champs dérivés (rejette lat/lng silencieusement). */
+export function normalizeContextHint(
+  raw: Partial<ContextHint> | null | undefined,
+): ContextHint | null {
+  if (!raw || typeof raw !== "object") return null;
+  const weather = raw.weather;
+  const moment = raw.moment;
+  if (!VALID_WEATHER.includes(weather as ContextWeather)) return null;
+  if (!VALID_MOMENTS.includes(moment as ContextMoment)) return null;
+
+  const cityLabel =
+    typeof raw.cityLabel === "string"
+      ? raw.cityLabel.trim().slice(0, 80)
+      : undefined;
+  const temperatureC =
+    typeof raw.temperatureC === "number" && Number.isFinite(raw.temperatureC)
+      ? Math.round(Math.min(55, Math.max(-40, raw.temperatureC)))
+      : undefined;
+
+  return {
+    cityLabel: cityLabel || undefined,
+    weather: weather as ContextWeather,
+    moment: moment as ContextMoment,
+    temperatureC,
   };
 }

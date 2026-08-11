@@ -17,8 +17,10 @@ import * as Haptics from 'expo-haptics';
 import { HomeActiveSession } from '@/components/home/HomeActiveSession';
 import { HomeJoinCode } from '@/components/home/HomeJoinCode';
 import { HomeLatestActivity } from '@/components/home/HomeLatestActivity';
+import { HomePremiumContext } from '@/components/home/HomePremiumContext';
 import { HomeStartCard } from '@/components/home/HomeStartCard';
 import { homeStyles as styles } from '@/components/home/home-styles';
+import { useSubscription } from '@/hooks/use-subscription';
 import {
   getLatestHistory,
   hydrateHistory,
@@ -38,6 +40,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { user } = useUser();
   const { t } = useI18n();
+  const { isPremium } = useSubscription();
   const [joinCode, setJoinCode] = useState('');
   const [session, setSession] = useState(getSession());
   const [latest, setLatest] = useState<HistoryEntry | null>(getLatestHistory());
@@ -108,6 +111,8 @@ export default function HomeScreen() {
             <Text style={styles.title}>{t('home.title')}</Text>
             <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
           </View>
+
+          <HomePremiumContext enabled={isPremium} />
 
           {hasActive ? (
             <HomeActiveSession session={session} onClosed={onSessionClosed} />

@@ -10,7 +10,7 @@ import { usePolling } from '@/hooks/use-polling';
 import { ApiError, NetworkError } from '@/lib/http';
 import { useI18n } from '@/lib/i18n';
 import { isValidSessionCode, normalizeSessionCode } from '@/lib/session-code';
-import { joinByCode, refreshSession } from '@/lib/session/store';
+import { joinByCode, confirmLobbyReady, refreshSession } from '@/lib/session/store';
 
 export default function JoinScreen() {
   const router = useRouter();
@@ -44,6 +44,14 @@ export default function JoinScreen() {
         router.replace('/vote');
         return;
       }
+
+      // Invité prêt côté serveur → l’hôte peut enfin lancer le vote.
+      try {
+        await confirmLobbyReady();
+      } catch {
+        /* best-effort — le poll / vote retentera */
+      }
+      if (!isMounted()) return;
 
       setWaitingHost(true);
       setLoading(false);

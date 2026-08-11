@@ -1,16 +1,22 @@
-import type { Constraints } from '@/data/plans';
+import type { Constraints, ContextHint } from '@/data/plans';
 import { request } from '@/lib/http';
 import type { DuoPublicSnapshot, DuoRole } from '@/lib/api/types';
 
 // Permet de créer une session de duo
 export async function createRoom(
   constraints: Constraints,
-  opts?: { type?: 'DUO' | 'GROUPE'; partySize?: number },
+  opts?: {
+    type?: 'DUO' | 'GROUPE';
+    partySize?: number;
+    /** Ville + météo + moment — jamais de GPS */
+    context?: ContextHint | null;
+  },
 ) {
   return request<{ role: 'host'; room: DuoPublicSnapshot; deviceKey?: string }>('/api/duo', {
     method: 'POST',
     body: JSON.stringify({
       constraints,
+      context: opts?.context ?? undefined,
       type: opts?.type,
       partySize: opts?.partySize,
     }),

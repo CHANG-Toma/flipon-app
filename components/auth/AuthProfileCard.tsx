@@ -6,9 +6,9 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { authStyles as styles } from '@/components/auth/auth-styles';
 import { FlipOn } from '@/constants/flipon';
+import { useSubscription } from '@/hooks/use-subscription';
 import { signOutAndClearHint } from '@/lib/auth/sign-out';
 import { useI18n } from '@/lib/i18n';
-import { getSubscription } from '@/lib/subscription';
 
 type Props = {
   /** Si non connecté, rendu alternatif (ex. AuthForm). */
@@ -24,8 +24,7 @@ export function AuthProfileCard({ fallback = null }: Props) {
   const { user } = useUser();
   const router = useRouter();
   const { t } = useI18n();
-  const planLabel =
-    getSubscription().plan === 'premium' ? t('subscription.premiumTitle') : t('subscription.freeTitle');
+  const { label: planLabel, isPremium } = useSubscription();
 
   if (!isSignedIn || !user) {
     return <>{fallback}</>;
@@ -60,8 +59,10 @@ export function AuthProfileCard({ fallback = null }: Props) {
             <Text style={styles.name} numberOfLines={1}>
               {name}
             </Text>
-            <View style={styles.planPill}>
-              <Text style={styles.planPillText}>{planLabel}</Text>
+            <View style={[styles.planPill, isPremium && styles.planPillPremium]}>
+              <Text style={[styles.planPillText, isPremium && styles.planPillTextPremium]}>
+                {planLabel}
+              </Text>
             </View>
           </View>
           {mail ? (

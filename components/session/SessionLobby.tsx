@@ -15,6 +15,8 @@ type Props = {
   joinedCount: number;
   sessionPartySize: number;
   readyToVote: boolean;
+  /** Invité a rejoint mais n’a pas encore confirmé prêt */
+  waitingGuestReady?: boolean;
   missing: number;
   loading: boolean;
   error: string | null;
@@ -29,6 +31,7 @@ export function SessionLobby({
   joinedCount,
   sessionPartySize,
   readyToVote,
+  waitingGuestReady = false,
   missing,
   loading,
   error,
@@ -84,10 +87,18 @@ export function SessionLobby({
         {!readyToVote ? (
           <View style={styles.waitBox}>
             <Text style={styles.waitTitle}>
-              {type === 'Groupe' ? t('sessionLobby.waitGroup') : t('sessionLobby.waitPartner')}
+              {waitingGuestReady
+                ? t('sessionLobby.waitGuestReadyTitle')
+                : type === 'Groupe'
+                  ? t('sessionLobby.waitGroup')
+                  : t('sessionLobby.waitPartner')}
             </Text>
             <Text style={styles.waitText}>
-              {missing <= 1 ? t('session.waitOne') : t('session.waitMany', { n: missing })}
+              {waitingGuestReady
+                ? t('sessionLobby.waitGuestReadyText')
+                : missing <= 1
+                  ? t('session.waitOne')
+                  : t('session.waitMany', { n: missing })}
             </Text>
           </View>
         ) : (
@@ -108,7 +119,9 @@ export function SessionLobby({
             {loading
               ? t('sessionLobby.launching')
               : !readyToVote
-                ? t('sessionLobby.waitingBtn', { joined, size: sessionPartySize })
+                ? waitingGuestReady
+                  ? t('sessionLobby.waitingReadyBtn')
+                  : t('sessionLobby.waitingBtn', { joined, size: sessionPartySize })
                 : t('sessionLobby.launchVote')}
           </Text>
         </Pressable>

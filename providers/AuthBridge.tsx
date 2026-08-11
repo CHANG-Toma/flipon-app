@@ -15,6 +15,10 @@ import {
 import { signOutAndClearHint } from '@/lib/auth/sign-out';
 import { validateRemoteSession } from '@/lib/auth/validate-session';
 import { pullCloudHistory, setHistoryScope } from '@/lib/history/store';
+import {
+  identifyPurchasesUser,
+  resetPurchasesUser,
+} from '@/lib/revenuecat';
 import { setSessionScope } from '@/lib/session/store';
 import { tr } from '@/lib/i18n';
 
@@ -59,10 +63,21 @@ export function AuthBridge({ children }: { children: ReactNode }) {
     void (async () => {
       await setHistoryScope(nextScope);
       setSessionScope(nextScope);
-      if (isSignedIn) {
+      if (isSignedIn && userId) {
+        try {
+          await identifyPurchasesUser(userId);
+        } catch {
+          /* best-effort */
+        }
         try {
           await pullCloudHistory();
           historyPulled.current = true;
+        } catch {
+          /* best-effort */
+        }
+      } else {
+        try {
+          await resetPurchasesUser();
         } catch {
           /* best-effort */
         }

@@ -45,7 +45,13 @@
         }
       ],
       "expo-secure-store",
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "FlipOn utilise ta position pour adapter les idées Premium à ta ville et à la météo actuelle. Elle n’est pas stockée."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

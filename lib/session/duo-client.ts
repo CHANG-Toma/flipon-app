@@ -1,4 +1,4 @@
-import type { Constraints } from '@/data/plans';
+import type { Constraints, ContextHint } from '@/data/plans';
 import * as httpDuo from '@/lib/api/duo';
 import type { DuoPublicSnapshot, DuoRole } from '@/lib/api/types';
 
@@ -9,7 +9,11 @@ import type { DuoPublicSnapshot, DuoRole } from '@/lib/api/types';
 export type DuoSessionClient = {
   createRoom: (
     constraints: Constraints,
-    opts?: { type?: 'DUO' | 'GROUPE'; partySize?: number },
+    opts?: {
+      type?: 'DUO' | 'GROUPE';
+      partySize?: number;
+      context?: ContextHint | null;
+    },
   ) => Promise<{ role: 'host'; room: DuoPublicSnapshot; deviceKey?: string }>;
   getRoom: (code: string, role: DuoRole) => Promise<DuoPublicSnapshot>;
   joinRoom: (

@@ -11,5 +11,7 @@ export function isActiveSession(session: SessionState) {
 }
 
 export function isLobbyReady(session: SessionState) {
-  return session.joinedCount >= 2;
+  if (session.joinedCount < 2) return false;
+  if (session.type !== 'Groupe') return Boolean(session.guestReady);
+  return true;
 }

@@ -62,6 +62,10 @@ export const authStyles = StyleSheet.create({
     borderRadius: 999,
   },
   planPillText: { fontSize: 11, fontWeight: '800', color: FlipOn.accentInk },
+  planPillPremium: {
+    backgroundColor: FlipOn.dark,
+  },
+  planPillTextPremium: { color: '#fff' },
   email: { fontSize: 13, color: FlipOn.muted },
   editHint: {
     marginTop: 2,

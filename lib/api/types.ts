@@ -2,10 +2,13 @@ import type { Constraints, Plan } from '@/data/plans';
 
 export type DuoRole = 'host' | 'guest';
 
+export type DeckSource = 'ai' | 'pois' | 'catalogue';
+
 export type DuoPublicSnapshot = {
   id: string;
   constraints: Constraints;
   deck: Plan[];
+  deckSource?: DeckSource;
   guestJoined: boolean;
   hostReady: boolean;
   guestReady: boolean;

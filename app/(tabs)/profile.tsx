@@ -2,7 +2,7 @@
  * Onglet Profil (Basique)
  * -----------------------
  * - Compte Clerk (AuthCard : identité + modifier + déconnexion)
- * - Offre Basique
+ * - Offre (Basique / Premium selon abonnement)
  * - Liens légaux (site) + support
  * - Suppression de compte (RGPD)
  * Pas de faux toggles (notifs / stats) tant qu’ils ne sont pas branchés.
@@ -27,6 +27,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { AuthCard } from '@/components/auth/AuthCard';
 import { LanguagePreferenceBlock } from '@/components/profile/LanguagePreferenceBlock';
 import { FlipOn } from '@/constants/flipon';
+import { useSubscription } from '@/hooks/use-subscription';
 import { deleteAccountLocalAndClerk, humanDeleteError } from '@/lib/account';
 import { signOutAndClearHint } from '@/lib/auth/sign-out';
 import { useI18n } from '@/lib/i18n';
@@ -42,6 +43,7 @@ export default function ProfileScreen() {
   const { signOut } = useAuth();
   const { user } = useUser();
   const { t } = useI18n();
+  const { isPremium } = useSubscription();
   const [deleting, setDeleting] = useState(false);
 
   const openUrl = useCallback(
@@ -103,7 +105,9 @@ export default function ProfileScreen() {
           <Text style={styles.blockTitle}>{t('profile.offer')}</Text>
           <View style={[styles.row, styles.rowBorder]}>
             <Text style={styles.rowLabel}>{t('profile.plan')}</Text>
-            <Text style={styles.rowValue}>{t('profile.planBasic')}</Text>
+            <Text style={styles.rowValue}>
+              {isPremium ? t('profile.planPremium') : t('profile.planBasic')}
+            </Text>
           </View>
           <LinkRow
             label={t('profile.manageSubscription')}

@@ -20,6 +20,7 @@ export type { DuoSessionClient } from '@/lib/session/duo-client';
 export {
   canStartVoting,
   clearActiveSession,
+  confirmLobbyReady,
   createSession,
   createSessionOnServer,
   getSession,

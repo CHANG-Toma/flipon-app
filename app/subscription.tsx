@@ -10,9 +10,9 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { Screen } from '@/components/ui/Screen';
 import { FlipOn } from '@/constants/flipon';
+import { useSubscription } from '@/hooks/use-subscription';
 import { useI18n } from '@/lib/i18n';
 import type { TranslationKey } from '@/lib/i18n';
-import { getSubscription } from '@/lib/subscription';
 
 const FREE_FEATURE_KEYS: TranslationKey[] = [
   'subscription.freeFeature1',
@@ -47,8 +47,9 @@ const BOOST_FEATURE_KEYS: TranslationKey[] = [
 export default function SubscriptionScreen() {
   const router = useRouter();
   const { t } = useI18n();
-  const sub = getSubscription();
-  const onBasique = sub.plan === 'basique';
+  const { plan, isPremium } = useSubscription();
+  const onBasique = plan === 'basique';
+  const onPremium = isPremium;
 
   return (
     <Screen showBack title={t('subscription.title')}>
@@ -93,8 +94,17 @@ export default function SubscriptionScreen() {
       <View style={styles.premiumCard}>
         <View style={styles.premiumGlow} pointerEvents="none" />
         <View style={styles.premiumInner}>
-          <Text style={styles.premiumEyebrow}>{t('subscription.premiumEyebrow')}</Text>
-          <Text style={styles.premiumTitle}>{t('subscription.premiumTitle')}</Text>
+          <View style={styles.premiumTop}>
+            <View>
+              <Text style={styles.premiumEyebrow}>{t('subscription.premiumEyebrow')}</Text>
+              <Text style={styles.premiumTitle}>{t('subscription.premiumTitle')}</Text>
+            </View>
+            {onPremium ? (
+              <View style={styles.currentPillDark}>
+                <Text style={styles.currentPillDarkText}>{t('subscription.current')}</Text>
+              </View>
+            ) : null}
+          </View>
           <Text style={styles.premiumDesc}>{t('subscription.premiumDesc')}</Text>
 
           <View style={styles.chipRow}>
@@ -125,15 +135,17 @@ export default function SubscriptionScreen() {
             ))}
           </View>
 
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ disabled: true }}
-            accessibilityLabel={t('subscription.premiumCtaA11y')}
-            disabled
-            style={styles.premiumCta}>
-            <Text style={styles.premiumCtaText}>{t('subscription.premiumCta')}</Text>
-            <Text style={styles.premiumCtaSoon}>{t('subscription.premiumSoon')}</Text>
-          </Pressable>
+          {!onPremium ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ disabled: true }}
+              accessibilityLabel={t('subscription.premiumCtaA11y')}
+              disabled
+              style={styles.premiumCta}>
+              <Text style={styles.premiumCtaText}>{t('subscription.premiumCta')}</Text>
+              <Text style={styles.premiumCtaSoon}>{t('subscription.premiumSoon')}</Text>
+            </Pressable>
+          ) : null}
         </View>
       </View>
 
@@ -231,6 +243,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(249, 115, 22, 0.35)',
   },
   premiumInner: { padding: 18, gap: 10, position: 'relative' },
+  premiumTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
   premiumEyebrow: {
     fontSize: 11,
     fontWeight: '700',
@@ -239,6 +257,15 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   premiumTitle: { fontSize: 22, fontWeight: '800', color: '#fff', marginTop: -2 },
+  currentPillDark: {
+    backgroundColor: 'rgba(249, 115, 22, 0.25)',
+    borderWidth: 1,
+    borderColor: 'rgba(249, 115, 22, 0.5)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+  },
+  currentPillDarkText: { fontSize: 11, fontWeight: '800', color: FlipOn.accent },
   premiumDesc: { fontSize: 14, lineHeight: 21, color: 'rgba(255,255,255,0.72)' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 2 },
   chip: {

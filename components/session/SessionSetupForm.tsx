@@ -10,13 +10,21 @@ import type { SessionType } from '@/lib/session/types';
 const TYPES: SessionType[] = ['Duo', 'Groupe'];
 const GROUP_SIZES = [3, 4, 5, 6, 7, 8] as const;
 
+type ContextBanner = {
+  kind: 'ready' | 'missing';
+  text: string;
+} | null;
+
 type Props = {
   type: SessionType;
   partySize: number;
   constraints: Constraints;
+  /** Compteur catalogue (Basique). Masqué en Premium. */
   matchCount: number;
+  showIdeaCount: boolean;
   loading: boolean;
   error: string | null;
+  contextBanner?: ContextBanner;
   onTypeChange: (type: SessionType) => void;
   onPartySizeChange: (size: number) => void;
   onConstraintsPatch: (patch: Partial<Constraints>) => void;
@@ -29,14 +37,24 @@ export function SessionSetupForm({
   partySize,
   constraints,
   matchCount,
+  showIdeaCount,
   loading,
   error,
+  contextBanner = null,
   onTypeChange,
   onPartySizeChange,
   onConstraintsPatch,
   onContinue,
 }: Props) {
   const { t } = useI18n();
+  const creatingLabel =
+    loading && contextBanner?.kind === 'ready'
+      ? t('sessionSetup.creatingAi')
+      : loading
+        ? t('sessionSetup.creating')
+        : t('sessionSetup.continue');
+
+  const blockedByCount = showIdeaCount && matchCount === 0;
 
   const durationOptions: { value: Constraints['duration']; label: string }[] = [
     { value: '30', label: t('sessionSetup.duration30') },
@@ -79,6 +97,22 @@ export function SessionSetupForm({
         <Text style={styles.subtitle}>{t('sessionSetup.subtitle')}</Text>
       </View>
 
+      {contextBanner ? (
+        <View
+          style={[
+            styles.waitBox,
+            contextBanner.kind === 'ready' ? styles.readyBox : null,
+          ]}>
+          <Text style={styles.waitTitle}>{t('sessionSetup.contextTitle')}</Text>
+          <Text
+            style={
+              contextBanner.kind === 'ready' ? styles.readyText : styles.waitText
+            }>
+            {contextBanner.text}
+          </Text>
+        </View>
+      ) : null}
+
       <View style={styles.card}>
         <Text style={styles.cardTitle}>{t('sessionSetup.type')}</Text>
         <ChipRow
@@ -107,7 +141,9 @@ export function SessionSetupForm({
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <Text style={styles.cardTitle}>{t('sessionSetup.frame')}</Text>
-          <Text style={styles.count}>{t('sessionSetup.ideasCount', { n: matchCount })}</Text>
+          {showIdeaCount ? (
+            <Text style={styles.count}>{t('sessionSetup.ideasCount', { n: matchCount })}</Text>
+          ) : null}
         </View>
         <Text style={styles.groupLabel}>{t('sessionSetup.duration')}</Text>
         <ChipRow
@@ -145,12 +181,10 @@ export function SessionSetupForm({
         <ErrorState text={error} onRetry={onContinue} loading={loading} />
       ) : (
         <Pressable
-          style={[styles.primaryButton, (matchCount === 0 || loading) && styles.primaryDisabled]}
+          style={[styles.primaryButton, (blockedByCount || loading) && styles.primaryDisabled]}
           onPress={onContinue}
-          disabled={matchCount === 0 || loading}>
-          <Text style={styles.primaryButtonText}>
-            {loading ? t('sessionSetup.creating') : t('sessionSetup.continue')}
-          </Text>
+          disabled={blockedByCount || loading}>
+          <Text style={styles.primaryButtonText}>{creatingLabel}</Text>
         </Pressable>
       )}
     </>

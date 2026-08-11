@@ -1,4 +1,4 @@
-import { normalizeConstraints, type Constraints } from '@/data/plans';
+import { normalizeConstraints, type Constraints, type ContextHint } from '@/data/plans';
 import { ApiError } from '@/lib/http';
 import { tr } from '@/lib/i18n';
 import { getDuoSessionClient } from '@/lib/session/duo-client';
@@ -49,8 +49,27 @@ export function getSession() {
 }
 
 export function canStartVoting() {
-  // Snapshot API actuel : guestJoined (1 ou 2). On ne bloque pas les groupes sur partySize tant que le serveur ne remonte pas le compte réel.
+  if (!state.code || state.status === 'done') return false;
+  if (state.joinedCount < 2) return false;
+  // Duo : l’invité doit être prêt (écran join) avant que l’hôte lance le vote.
+  // Sinon l’hôte vote seul et le match / submit bug.
+  if (state.type !== 'Groupe') {
+    return Boolean(state.guestReady);
+  }
+  // Groupe : partySize réel pas encore remonté — garde joinedCount pour l’instant.
   return state.joinedCount >= 2;
+}
+
+/** Marque ce participant prêt côté serveur (guest sur l’écran d’attente, host au lancement). */
+export async function confirmLobbyReady() {
+  if (!state.code) {
+    throw new Error(tr('errors.createFirst'));
+  }
+  const snapshot = await getDuoSessionClient().setReady(state.code, state.role);
+  state = applySnapshot(state, snapshot, state.role);
+  await persistActive();
+  emit();
+  return state;
 }
 
 export async function hydrateSession() {
@@ -105,12 +124,14 @@ export async function createSessionOnServer(
   type: SessionType,
   constraints: Partial<Constraints>,
   partySize?: number,
+  context?: ContextHint | null,
 ) {
   const normalized = normalizeConstraints({ ...DEFAULT_CONSTRAINTS, ...constraints });
   const size = clampPartySize(type, partySize ?? defaultPartySize(type));
   const { room } = await getDuoSessionClient().createRoom(normalized, {
     type: type === 'Groupe' ? 'GROUPE' : 'DUO',
     partySize: size,
+    context: context ?? null,
   });
 
   historyRecordedForCode = null;
@@ -190,12 +211,18 @@ export async function startVoting() {
   if (!state.code) {
     throw new Error(tr('errors.createFirst'));
   }
-  if (!canStartVoting()) {
+  if (state.role === 'host' && !canStartVoting()) {
     throw new Error(
-      state.type === 'Groupe'
-        ? tr('errors.waitToJoinCount', { joined: state.joinedCount, size: state.partySize })
-        : tr('errors.waitToJoin'),
+      state.joinedCount < 2
+        ? state.type === 'Groupe'
+          ? tr('errors.waitToJoinCount', { joined: state.joinedCount, size: state.partySize })
+          : tr('errors.waitToJoin')
+        : tr('errors.waitGuestReady'),
     );
+  }
+  // Guest : peut confirmer prêt + entrer en vote dès que l’hôte a lancé (hostReady).
+  if (state.role === 'guest' && state.joinedCount < 2) {
+    throw new Error(tr('errors.waitToJoin'));
   }
 
   const snapshot = await getDuoSessionClient().setReady(state.code, state.role);
