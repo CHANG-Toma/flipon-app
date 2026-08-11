@@ -1,8 +1,8 @@
-/**
+﻿/**
  * Gérer mon abonnement
  * --------------------
- * Layout aligné sur /tarifs (site) : Basique clair + Boost dark « désirable ».
- * Paiement (RevenueCat) plus tard — CTA Boost désactivé pour l’instant.
+ * Layout aligné sur /tarifs (site) : Basique clair + Premium dark « désirable ».
+ * Paiement (RevenueCat) plus tard — CTA Premium désactivé pour l’instant.
  */
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -23,25 +23,25 @@ const FREE_FEATURE_KEYS: TranslationKey[] = [
 ];
 
 const BOOST_CHIP_KEYS: TranslationKey[] = [
-  'subscription.boostChip1',
-  'subscription.boostChip2',
-  'subscription.boostChip3',
-  'subscription.boostChip4',
+  'subscription.premiumChip1',
+  'subscription.premiumChip2',
+  'subscription.premiumChip3',
+  'subscription.premiumChip4',
 ];
 
 const BOOST_HIGHLIGHT_KEYS: TranslationKey[] = [
-  'subscription.boostHighlight1',
-  'subscription.boostHighlight2',
-  'subscription.boostHighlight3',
+  'subscription.premiumHighlight1',
+  'subscription.premiumHighlight2',
+  'subscription.premiumHighlight3',
 ];
 
 const BOOST_FEATURE_KEYS: TranslationKey[] = [
-  'subscription.boostFeature1',
-  'subscription.boostFeature2',
-  'subscription.boostFeature3',
-  'subscription.boostFeature4',
-  'subscription.boostFeature5',
-  'subscription.boostFeature6',
+  'subscription.premiumFeature1',
+  'subscription.premiumFeature2',
+  'subscription.premiumFeature3',
+  'subscription.premiumFeature4',
+  'subscription.premiumFeature5',
+  'subscription.premiumFeature6',
 ];
 
 export default function SubscriptionScreen() {
@@ -89,13 +89,13 @@ export default function SubscriptionScreen() {
         </View>
       </View>
 
-      {/* Boost — carte désir (comme le site) */}
-      <View style={styles.boostCard}>
-        <View style={styles.boostGlow} pointerEvents="none" />
-        <View style={styles.boostInner}>
-          <Text style={styles.boostEyebrow}>{t('subscription.boostEyebrow')}</Text>
-          <Text style={styles.boostTitle}>{t('subscription.boostTitle')}</Text>
-          <Text style={styles.boostDesc}>{t('subscription.boostDesc')}</Text>
+      {/* Premium — carte désir (comme le site) */}
+      <View style={styles.premiumCard}>
+        <View style={styles.premiumGlow} pointerEvents="none" />
+        <View style={styles.premiumInner}>
+          <Text style={styles.premiumEyebrow}>{t('subscription.premiumEyebrow')}</Text>
+          <Text style={styles.premiumTitle}>{t('subscription.premiumTitle')}</Text>
+          <Text style={styles.premiumDesc}>{t('subscription.premiumDesc')}</Text>
 
           <View style={styles.chipRow}>
             {BOOST_CHIP_KEYS.map((key) => (
@@ -106,8 +106,8 @@ export default function SubscriptionScreen() {
           </View>
 
           <View style={styles.priceRow}>
-            <Text style={styles.boostPrice}>{t('subscription.boostPrice')}</Text>
-            <Text style={styles.boostPriceUnit}>{t('subscription.perMonth')}</Text>
+            <Text style={styles.premiumPrice}>{t('subscription.premiumPrice')}</Text>
+            <Text style={styles.premiumPriceUnit}>{t('subscription.perMonth')}</Text>
           </View>
 
           <View style={styles.highlightList}>
@@ -128,11 +128,11 @@ export default function SubscriptionScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityState={{ disabled: true }}
-            accessibilityLabel={t('subscription.boostCtaA11y')}
+            accessibilityLabel={t('subscription.premiumCtaA11y')}
             disabled
-            style={styles.boostCta}>
-            <Text style={styles.boostCtaText}>{t('subscription.boostCta')}</Text>
-            <Text style={styles.boostCtaSoon}>{t('subscription.boostSoon')}</Text>
+            style={styles.premiumCta}>
+            <Text style={styles.premiumCtaText}>{t('subscription.premiumCta')}</Text>
+            <Text style={styles.premiumCtaSoon}>{t('subscription.premiumSoon')}</Text>
           </Pressable>
         </View>
       </View>
@@ -214,14 +214,14 @@ const styles = StyleSheet.create({
   priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 4 },
   priceUnit: { fontSize: 14, color: FlipOn.muted, fontWeight: '600' },
 
-  boostCard: {
+  premiumCard: {
     borderRadius: 20,
     borderWidth: 2,
     borderColor: FlipOn.accent,
     backgroundColor: FlipOn.dark,
     overflow: 'hidden',
   },
-  boostGlow: {
+  premiumGlow: {
     position: 'absolute',
     top: -40,
     right: -30,
@@ -230,16 +230,16 @@ const styles = StyleSheet.create({
     borderRadius: 110,
     backgroundColor: 'rgba(249, 115, 22, 0.35)',
   },
-  boostInner: { padding: 18, gap: 10, position: 'relative' },
-  boostEyebrow: {
+  premiumInner: { padding: 18, gap: 10, position: 'relative' },
+  premiumEyebrow: {
     fontSize: 11,
     fontWeight: '700',
     color: FlipOn.accent,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  boostTitle: { fontSize: 22, fontWeight: '800', color: '#fff', marginTop: -2 },
-  boostDesc: { fontSize: 14, lineHeight: 21, color: 'rgba(255,255,255,0.72)' },
+  premiumTitle: { fontSize: 22, fontWeight: '800', color: '#fff', marginTop: -2 },
+  premiumDesc: { fontSize: 14, lineHeight: 21, color: 'rgba(255,255,255,0.72)' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 2 },
   chip: {
     borderWidth: 1,
@@ -250,8 +250,8 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   chipText: { fontSize: 11, fontWeight: '700', color: FlipOn.accent },
-  boostPrice: { fontSize: 36, fontWeight: '800', color: '#fff', letterSpacing: -1 },
-  boostPriceUnit: { fontSize: 14, color: 'rgba(255,255,255,0.55)', fontWeight: '600' },
+  premiumPrice: { fontSize: 36, fontWeight: '800', color: '#fff', letterSpacing: -1 },
+  premiumPriceUnit: { fontSize: 14, color: 'rgba(255,255,255,0.55)', fontWeight: '600' },
 
   highlightList: { gap: 8, marginTop: 2 },
   highlightRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   featureText: { flex: 1, fontSize: 14, lineHeight: 20, color: FlipOn.ink, fontWeight: '500' },
   featureTextDark: { color: 'rgba(255,255,255,0.92)' },
 
-  boostCta: {
+  premiumCta: {
     marginTop: 10,
     minHeight: 54,
     borderRadius: 14,
@@ -288,8 +288,8 @@ const styles = StyleSheet.create({
     gap: 2,
     opacity: 0.92,
   },
-  boostCtaText: { fontSize: 15, fontWeight: '800', color: '#fff' },
-  boostCtaSoon: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
+  premiumCtaText: { fontSize: 15, fontWeight: '800', color: '#fff' },
+  premiumCtaSoon: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
 
   secondary: {
     minHeight: 48,

@@ -1,12 +1,12 @@
-/**
+﻿/**
  * Abonnement (placeholder Basique)
  * --------------------------------
- * Plan actuel = Basique. Boost / IAP (RevenueCat) à brancher plus tard.
- * Ne pas activer Boost côté client sans vérif serveur.
+ * Plan actuel = Basique. Premium / IAP (RevenueCat) à brancher plus tard.
+ * Ne pas activer Premium côté client sans vérif serveur.
  */
 import { tr } from '@/lib/i18n';
 
-export type FlipOnPlan = 'basique' | 'boost';
+export type FlipOnPlan = 'basique' | 'premium';
 
 export type SubscriptionSnapshot = {
   plan: FlipOnPlan;
@@ -23,6 +23,6 @@ export function getSubscription(): SubscriptionSnapshot {
   };
 }
 
-export function isBoostActive(sub: SubscriptionSnapshot = getSubscription()) {
-  return sub.plan === 'boost';
+export function isPremiumActive(sub: SubscriptionSnapshot = getSubscription()) {
+  return sub.plan === 'premium';
 }

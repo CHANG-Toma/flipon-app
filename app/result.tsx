@@ -1,4 +1,4 @@
-import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+﻿import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { Screen } from '@/components/ui/Screen';
@@ -11,7 +11,7 @@ import { clearActiveSession, getSession } from '@/lib/session/store';
  * Résultat Basique (gratuit)
  * --------------------------
  * Affiche uniquement l’idée commune issue du vote (titre + accroche + méta).
- * Le plan détaillé (étapes) est réservé à Boost — ne pas le réintroduire ici.
+ * Le plan détaillé (étapes) est réservé à Premium — ne pas le réintroduire ici.
  */
 export default function ResultScreen() {
   const router = useRouter();

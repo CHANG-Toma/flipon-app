@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+﻿import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useRouter, type Href } from 'expo-router';
@@ -25,7 +25,7 @@ export function AuthProfileCard({ fallback = null }: Props) {
   const router = useRouter();
   const { t } = useI18n();
   const planLabel =
-    getSubscription().plan === 'boost' ? t('subscription.boostTitle') : t('subscription.freeTitle');
+    getSubscription().plan === 'premium' ? t('subscription.premiumTitle') : t('subscription.freeTitle');
 
   if (!isSignedIn || !user) {
     return <>{fallback}</>;
