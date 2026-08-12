@@ -1,4 +1,4 @@
-﻿import { Pressable, Share, Text, View } from 'react-native';
+import { Pressable, Share, Text, View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 
 import { Screen } from '@/components/ui/Screen';

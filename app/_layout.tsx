@@ -1,7 +1,7 @@
 /**
  * Root layout FlipOn — composition root (DI + navigation).
  */
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -12,7 +12,6 @@ import { AuthBridge } from '@/providers/AuthBridge';
 import { ClerkMissingGate } from '@/providers/ClerkMissingGate';
 import { I18nProvider } from '@/providers/I18nProvider';
 import { ConfirmHost } from '@/components/ui/ConfirmHost';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { FlipOn } from '@/constants/flipon';
 import { setAccountCleanup } from '@/lib/account-cleanup';
 import { clearAuthSessionHint } from '@/lib/auth/session-hint';
@@ -35,8 +34,6 @@ function wirePorts() {
 }
 
 function RootNavigator({ gate }: { gate: 'auth' | 'missing' | 'none' }) {
-  const colorScheme = useColorScheme();
-
   useEffect(() => {
     wirePorts();
     void Promise.all([hydrateSession(), hydrateHistory()]);
@@ -48,7 +45,7 @@ function RootNavigator({ gate }: { gate: 'auth' | 'missing' | 'none' }) {
 
   const tree = (
     <I18nProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={DarkTheme}>
         <Stack
           screenOptions={{
             headerShown: false,

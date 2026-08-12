@@ -1,4 +1,4 @@
-﻿import type { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useRouter, type Href } from 'expo-router';

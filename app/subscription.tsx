@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Gérer mon abonnement
  * --------------------
  * Layout aligné sur /tarifs (site) : Basique clair + Premium dark « désirable ».
