@@ -7,13 +7,14 @@ import { Platform, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FlipOn, tabBarShadow } from '@/constants/flipon';
+import { HISTORY_ICON } from '@/lib/history/constants';
 import { useI18n } from '@/lib/i18n';
 
 type TabName = 'index' | 'history' | 'profile';
 
 const TAB_ICONS: Record<TabName, keyof typeof MaterialIcons.glyphMap> = {
   index: 'home',
-  history: 'history',
+  history: HISTORY_ICON,
   profile: 'person',
 };
 

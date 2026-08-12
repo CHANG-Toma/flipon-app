@@ -15,6 +15,7 @@ import { getPlanById } from '@/data/plans';
 import { useHistoryEntry } from '@/hooks/use-history';
 import { displayHistoryTitle, formatHistoryMeta } from '@/lib/history/format';
 import { hydrateHistory, removeHistoryEntry } from '@/lib/history/store';
+import { HISTORY_ICON } from '@/lib/history/constants';
 import type { HistoryEntry } from '@/lib/history/types';
 import { useI18n } from '@/lib/i18n';
 import type { TranslationKey } from '@/lib/i18n';
@@ -45,7 +46,7 @@ export default function HistoryEntryScreen() {
           text={t('historyEntry.notFoundText')}
           actionLabel={t('historyEntry.notFoundAction')}
           onAction={() => router.replace('/(tabs)/history' as Href)}
-          icon="history"
+          icon={HISTORY_ICON}
         />
       </Screen>
     );

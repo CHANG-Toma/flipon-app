@@ -1,3 +1,6 @@
+/** Icône Material — historique (tab bar + états vides). */
+export const HISTORY_ICON = 'history' as const;
+
 /** Nombre max d'entrées persistées localement (RAM + disque). */
 export const HISTORY_MAX_ENTRIES = 50;
 

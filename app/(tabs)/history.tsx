@@ -22,7 +22,7 @@ import { HistoryFilterBar } from '@/components/history/HistoryFilterBar';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FlipOn } from '@/constants/flipon';
 import { useHistoryList } from '@/hooks/use-history-list';
-import { HISTORY_LIST_WINDOW } from '@/lib/history/constants';
+import { HISTORY_LIST_WINDOW, HISTORY_ICON } from '@/lib/history/constants';
 import type { HistoryListSection } from '@/lib/history/list-model';
 import type { HistoryEntry } from '@/lib/history/types';
 import { useI18n } from '@/lib/i18n';
@@ -116,7 +116,7 @@ export default function HistoryScreen() {
               text={t('history.emptyText')}
               actionLabel={t('history.emptyAction')}
               onAction={() => router.push('/session' as Href)}
-              icon="history"
+              icon={HISTORY_ICON}
             />
           ) : filterEmpty ? (
             <View style={styles.filterEmpty}>
