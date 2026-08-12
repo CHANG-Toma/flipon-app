@@ -34,6 +34,7 @@ async function maybeRecordHistory() {
     durationMin: state.result?.durationMin ?? 0,
     status: state.result ? 'Validée' : 'Sans match',
     planId: state.result?.id,
+    constraints: state.constraints,
   });
 }
 

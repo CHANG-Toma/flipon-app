@@ -1,3 +1,5 @@
+import type { Constraints } from '@/data/plans';
+
 export type HistoryEntry = {
   id: string;
   title: string;
@@ -6,4 +8,6 @@ export type HistoryEntry = {
   status: 'Validée' | 'Sans match' | 'Expirée';
   createdAt: number;
   planId?: string;
+  /** Cadre choisi à la création — filtre local (optionnel, anciennes entrées). */
+  constraints?: Constraints;
 };

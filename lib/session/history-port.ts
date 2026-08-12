@@ -2,6 +2,8 @@
  * Port : enregistrement historique en fin de session (DIP).
  * Branché depuis le composition root (`app/_layout`) vers history-store.
  */
+import type { Constraints } from '@/data/plans';
+
 export type SessionHistoryRecord = {
   id: string;
   title: string;
@@ -9,6 +11,7 @@ export type SessionHistoryRecord = {
   durationMin: number;
   status: 'Validée' | 'Sans match' | 'Expirée';
   planId?: string;
+  constraints?: Constraints;
 };
 
 export type SessionHistoryWriter = (entry: SessionHistoryRecord) => Promise<void>;

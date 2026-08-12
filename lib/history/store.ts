@@ -4,8 +4,11 @@ import { getKeyValueStore } from '@/lib/storage';
 
 const STORAGE_KEY_PREFIX = 'flipon:history:v1';
 const GUEST_SCOPE = 'guest';
+/** Intervalle minimum entre deux sync cloud (pull-to-refresh). */
+const CLOUD_PULL_MIN_INTERVAL_MS = 60_000;
 
 let storageScope = GUEST_SCOPE;
+let lastCloudPullAt = 0;
 
 let entries: HistoryEntry[] = [];
 let hydrated = false;
@@ -82,6 +85,7 @@ export async function addHistoryEntry(
     status: entry.status,
     createdAt: entry.createdAt ?? Date.now(),
     planId: entry.planId,
+    constraints: entry.constraints,
   };
   entries = [next, ...entries.filter((item) => item.id !== next.id)].slice(0, 50);
   await persist();
@@ -103,8 +107,14 @@ export async function mergeRemoteHistory(remote: HistoryEntry[]) {
   return entries;
 }
 
-export async function pullCloudHistory() {
+export async function pullCloudHistory(options?: { force?: boolean }) {
+  const force = options?.force ?? false;
+  const now = Date.now();
+  if (!force && now - lastCloudPullAt < CLOUD_PULL_MIN_INTERVAL_MS) {
+    return getHistory();
+  }
   try {
+    lastCloudPullAt = now;
     const { items } = await fetchRemoteHistory();
     return mergeRemoteHistory(items);
   } catch {

@@ -1,25 +1,31 @@
 /**
- * Onglet Historique
- * -----------------
- * Liste groupée par jour, pull-to-refresh (sync cloud), détail via /history-entry/[id].
+ * Onglet Historique — liste filtrée locale, sync cloud à la demande uniquement.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Pressable,
   RefreshControl,
-  ScrollView,
+  SectionList,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useFocusEffect, useRouter, type Href } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
+import { HistoryDayDivider } from '@/components/history/HistoryDayDivider';
+import { HistoryEntryCard } from '@/components/history/HistoryEntryCard';
+import { HistoryExpandRow } from '@/components/history/HistoryExpandRow';
+import { HistoryFilterBar } from '@/components/history/HistoryFilterBar';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { FlipOn, cardShadow } from '@/constants/flipon';
-import { displayHistoryTitle, formatHistoryMeta, groupHistoryByDay } from '@/lib/history/format';
+import { FlipOn } from '@/constants/flipon';
+import {
+  filterHistoryEntries,
+  type HistoryFilterId,
+  visibleHistoryFilters,
+} from '@/lib/history/filters';
+import { groupHistoryByDay } from '@/lib/history/format';
 import {
   getHistory,
   hydrateHistory,
@@ -28,23 +34,20 @@ import {
 } from '@/lib/history/store';
 import type { HistoryEntry } from '@/lib/history/types';
 import { useI18n } from '@/lib/i18n';
-import type { TranslationKey } from '@/lib/i18n';
 
-function statusKey(status: HistoryEntry['status']): TranslationKey {
-  if (status === 'Validée') return 'status.validated';
-  if (status === 'Sans match') return 'status.noMatch';
-  return 'status.expired';
-}
+const INITIAL_VISIBLE_COUNT = 5;
 
 export default function HistoryScreen() {
   const router = useRouter();
   const { t } = useI18n();
   const [sessions, setSessions] = useState<HistoryEntry[]>(getHistory());
+  const [filter, setFilter] = useState<HistoryFilterId>('all');
   const [refreshing, setRefreshing] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   const reloadLocal = useCallback(async () => {
-    const items = await hydrateHistory();
-    setSessions(items);
+    await hydrateHistory();
+    setSessions(getHistory());
   }, []);
 
   useFocusEffect(
@@ -59,7 +62,7 @@ export default function HistoryScreen() {
     setRefreshing(true);
     try {
       await hydrateHistory();
-      const merged = await pullCloudHistory();
+      const merged = await pullCloudHistory({ force: true });
       setSessions(merged);
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } finally {
@@ -67,17 +70,63 @@ export default function HistoryScreen() {
     }
   }, []);
 
-  const groups = useMemo(() => groupHistoryByDay(sessions), [sessions]);
+  const filters = useMemo(() => visibleHistoryFilters(sessions), [sessions]);
 
-  const openEntry = (entry: HistoryEntry) => {
-    router.push(`/history-entry/${encodeURIComponent(entry.id)}` as Href);
-  };
+  const filtered = useMemo(
+    () => filterHistoryEntries(sessions, filter),
+    [sessions, filter],
+  );
+
+  const hiddenCount = Math.max(0, filtered.length - INITIAL_VISIBLE_COUNT);
+
+  const visibleEntries = useMemo(() => {
+    if (expanded || hiddenCount === 0) return filtered;
+    return filtered.slice(0, INITIAL_VISIBLE_COUNT);
+  }, [expanded, filtered, hiddenCount]);
+
+  const sections = useMemo(
+    () =>
+      groupHistoryByDay(visibleEntries).map((group) => ({
+        title: group.label,
+        data: group.items,
+      })),
+    [visibleEntries],
+  );
+
+  useEffect(() => {
+    if (!filters.some((item) => item.id === filter)) {
+      setFilter('all');
+    }
+  }, [filters, filter]);
+
+  useEffect(() => {
+    setExpanded(false);
+  }, [filter]);
+
+  const openEntry = useCallback(
+    (entry: HistoryEntry) => {
+      router.push(`/history-entry/${encodeURIComponent(entry.id)}` as Href);
+    },
+    [router],
+  );
+
+  const onExpand = useCallback(() => {
+    setExpanded(true);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, []);
+
+  const listEmpty = sessions.length === 0;
+  const filterEmpty = !listEmpty && filtered.length === 0;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ScrollView
-        style={styles.scroll}
+      <SectionList
+        sections={sections}
+        keyExtractor={(item) => item.id}
+        style={styles.list}
         contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        stickySectionHeadersEnabled={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -85,112 +134,92 @@ export default function HistoryScreen() {
             tintColor={FlipOn.accent}
             colors={[FlipOn.accent]}
           />
-        }>
-        <View style={styles.top}>
-          <Text style={styles.title}>{t('history.title')}</Text>
-          <Text style={styles.subtitle}>{t('history.subtitle')}</Text>
-        </View>
-
-        {sessions.length === 0 ? (
-          <EmptyState
-            title={t('history.emptyTitle')}
-            text={t('history.emptyText')}
-            actionLabel={t('history.emptyAction')}
-            onAction={() => router.push('/session' as Href)}
-            icon="history"
-          />
-        ) : (
-          <>
-            <Text style={styles.count}>
-              {sessions.length > 1
-                ? t('history.countPlural', { n: sessions.length })
-                : t('history.count', { n: sessions.length })}
-            </Text>
-            {groups.map((group) => (
-              <View key={group.label} style={styles.group}>
-                <Text style={styles.groupLabel}>{group.label}</Text>
-                <View style={styles.list}>
-                  {group.items.map((session) => {
-                    const muted = session.status !== 'Validée';
-                    const statusText = t(statusKey(session.status));
-                    const title = displayHistoryTitle(session.title);
-                    return (
-                      <Pressable
-                        key={session.id}
-                        accessibilityRole="button"
-                        accessibilityLabel={`${title}, ${statusText}`}
-                        style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-                        onPress={() => openEntry(session)}>
-                        <View style={styles.rowBody}>
-                          <Text style={styles.rowTitle} numberOfLines={2}>
-                            {title}
-                          </Text>
-                          <Text style={styles.rowMeta}>{formatHistoryMeta(session)}</Text>
-                        </View>
-                        <Text style={[styles.pill, muted ? styles.pillMuted : styles.pillOk]}>
-                          {statusText}
-                        </Text>
-                        <MaterialIcons name="chevron-right" size={22} color={FlipOn.muted} />
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-            ))}
-          </>
+        }
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <Text style={styles.title}>{t('history.title')}</Text>
+            {!listEmpty ? (
+              <HistoryFilterBar
+                filters={filters}
+                active={filter}
+                onChange={setFilter}
+              />
+            ) : null}
+          </View>
+        }
+        ListFooterComponent={
+          !expanded && hiddenCount > 0 ? (
+            <HistoryExpandRow remaining={hiddenCount} onPress={onExpand} />
+          ) : null
+        }
+        ListEmptyComponent={
+          listEmpty ? (
+            <EmptyState
+              title={t('history.emptyTitle')}
+              text={t('history.emptyText')}
+              actionLabel={t('history.emptyAction')}
+              onAction={() => router.push('/session' as Href)}
+              icon="history"
+            />
+          ) : filterEmpty ? (
+            <View style={styles.filterEmpty}>
+              <Text style={styles.filterEmptyText}>{t('history.filterEmpty')}</Text>
+              <Pressable onPress={() => setFilter('all')} style={styles.filterReset}>
+                <Text style={styles.filterResetText}>{t('history.filterReset')}</Text>
+              </Pressable>
+            </View>
+          ) : null
+        }
+        renderSectionHeader={({ section }) => <HistoryDayDivider label={section.title} />}
+        renderItem={({ item }) => (
+          <HistoryEntryCard entry={item} onPress={() => openEntry(item)} />
         )}
-      </ScrollView>
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        SectionSeparatorComponent={() => <View style={styles.sectionGap} />}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: FlipOn.bg },
-  scroll: { flex: 1 },
+  list: { flex: 1 },
   container: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 16,
     paddingBottom: 110,
-    gap: 12,
   },
-  top: { gap: 6 },
-  title: { fontSize: 30, fontWeight: '800', color: FlipOn.ink, letterSpacing: -0.5 },
-  subtitle: { fontSize: 14, lineHeight: 20, color: FlipOn.muted },
-  count: { marginTop: 4, fontSize: 13, fontWeight: '600', color: FlipOn.muted },
-  group: { gap: 8, marginTop: 4 },
-  groupLabel: {
-    fontSize: 13,
+  header: { gap: 16, marginBottom: 8 },
+  title: {
+    fontSize: 32,
     fontWeight: '800',
-    color: FlipOn.muted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
+    color: FlipOn.ink,
+    letterSpacing: -0.6,
   },
-  list: { gap: 10 },
-  row: {
-    backgroundColor: FlipOn.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: FlipOn.line,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
+  separator: { height: 10 },
+  sectionGap: { height: 4 },
+  filterEmpty: {
     alignItems: 'center',
-    gap: 10,
-    ...cardShadow,
+    gap: 12,
+    paddingVertical: 32,
+    paddingHorizontal: 16,
   },
-  rowPressed: { opacity: 0.72 },
-  rowBody: { flex: 1, gap: 3 },
-  rowTitle: { fontSize: 16, fontWeight: '700', color: FlipOn.ink },
-  rowMeta: { fontSize: 13, color: FlipOn.muted },
-  pill: {
-    fontSize: 12,
-    fontWeight: '700',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+  filterEmptyText: {
+    fontSize: 15,
+    color: FlipOn.muted,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  filterReset: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 999,
-    overflow: 'hidden',
+    backgroundColor: FlipOn.soft,
   },
-  pillOk: { color: FlipOn.success, backgroundColor: FlipOn.successSoft },
-  pillMuted: { color: FlipOn.muted, backgroundColor: FlipOn.soft },
+  filterResetText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: FlipOn.accentInk,
+  },
 });
