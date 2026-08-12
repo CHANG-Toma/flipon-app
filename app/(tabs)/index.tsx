@@ -15,10 +15,9 @@ import { useUser } from '@clerk/clerk-expo';
 import * as Haptics from 'expo-haptics';
 
 import { HomeActiveSession } from '@/components/home/HomeActiveSession';
-import { HomeJoinCode } from '@/components/home/HomeJoinCode';
+import { HomeCarousel } from '@/components/home/HomeCarousel';
 import { HomeLatestActivity } from '@/components/home/HomeLatestActivity';
 import { HomePremiumContext } from '@/components/home/HomePremiumContext';
-import { HomeStartCard } from '@/components/home/HomeStartCard';
 import { homeStyles as styles } from '@/components/home/home-styles';
 import { useSubscription } from '@/hooks/use-subscription';
 import {
@@ -106,31 +105,30 @@ export default function HomeScreen() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}>
-          <View style={styles.top}>
+          <View style={styles.header}>
             <Text style={styles.hello}>{hello}</Text>
-            <Text style={styles.title}>{t('home.title')}</Text>
-            <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
+          </View>
+
+          <View style={styles.cards}>
+            {hasActive ? (
+              <HomeActiveSession session={session} onClosed={onSessionClosed} />
+            ) : ready ? (
+              <HomeCarousel
+                joinCode={joinCode}
+                joinError={joinError}
+                isPremium={isPremium}
+                onChangeCode={(code) => {
+                  setJoinCode(code);
+                  setJoinError(null);
+                }}
+                onJoin={joinSession}
+              />
+            ) : null}
           </View>
 
           <HomePremiumContext enabled={isPremium} />
 
-          {hasActive ? (
-            <HomeActiveSession session={session} onClosed={onSessionClosed} />
-          ) : ready ? (
-            <HomeStartCard />
-          ) : null}
-
-          <HomeJoinCode
-            joinCode={joinCode}
-            joinError={joinError}
-            onChangeCode={(code) => {
-              setJoinCode(code);
-              setJoinError(null);
-            }}
-            onJoin={joinSession}
-          />
-
-          <HomeLatestActivity latest={latest} showTip={ready && !hasActive} />
+          <HomeLatestActivity latest={latest} />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
