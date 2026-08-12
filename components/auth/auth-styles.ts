@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { FlipOn } from '@/constants/flipon';
+import { FlipOn, cardShadow } from '@/constants/flipon';
 
 export const authStyles = StyleSheet.create({
   card: {
@@ -10,12 +10,14 @@ export const authStyles = StyleSheet.create({
     borderColor: FlipOn.line,
     padding: 16,
     gap: 10,
+    ...cardShadow,
   },
-  /** Sans bordure : le parent (`login` formBlock) fournit déjà le cadre. */
   cardFlush: {
     borderWidth: 0,
     backgroundColor: 'transparent',
     paddingHorizontal: 0,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   cardTitle: { fontSize: 15, fontWeight: '700', color: FlipOn.ink },
   screenTitle: { fontSize: 18, fontWeight: '800', color: FlipOn.ink, marginBottom: 2 },
@@ -29,7 +31,7 @@ export const authStyles = StyleSheet.create({
     paddingHorizontal: 14,
     fontSize: 15,
     color: FlipOn.ink,
-    backgroundColor: FlipOn.surface,
+    backgroundColor: FlipOn.soft,
   },
   identityHit: {
     flexDirection: 'row',
@@ -60,12 +62,15 @@ export const authStyles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,
+    borderWidth: 1,
+    borderColor: FlipOn.accentBorder,
   },
   planPillText: { fontSize: 11, fontWeight: '800', color: FlipOn.accentInk },
   planPillPremium: {
-    backgroundColor: FlipOn.dark,
+    backgroundColor: FlipOn.accent,
+    borderColor: FlipOn.accent,
   },
-  planPillTextPremium: { color: '#fff' },
+  planPillTextPremium: { color: FlipOn.onAccent },
   email: { fontSize: 13, color: FlipOn.muted },
   editHint: {
     marginTop: 2,
@@ -79,8 +84,13 @@ export const authStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: FlipOn.accent,
+    shadowColor: FlipOn.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  primaryText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  primaryText: { fontSize: 15, fontWeight: '700', color: FlipOn.onAccent },
   secondaryButton: {
     minHeight: 48,
     borderRadius: 12,

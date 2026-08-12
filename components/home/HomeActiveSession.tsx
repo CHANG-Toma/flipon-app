@@ -4,6 +4,7 @@ import { useRouter, type Href } from 'expo-router';
 
 import { EndSessionCloseButton } from '@/components/session/EndSessionCloseButton';
 import { homeStyles as styles } from '@/components/home/home-styles';
+import { FlipOn } from '@/constants/flipon';
 import { useI18n } from '@/lib/i18n';
 import { getHomeCta } from '@/lib/session/home-cta';
 import type { SessionState } from '@/lib/session/types';
@@ -73,7 +74,7 @@ export function HomeActiveSession({ session, onClosed }: Props) {
 
           <View style={styles.heroCta}>
             <Text style={styles.heroCtaText}>{home.cta}</Text>
-            <MaterialIcons name="arrow-forward" size={18} color="#fff" />
+            <MaterialIcons name="arrow-forward" size={18} color={FlipOn.onAccent} />
           </View>
         </Pressable>
       </View>

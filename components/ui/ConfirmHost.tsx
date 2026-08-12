@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FlipOn } from '@/constants/flipon';
+import { FlipOn, cardShadow } from '@/constants/flipon';
 import {
   registerConfirmDialog,
   type ConfirmDialogOptions,
@@ -88,6 +88,7 @@ const styles = StyleSheet.create({
     gap: 10,
     borderWidth: 1,
     borderColor: FlipOn.line,
+    ...cardShadow,
   },
   title: { fontSize: 18, fontWeight: '800', color: FlipOn.ink, textAlign: 'center' },
   message: {
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
   confirmBtn: { backgroundColor: FlipOn.accent },
   dangerBtn: { backgroundColor: FlipOn.danger },
   cancelText: { fontSize: 15, fontWeight: '700', color: FlipOn.ink },
-  confirmText: { fontSize: 15, fontWeight: '700', color: '#fff' },
-  dangerText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  confirmText: { fontSize: 15, fontWeight: '700', color: FlipOn.onAccent },
+  dangerText: { fontSize: 15, fontWeight: '700', color: FlipOn.onAccent },
   pressed: { opacity: 0.88 },
 });

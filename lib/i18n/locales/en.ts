@@ -268,6 +268,7 @@ const en: MessageTree = {
     emptyDeckText: 'Start a new session with a wider frame.',
     newSession: 'New session',
     progress: 'Idea {{progress}} · private votes',
+    question: 'Would you do this?',
     pass: 'Pass',
     passA11y: 'Pass on this idea',
     yes: 'Yes',
@@ -325,6 +326,8 @@ const en: MessageTree = {
   },
   join: {
     title: 'Invite',
+    kicker: 'Session',
+    kickerJoined: 'Connected',
     connecting: 'Connecting to session…',
     connectingA11y: 'Connecting to session',
     joined: 'You’ve joined the session',

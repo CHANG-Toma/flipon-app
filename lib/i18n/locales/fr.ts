@@ -267,6 +267,7 @@
     emptyDeckText: 'Relance une session avec un cadre plus large.',
     newSession: 'Nouvelle session',
     progress: 'Idée {{progress}} · votes privés',
+    question: 'Ça vous dit ?',
     pass: 'Passer',
     passA11y: 'Passer cette idée',
     yes: 'Oui',
@@ -324,6 +325,8 @@
   },
   join: {
     title: 'Invitation',
+    kicker: 'Session',
+    kickerJoined: 'Connecté',
     connecting: 'Connexion à la session…',
     connectingA11y: 'Connexion à la session',
     joined: 'Tu as rejoint la session',

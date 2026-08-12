@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
-import { FlipOn } from '@/constants/flipon';
+import { FlipOn, cardShadow } from '@/constants/flipon';
 
 type Props = {
   title: string;
@@ -31,32 +31,38 @@ export function EmptyState({ title, text, actionLabel, onAction, icon = 'inbox' 
 const styles = StyleSheet.create({
   wrap: {
     backgroundColor: FlipOn.surface,
-    borderRadius: 18,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: FlipOn.line,
-    padding: 20,
+    padding: 24,
     gap: 8,
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    ...cardShadow,
   },
   iconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: FlipOn.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
   },
-  title: { fontSize: 16, fontWeight: '700', color: FlipOn.ink },
-  text: { fontSize: 14, lineHeight: 20, color: FlipOn.muted },
+  title: { fontSize: 17, fontWeight: '800', color: FlipOn.ink, textAlign: 'center' },
+  text: { fontSize: 14, lineHeight: 21, color: FlipOn.muted, textAlign: 'center' },
   button: {
     marginTop: 8,
-    minHeight: 44,
-    borderRadius: 12,
-    paddingHorizontal: 14,
+    minHeight: 46,
+    borderRadius: 14,
+    paddingHorizontal: 18,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: FlipOn.accent,
+    shadowColor: FlipOn.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  buttonText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  buttonText: { color: FlipOn.onAccent, fontSize: 14, fontWeight: '700' },
 });

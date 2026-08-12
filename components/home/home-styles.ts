@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { FlipOn } from '@/constants/flipon';
+import { FlipOn, cardShadow } from '@/constants/flipon';
 
 export const homeStyles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: FlipOn.bg },
@@ -20,7 +20,16 @@ export const homeStyles = StyleSheet.create({
   pressed: { opacity: 0.88 },
 
   heroWrap: { gap: 10 },
-  hero: { backgroundColor: FlipOn.dark, borderRadius: 24, padding: 18, gap: 10, position: 'relative' },
+  hero: {
+    backgroundColor: FlipOn.dark,
+    borderRadius: 24,
+    padding: 18,
+    gap: 10,
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: FlipOn.line,
+    ...cardShadow,
+  },
   heroClose: { position: 'absolute', top: 12, right: 12, zIndex: 2 },
   heroTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 36 },
   heroBody: { gap: 10 },
@@ -28,25 +37,25 @@ export const homeStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: FlipOn.accent },
-  badgeLiveText: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  heroCode: { color: '#A8ADB5', fontSize: 13, fontWeight: '800', letterSpacing: 1.2 },
-  heroTitle: { color: '#fff', fontSize: 22, fontWeight: '800', letterSpacing: -0.3 },
-  heroText: { color: '#C7CBD1', fontSize: 14, lineHeight: 20 },
+  badgeLiveText: { color: FlipOn.ink, fontSize: 12, fontWeight: '700' },
+  heroCode: { color: FlipOn.muted, fontSize: 13, fontWeight: '800', letterSpacing: 1.2 },
+  heroTitle: { color: FlipOn.ink, fontSize: 22, fontWeight: '800', letterSpacing: -0.3 },
+  heroText: { color: FlipOn.muted, fontSize: 14, lineHeight: 20 },
   progressBlock: { gap: 6, marginTop: 2 },
   progressTrack: {
     height: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: 'rgba(255,255,255,0.12)',
     overflow: 'hidden',
   },
   progressFill: { height: '100%', borderRadius: 999, backgroundColor: FlipOn.accent },
-  progressLabel: { color: '#A8ADB5', fontSize: 12, fontWeight: '600' },
+  progressLabel: { color: FlipOn.muted, fontSize: 12, fontWeight: '600' },
   heroCta: {
     marginTop: 6,
     minHeight: 46,
@@ -57,8 +66,13 @@ export const homeStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    shadowColor: FlipOn.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 4,
   },
-  heroCtaText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  heroCtaText: { color: FlipOn.onAccent, fontSize: 15, fontWeight: '700' },
 
   startCard: {
     backgroundColor: FlipOn.surface,
@@ -67,6 +81,7 @@ export const homeStyles = StyleSheet.create({
     borderColor: FlipOn.line,
     padding: 18,
     gap: 8,
+    ...cardShadow,
   },
   startIcon: {
     width: 44,
@@ -88,8 +103,13 @@ export const homeStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    shadowColor: FlipOn.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 4,
   },
-  startCtaText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  startCtaText: { color: FlipOn.onAccent, fontSize: 15, fontWeight: '700' },
 
   section: { gap: 10 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
@@ -104,6 +124,7 @@ export const homeStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: FlipOn.line,
     padding: 8,
+    ...cardShadow,
   },
   input: {
     flex: 1,
@@ -114,6 +135,7 @@ export const homeStyles = StyleSheet.create({
     fontWeight: '800',
     color: FlipOn.ink,
     letterSpacing: 4,
+    backgroundColor: FlipOn.soft,
   },
   joinButton: {
     minHeight: 44,
@@ -121,11 +143,11 @@ export const homeStyles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: FlipOn.dark,
+    backgroundColor: FlipOn.accent,
     paddingHorizontal: 14,
   },
   joinButtonDisabled: { opacity: 0.35 },
-  joinButtonText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  joinButtonText: { color: FlipOn.onAccent, fontSize: 14, fontWeight: '700' },
   joinError: { fontSize: 13, color: FlipOn.danger, fontWeight: '600' },
   hint: { fontSize: 12, lineHeight: 17, color: FlipOn.muted },
   row: {
@@ -138,6 +160,7 @@ export const homeStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    ...cardShadow,
   },
   rowBody: { flex: 1, gap: 3 },
   rowTitle: { fontSize: 16, fontWeight: '700', color: FlipOn.ink },
@@ -161,7 +184,7 @@ export const homeStyles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#FED7AA',
+    borderColor: FlipOn.accentBorder,
   },
   tipText: { flex: 1, fontSize: 13, lineHeight: 19, color: FlipOn.accentInk, fontWeight: '600' },
 });

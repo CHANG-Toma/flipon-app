@@ -1,53 +1,37 @@
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { Colors } from '@/constants/theme';
-import { FlipOn } from '@/constants/flipon';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FloatingTabBar } from '@/components/navigation/FloatingTabBar';
 import { useI18n } from '@/lib/i18n';
 
-const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 68;
-
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { t } = useI18n();
 
   return (
     <View style={styles.root}>
       <Tabs
+        tabBar={(props) => <FloatingTabBar {...props} />}
         screenOptions={{
-          tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-          tabBarInactiveTintColor: Colors[colorScheme ?? 'light'].tabIconDefault,
           headerShown: false,
-          tabBarButton: HapticTab,
-          tabBarStyle: styles.tabBar,
-          tabBarLabelStyle: styles.tabLabel,
+          tabBarShowLabel: false,
         }}>
         <Tabs.Screen
           name="index"
           options={{
             title: t('tabs.home'),
-            tabBarIcon: ({ color }) => <MaterialIcons size={24} name="home" color={color} />,
           }}
         />
         <Tabs.Screen
           name="history"
           options={{
             title: t('tabs.history'),
-            tabBarIcon: ({ color }) => <MaterialIcons size={24} name="history" color={color} />,
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
             title: t('tabs.profile'),
-            tabBarIcon: ({ color }) => <MaterialIcons size={24} name="person" color={color} />,
           }}
         />
         <Tabs.Screen
@@ -58,47 +42,10 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('tabs.newSession')}
-        onPress={() => router.push('/session')}
-        hitSlop={4}
-        style={[
-          styles.fab,
-          {
-            bottom: TAB_BAR_HEIGHT + Math.max(insets.bottom, 8),
-          },
-        ]}>
-        <MaterialIcons size={28} name="add" color="#ffffff" />
-      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  tabBar: {
-    backgroundColor: FlipOn.surface,
-    borderTopColor: FlipOn.line,
-    borderTopWidth: 1,
-    height: TAB_BAR_HEIGHT,
-    paddingTop: 6,
-  },
-  tabLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  fab: {
-    position: 'absolute',
-    right: 18,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: FlipOn.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 20,
-    elevation: 4,
-  },
 });

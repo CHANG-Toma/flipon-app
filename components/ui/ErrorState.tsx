@@ -1,7 +1,7 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
-import { FlipOn } from '@/constants/flipon';
+import { FlipOn, cardShadow } from '@/constants/flipon';
 import { useI18n } from '@/lib/i18n';
 
 type Props = {
@@ -25,7 +25,7 @@ export function ErrorState({ title, text, onRetry, loading = false }: Props) {
       {onRetry ? (
         <Pressable style={styles.button} onPress={onRetry} disabled={loading}>
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={FlipOn.accent} />
           ) : (
             <Text style={styles.buttonText}>{t('common.retry')}</Text>
           )}
@@ -38,31 +38,37 @@ export function ErrorState({ title, text, onRetry, loading = false }: Props) {
 const styles = StyleSheet.create({
   wrap: {
     backgroundColor: FlipOn.dangerSoft,
-    borderRadius: 18,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: FlipOn.dangerLine,
-    padding: 20,
+    padding: 24,
     gap: 8,
+    alignItems: 'center',
   },
   iconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#fff',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: FlipOn.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
+    borderWidth: 1,
+    borderColor: FlipOn.dangerLine,
   },
-  title: { fontSize: 16, fontWeight: '700', color: FlipOn.danger },
-  text: { fontSize: 14, lineHeight: 20, color: FlipOn.ink },
+  title: { fontSize: 17, fontWeight: '800', color: FlipOn.danger, textAlign: 'center' },
+  text: { fontSize: 14, lineHeight: 21, color: FlipOn.ink, textAlign: 'center' },
   button: {
     marginTop: 8,
-    minHeight: 44,
-    borderRadius: 12,
+    minHeight: 46,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: FlipOn.dark,
-    paddingHorizontal: 14,
+    backgroundColor: FlipOn.surface,
+    borderWidth: 1,
+    borderColor: FlipOn.line,
+    paddingHorizontal: 18,
+    ...cardShadow,
   },
-  buttonText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  buttonText: { color: FlipOn.ink, fontSize: 14, fontWeight: '700' },
 });

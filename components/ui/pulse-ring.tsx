@@ -127,7 +127,7 @@ export function PulseRing({
             cy={box / 2}
             r={box / 2 - strokeWidth}
             fill="none"
-            stroke="rgba(255,255,255,0.08)"
+            stroke="rgba(255,255,255,0.1)"
             strokeWidth={strokeWidth}
           />
         </Svg>
@@ -170,7 +170,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
     zIndex: 2,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: FlipOn.line,
   },
   dot: {
     borderRadius: 999,

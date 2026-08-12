@@ -16,7 +16,7 @@ import { useAuth } from '@clerk/clerk-expo';
 
 import { AuthForm } from '@/components/auth/AuthCard';
 import { PremiumLoader } from '@/components/ui/PremiumLoader';
-import { FlipOn } from '@/constants/flipon';
+import { FlipOn, cardShadow } from '@/constants/flipon';
 import { useI18n } from '@/lib/i18n';
 
 export default function LoginScreen() {
@@ -112,5 +112,6 @@ const styles = StyleSheet.create({
     borderColor: FlipOn.line,
     padding: 18,
     gap: 12,
+    ...cardShadow,
   },
 });

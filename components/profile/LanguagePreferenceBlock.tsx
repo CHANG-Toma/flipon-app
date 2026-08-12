@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FlipOn } from '@/constants/flipon';
+import { FlipOn, cardShadow } from '@/constants/flipon';
 import { useI18n } from '@/lib/i18n';
 import type { LanguagePreference } from '@/lib/i18n/types';
 
@@ -50,6 +50,7 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: 14,
     gap: 10,
+    ...cardShadow,
   },
   blockTitle: {
     fontSize: 13,

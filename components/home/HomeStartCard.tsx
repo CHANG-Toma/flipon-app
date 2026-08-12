@@ -27,7 +27,7 @@ export function HomeStartCard() {
       <Text style={styles.startText}>{t('home.startText')}</Text>
       <View style={styles.startCta}>
         <Text style={styles.startCtaText}>{t('home.startCta')}</Text>
-        <MaterialIcons name="arrow-forward" size={18} color="#fff" />
+        <MaterialIcons name="arrow-forward" size={18} color={FlipOn.onAccent} />
       </View>
     </Pressable>
   );

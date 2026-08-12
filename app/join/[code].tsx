@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Screen } from '@/components/ui/Screen';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { PulseRing } from '@/components/ui/pulse-ring';
+import { flowStyles } from '@/components/ui/flow-styles';
 import { FlipOn } from '@/constants/flipon';
 import { useMounted } from '@/hooks/use-mounted';
 import { usePolling } from '@/hooks/use-polling';
@@ -45,11 +47,10 @@ export default function JoinScreen() {
         return;
       }
 
-      // Invité prêt côté serveur → l’hôte peut enfin lancer le vote.
       try {
         await confirmLobbyReady();
       } catch {
-        /* best-effort — le poll / vote retentera */
+        /* best-effort */
       }
       if (!isMounted()) return;
 
@@ -88,27 +89,29 @@ export default function JoinScreen() {
   return (
     <Screen showBack title={t('join.title')}>
       {loading && !error ? (
-        <View style={styles.center} accessibilityLabel={t('join.connectingA11y')}>
-          <ActivityIndicator color={FlipOn.accent} size="large" />
-          <Text style={styles.text}>{t('join.connecting')}</Text>
-          <Text style={styles.code}>{displayCode || '—'}</Text>
+        <View style={flowStyles.joinHero} accessibilityLabel={t('join.connectingA11y')}>
+          <PulseRing size="md" color={FlipOn.accent}>
+            <ActivityIndicator color={FlipOn.accent} size="small" />
+          </PulseRing>
+          <Text style={flowStyles.kicker}>{t('join.kicker')}</Text>
+          <Text style={flowStyles.joinTitle}>{t('join.connecting')}</Text>
+          <Text style={flowStyles.joinCode}>{displayCode || '—'}</Text>
         </View>
       ) : null}
+
       {waitingHost && !error ? (
-        <View style={styles.center} accessibilityLiveRegion="polite">
-          <Text style={styles.title}>{t('join.joined')}</Text>
-          <Text style={styles.code}>{displayCode}</Text>
-          <Text style={styles.text}>{t('join.waitingHost')}</Text>
+        <View style={flowStyles.joinHero} accessibilityLiveRegion="polite">
+          <PulseRing size="md" color={FlipOn.accent}>
+            <ActivityIndicator color={FlipOn.accent} size="small" />
+          </PulseRing>
+          <Text style={flowStyles.kicker}>{t('join.kickerJoined')}</Text>
+          <Text style={flowStyles.joinTitle}>{t('join.joined')}</Text>
+          <Text style={flowStyles.joinCode}>{displayCode}</Text>
+          <Text style={flowStyles.joinText}>{t('join.waitingHost')}</Text>
         </View>
       ) : null}
+
       {error ? <ErrorState text={error} onRetry={join} /> : null}
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  center: { alignItems: 'center', gap: 10, paddingTop: 60, paddingHorizontal: 16 },
-  title: { fontSize: 18, fontWeight: '800', color: FlipOn.ink, textAlign: 'center' },
-  text: { color: FlipOn.muted, fontSize: 14, textAlign: 'center', lineHeight: 20 },
-  code: { marginTop: 6, fontSize: 18, fontWeight: '800', color: FlipOn.ink, letterSpacing: 1 },
-});

@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 import { PulseRing } from '@/components/ui/pulse-ring';
@@ -49,7 +49,7 @@ export function PremiumLoader({ message, fullScreen = true }: Props) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: FlipOn.dark,
+    backgroundColor: FlipOn.bg,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
@@ -79,20 +79,20 @@ const styles = StyleSheet.create({
   brand: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: FlipOn.ink,
     letterSpacing: -0.8,
   },
   tagline: {
     fontSize: 14,
     fontWeight: '500',
-    color: 'rgba(255,255,255,0.55)',
+    color: FlipOn.muted,
     textAlign: 'center',
     lineHeight: 20,
   },
   message: {
     fontSize: 13,
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.45)',
+    color: FlipOn.muted,
     letterSpacing: 0.2,
   },
   footer: {
@@ -102,6 +102,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 1.4,
     textTransform: 'uppercase',
-    color: 'rgba(255,255,255,0.28)',
+    color: FlipOn.muted,
   },
 });

@@ -1,7 +1,7 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
-import { FlipOn } from '@/constants/flipon';
+import { FlipOn, cardShadow } from '@/constants/flipon';
 import { usePremiumContext } from '@/hooks/use-premium-context';
 import { useI18n } from '@/lib/i18n';
 import type { TranslationKey } from '@/lib/i18n';
@@ -57,7 +57,7 @@ export function HomePremiumContext({ enabled }: Props) {
             accessibilityLabel={t('premiumContext.ctaA11y')}
             style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
             onPress={() => void ctx.activate()}>
-            <MaterialIcons name="my-location" size={18} color="#fff" />
+            <MaterialIcons name="my-location" size={18} color={FlipOn.onAccent} />
             <Text style={styles.ctaText}>{t('premiumContext.cta')}</Text>
           </Pressable>
         </>
@@ -134,6 +134,7 @@ const styles = StyleSheet.create({
     borderColor: FlipOn.line,
     padding: 16,
     gap: 12,
+    ...cardShadow,
   },
   header: {
     flexDirection: 'row',
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: FlipOn.bg,
+    backgroundColor: FlipOn.soft,
   },
   body: { gap: 10 },
   line: { flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -176,13 +177,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  ctaText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  ctaText: { color: FlipOn.onAccent, fontSize: 14, fontWeight: '700' },
   secondaryBtn: {
     minHeight: 44,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: FlipOn.line,
-    backgroundColor: FlipOn.bg,
+    backgroundColor: FlipOn.surface,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 14,

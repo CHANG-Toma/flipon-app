@@ -80,9 +80,9 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 10,
     paddingBottom: 28,
-    gap: 14,
+    gap: 16,
   },
   header: {
     flexDirection: 'row',
@@ -97,12 +97,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   backBtnInner: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: FlipOn.surface,
+    backgroundColor: FlipOn.soft,
     borderWidth: 1,
     borderColor: FlipOn.line,
   },
@@ -112,5 +112,5 @@ const styles = StyleSheet.create({
   },
   backSpacer: { width: 36 },
   flexSpacer: { flex: 1 },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: FlipOn.ink, flex: 1, textAlign: 'center' },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: FlipOn.ink, flex: 1, textAlign: 'center', letterSpacing: -0.2 },
 });

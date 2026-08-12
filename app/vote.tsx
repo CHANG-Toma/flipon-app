@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
@@ -7,6 +7,7 @@ import { Screen } from '@/components/ui/Screen';
 import { EndSessionCloseButton } from '@/components/session/EndSessionCloseButton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { flowStyles } from '@/components/ui/flow-styles';
 import { FlipOn } from '@/constants/flipon';
 import { useMounted } from '@/hooks/use-mounted';
 import { usePolling } from '@/hooks/use-polling';
@@ -117,9 +118,9 @@ export default function VoteScreen() {
   if (loading) {
     return (
       <Screen showBack title={t('vote.title')} headerRight={endSessionBtn}>
-        <View style={styles.center} accessibilityLabel={t('vote.loadingA11y')}>
+        <View style={flowStyles.loadingCenter} accessibilityLabel={t('vote.loadingA11y')}>
           <ActivityIndicator color={FlipOn.accent} size="large" />
-          <Text style={styles.loadingText}>{t('vote.loading')}</Text>
+          <Text style={flowStyles.loadingText}>{t('vote.loading')}</Text>
         </View>
       </Screen>
     );
@@ -167,101 +168,43 @@ export default function VoteScreen() {
       title={t('vote.title')}
       headerRight={endSessionBtn}
       contentStyle={{ paddingBottom: 32 }}>
-      <Text style={styles.progress} accessibilityLiveRegion="polite">
+      <Text style={flowStyles.progress} accessibilityLiveRegion="polite">
         {t('vote.progress', { progress })}
       </Text>
+      <Text style={flowStyles.question}>{t('vote.question')}</Text>
 
-      <View
-        style={styles.card}
-        accessibilityLabel={`${idea.title}. ${idea.blurb}`}>
-        <Text style={styles.kicker}>{idea.category}</Text>
-        <Text style={styles.title}>{idea.title}</Text>
-        <Text style={styles.detail}>{idea.blurb}</Text>
-        <View style={styles.metaRow}>
-          <Text style={styles.meta}>{idea.durationMin} min</Text>
-          <Text style={styles.meta}>≤ {idea.budgetMax} EUR</Text>
-          <Text style={styles.meta}>{idea.place}</Text>
-          <Text style={styles.meta}>{idea.energy}</Text>
+      <View style={flowStyles.voteCard} accessibilityLabel={`${idea.title}. ${idea.blurb}`}>
+        <Text style={flowStyles.kicker}>{idea.category}</Text>
+        <Text style={flowStyles.heroTitle}>{idea.title}</Text>
+        <Text style={flowStyles.heroSubtitle}>{idea.blurb}</Text>
+        <View style={flowStyles.metaRow}>
+          <Text style={flowStyles.metaPill}>{idea.durationMin} min</Text>
+          <Text style={flowStyles.metaPill}>≤ {idea.budgetMax} EUR</Text>
+          <Text style={flowStyles.metaPill}>{idea.place}</Text>
+          <Text style={flowStyles.metaPill}>{idea.energy}</Text>
         </View>
       </View>
 
-      <View style={styles.actions}>
+      <View style={flowStyles.actionsRow}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('vote.passA11y')}
-          style={[styles.passBtn, submitting && styles.disabled]}
+          style={[flowStyles.passBtn, submitting && flowStyles.disabled]}
           onPress={() => onVote(false)}
           disabled={submitting}>
-          <Text style={styles.passText}>{t('vote.pass')}</Text>
+          <Text style={flowStyles.passText}>{t('vote.pass')}</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('vote.yesA11y')}
-          style={[styles.yesBtn, submitting && styles.disabled]}
+          style={[flowStyles.yesBtn, submitting && flowStyles.disabled]}
           onPress={() => onVote(true)}
           disabled={submitting}>
-          <Text style={styles.yesText}>{submitting ? '…' : t('vote.yes')}</Text>
+          <Text style={flowStyles.yesText}>{submitting ? '…' : t('vote.yes')}</Text>
         </Pressable>
       </View>
 
-      <Text style={styles.hint}>{t('vote.hint')}</Text>
+      <Text style={flowStyles.hint}>{t('vote.hint')}</Text>
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingTop: 80 },
-  loadingText: { color: FlipOn.muted, fontSize: 14 },
-  progress: { fontSize: 13, fontWeight: '600', color: FlipOn.muted },
-  card: {
-    backgroundColor: FlipOn.dark,
-    borderRadius: 24,
-    padding: 20,
-    gap: 10,
-    minHeight: 240,
-  },
-  kicker: {
-    alignSelf: 'flex-start',
-    color: FlipOn.accent,
-    fontSize: 12,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
-  title: { color: '#fff', fontSize: 28, fontWeight: '800', lineHeight: 34 },
-  detail: { color: '#C7CBD1', fontSize: 15, lineHeight: 22 },
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
-  meta: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '700',
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 999,
-    overflow: 'hidden',
-  },
-  actions: { flexDirection: 'row', gap: 12 },
-  passBtn: {
-    flex: 1,
-    minHeight: 54,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: FlipOn.line,
-    backgroundColor: FlipOn.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  passText: { fontSize: 16, fontWeight: '700', color: FlipOn.ink },
-  yesBtn: {
-    flex: 1,
-    minHeight: 54,
-    borderRadius: 14,
-    backgroundColor: FlipOn.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  yesText: { fontSize: 16, fontWeight: '700', color: '#fff' },
-  disabled: { opacity: 0.5 },
-  hint: { fontSize: 12, color: FlipOn.muted, lineHeight: 18 },
-});

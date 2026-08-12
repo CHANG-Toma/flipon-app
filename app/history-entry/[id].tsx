@@ -4,13 +4,13 @@
  * Idée retenue (Basique : pas d’étapes), partage, relancer, supprimer local.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, Share, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
 import { Screen } from '@/components/ui/Screen';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { FlipOn } from '@/constants/flipon';
+import { flowStyles } from '@/components/ui/flow-styles';
 import { getPlanById } from '@/data/plans';
 import { displayHistoryTitle, formatHistoryMeta } from '@/lib/history/format';
 import {
@@ -114,87 +114,29 @@ export default function HistoryEntryScreen() {
 
   return (
     <Screen showBack title={t('historyEntry.title')}>
-      <View style={[styles.hero, muted && styles.heroMuted]}>
-        <Text style={styles.kicker}>{statusText}</Text>
-        <Text style={styles.title}>{title}</Text>
-        {blurb ? <Text style={styles.subtitle}>{blurb}</Text> : null}
-        <Text style={styles.meta}>{formatHistoryMeta(entry)}</Text>
+      <View style={[flowStyles.hero, muted && flowStyles.heroMuted]}>
+        <Text style={flowStyles.kicker}>{statusText}</Text>
+        <Text style={flowStyles.heroTitle}>{title}</Text>
+        {blurb ? <Text style={flowStyles.heroSubtitle}>{blurb}</Text> : null}
+        <Text style={flowStyles.heroMeta}>{formatHistoryMeta(entry)}</Text>
       </View>
 
       {entry.status === 'Sans match' ? (
-        <View style={styles.tip}>
-          <Text style={styles.tipTitle}>{t('historyEntry.tipTitle')}</Text>
-          <Text style={styles.tipText}>{t('historyEntry.tipText')}</Text>
+        <View style={flowStyles.tipCard}>
+          <Text style={flowStyles.tipTitle}>{t('historyEntry.tipTitle')}</Text>
+          <Text style={flowStyles.tipText}>{t('historyEntry.tipText')}</Text>
         </View>
       ) : null}
 
-      <Pressable style={styles.primary} onPress={() => void share()}>
-        <Text style={styles.primaryText}>{t('historyEntry.share')}</Text>
+      <Pressable style={flowStyles.primaryButton} onPress={() => void share()}>
+        <Text style={flowStyles.primaryText}>{t('historyEntry.share')}</Text>
       </Pressable>
-      <Pressable style={styles.secondary} onPress={relance}>
-        <Text style={styles.secondaryText}>{t('historyEntry.relaunch')}</Text>
+      <Pressable style={flowStyles.secondaryButton} onPress={relance}>
+        <Text style={flowStyles.secondaryText}>{t('historyEntry.relaunch')}</Text>
       </Pressable>
-      <Pressable style={styles.ghost} onPress={onDelete}>
-        <Text style={styles.ghostText}>{t('historyEntry.remove')}</Text>
+      <Pressable style={flowStyles.dangerButton} onPress={onDelete}>
+        <Text style={flowStyles.dangerText}>{t('historyEntry.remove')}</Text>
       </Pressable>
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  hero: {
-    backgroundColor: FlipOn.dark,
-    borderRadius: 22,
-    padding: 20,
-    gap: 8,
-  },
-  heroMuted: {
-    backgroundColor: '#2A2E36',
-  },
-  kicker: {
-    color: FlipOn.accent,
-    fontSize: 12,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  title: { color: '#fff', fontSize: 26, fontWeight: '800', letterSpacing: -0.3 },
-  subtitle: { color: '#C7CBD1', fontSize: 15, lineHeight: 22 },
-  meta: { marginTop: 4, color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: '600' },
-  tip: {
-    backgroundColor: FlipOn.accentSoft,
-    borderRadius: 16,
-    padding: 14,
-    gap: 4,
-    borderWidth: 1,
-    borderColor: '#FED7AA',
-  },
-  tipTitle: { fontSize: 14, fontWeight: '800', color: FlipOn.accentInk },
-  tipText: { fontSize: 13, lineHeight: 19, color: FlipOn.accentInk },
-  primary: {
-    minHeight: 52,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: FlipOn.accent,
-  },
-  primaryText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  secondary: {
-    minHeight: 50,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: FlipOn.dark,
-  },
-  secondaryText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  ghost: {
-    minHeight: 48,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: FlipOn.dangerLine,
-    backgroundColor: FlipOn.dangerSoft,
-  },
-  ghostText: { color: FlipOn.danger, fontSize: 14, fontWeight: '700' },
-});

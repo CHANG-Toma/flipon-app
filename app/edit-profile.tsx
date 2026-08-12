@@ -22,7 +22,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { Screen } from '@/components/ui/Screen';
 import { ChangePasswordSection } from '@/components/auth/ChangePasswordSection';
-import { FlipOn } from '@/constants/flipon';
+import { FlipOn, cardShadow } from '@/constants/flipon';
 import { syncMe } from '@/lib/api';
 import { humanClerkError } from '@/lib/auth/human-clerk-error';
 import { canChangeFlipOnPassword } from '@/lib/auth/user-capabilities';
@@ -299,6 +299,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: FlipOn.line,
     padding: 14,
+    ...cardShadow,
   },
   avatar: {
     height: 56,
@@ -324,7 +325,7 @@ const styles = StyleSheet.create({
   },
   bannerSuccess: {
     backgroundColor: FlipOn.successSoft,
-    borderColor: '#A7F3D0',
+    borderColor: FlipOn.successLine,
   },
   bannerError: {
     backgroundColor: FlipOn.dangerSoft,
@@ -341,6 +342,7 @@ const styles = StyleSheet.create({
     borderColor: FlipOn.line,
     padding: 16,
     gap: 14,
+    ...cardShadow,
   },
   field: { gap: 6 },
   label: {
@@ -358,11 +360,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     fontSize: 16,
     color: FlipOn.ink,
-    backgroundColor: FlipOn.bg,
+    backgroundColor: FlipOn.soft,
   },
   inputFocused: {
     borderColor: FlipOn.accent,
-    backgroundColor: '#fff',
+    backgroundColor: FlipOn.soft,
   },
   inputReadonly: {
     minHeight: 50,
@@ -387,7 +389,7 @@ const styles = StyleSheet.create({
     backgroundColor: FlipOn.accent,
   },
   primaryDisabled: { opacity: 0.45 },
-  primaryText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  primaryText: { fontSize: 15, fontWeight: '700', color: FlipOn.onAccent },
   dirtyHint: {
     textAlign: 'center',
     fontSize: 12,

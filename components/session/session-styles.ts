@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { FlipOn } from '@/constants/flipon';
+import { FlipOn, cardShadow } from '@/constants/flipon';
 
 export const sessionStyles = StyleSheet.create({
   hero: {
@@ -8,6 +8,9 @@ export const sessionStyles = StyleSheet.create({
     borderRadius: 22,
     padding: 18,
     gap: 8,
+    borderWidth: 1,
+    borderColor: FlipOn.line,
+    ...cardShadow,
   },
   kicker: {
     fontSize: 12,
@@ -16,8 +19,8 @@ export const sessionStyles = StyleSheet.create({
     textTransform: 'uppercase',
     color: FlipOn.accent,
   },
-  title: { fontSize: 26, fontWeight: '800', color: '#fff', lineHeight: 32 },
-  subtitle: { fontSize: 14, lineHeight: 20, color: '#C7CBD1' },
+  title: { fontSize: 26, fontWeight: '800', color: FlipOn.ink, lineHeight: 32 },
+  subtitle: { fontSize: 14, lineHeight: 20, color: FlipOn.muted },
   card: {
     backgroundColor: FlipOn.surface,
     borderRadius: 18,
@@ -25,6 +28,7 @@ export const sessionStyles = StyleSheet.create({
     borderColor: FlipOn.line,
     padding: 16,
     gap: 10,
+    ...cardShadow,
   },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardTitle: { fontSize: 15, fontWeight: '700', color: FlipOn.ink },
@@ -39,13 +43,13 @@ export const sessionStyles = StyleSheet.create({
     paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: FlipOn.surface,
+    backgroundColor: FlipOn.soft,
   },
   chipSelected: { borderColor: FlipOn.accent, backgroundColor: FlipOn.accentSoft },
   chipText: { fontSize: 13, fontWeight: '600', color: FlipOn.muted },
   chipTextSelected: { color: FlipOn.accentInk },
   line: { paddingVertical: 10, gap: 2 },
-  lineBorder: { borderBottomWidth: 1, borderBottomColor: FlipOn.soft },
+  lineBorder: { borderBottomWidth: 1, borderBottomColor: FlipOn.line },
   lineLabel: { fontSize: 12, color: FlipOn.muted },
   lineValue: { fontSize: 15, fontWeight: '600', color: FlipOn.ink },
   qrBlock: { alignItems: 'center', gap: 10, paddingVertical: 6 },
@@ -54,7 +58,8 @@ export const sessionStyles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: FlipOn.line,
-    backgroundColor: FlipOn.surface,
+    backgroundColor: FlipOn.bg,
+    ...cardShadow,
   },
   qrHint: { fontSize: 13, fontWeight: '600', color: FlipOn.muted },
   hint: { fontSize: 12, lineHeight: 18, color: FlipOn.muted },
@@ -70,6 +75,8 @@ export const sessionStyles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: FlipOn.successSoft,
     padding: 12,
+    borderWidth: 1,
+    borderColor: FlipOn.successLine,
   },
   readyText: { fontSize: 13, fontWeight: '700', color: FlipOn.success },
   secondaryButton: {
@@ -77,6 +84,7 @@ export const sessionStyles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: FlipOn.line,
+    backgroundColor: FlipOn.soft,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -87,7 +95,12 @@ export const sessionStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: FlipOn.accent,
+    shadowColor: FlipOn.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 4,
   },
   primaryDisabled: { opacity: 0.45 },
-  primaryButtonText: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  primaryButtonText: { fontSize: 16, fontWeight: '700', color: FlipOn.onAccent },
 });

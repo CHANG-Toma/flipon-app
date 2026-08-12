@@ -18,7 +18,7 @@ import { useFocusEffect, useRouter, type Href } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
 import { EmptyState } from '@/components/ui/EmptyState';
-import { FlipOn } from '@/constants/flipon';
+import { FlipOn, cardShadow } from '@/constants/flipon';
 import { displayHistoryTitle, formatHistoryMeta, groupHistoryByDay } from '@/lib/history/format';
 import {
   getHistory,
@@ -177,6 +177,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    ...cardShadow,
   },
   rowPressed: { opacity: 0.72 },
   rowBody: { flex: 1, gap: 3 },

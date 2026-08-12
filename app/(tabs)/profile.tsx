@@ -26,7 +26,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { AuthCard } from '@/components/auth/AuthCard';
 import { LanguagePreferenceBlock } from '@/components/profile/LanguagePreferenceBlock';
-import { FlipOn } from '@/constants/flipon';
+import { FlipOn, cardShadow } from '@/constants/flipon';
 import { useSubscription } from '@/hooks/use-subscription';
 import { deleteAccountLocalAndClerk, humanDeleteError } from '@/lib/account';
 import { signOutAndClearHint } from '@/lib/auth/sign-out';
@@ -201,6 +201,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 4,
+    ...cardShadow,
   },
   blockTitle: {
     fontSize: 13,

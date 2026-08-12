@@ -64,7 +64,7 @@ function RootNavigator({ gate }: { gate: 'auth' | 'missing' | 'none' }) {
           <Stack.Screen name="join/[code]" />
         </Stack>
         <ConfirmHost />
-        <StatusBar style="dark" />
+        <StatusBar style="light" />
       </ThemeProvider>
     </I18nProvider>
   );

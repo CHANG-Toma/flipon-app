@@ -1,9 +1,9 @@
-﻿import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+﻿import { Pressable, Share, Text, View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 
 import { Screen } from '@/components/ui/Screen';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { FlipOn } from '@/constants/flipon';
+import { flowStyles } from '@/components/ui/flow-styles';
 import { useSubscription } from '@/hooks/use-subscription';
 import { useI18n } from '@/lib/i18n';
 import { buildResultRoadmap, groupRoadmapByPhase } from '@/lib/premium/roadmap';
@@ -67,38 +67,38 @@ export default function ResultScreen() {
 
   return (
     <Screen showBack title={t('result.title')}>
-      <View style={styles.hero}>
-        <Text style={styles.kicker}>{t('result.ideaKept')}</Text>
-        <Text style={styles.title}>{result.title}</Text>
-        <Text style={styles.subtitle}>{result.blurb}</Text>
-        <View style={styles.metaRow}>
-          <Text style={styles.meta}>{result.durationMin} min</Text>
-          <Text style={styles.meta}>≤ {result.budgetMax} EUR</Text>
-          <Text style={styles.meta}>{result.place}</Text>
+      <View style={flowStyles.hero}>
+        <Text style={flowStyles.kicker}>{t('result.ideaKept')}</Text>
+        <Text style={flowStyles.heroTitle}>{result.title}</Text>
+        <Text style={flowStyles.heroSubtitle}>{result.blurb}</Text>
+        <View style={flowStyles.metaRow}>
+          <Text style={flowStyles.metaPill}>{result.durationMin} min</Text>
+          <Text style={flowStyles.metaPill}>≤ {result.budgetMax} EUR</Text>
+          <Text style={flowStyles.metaPill}>{result.place}</Text>
         </View>
       </View>
 
       {isPremium && groups.length > 0 ? (
-        <View style={styles.stepsCard}>
-          <Text style={styles.stepsTitle}>{t('result.roadmapTitle')}</Text>
-          <Text style={styles.stepsLead}>{t('result.roadmapLead')}</Text>
+        <View style={flowStyles.surfaceCard}>
+          <Text style={flowStyles.surfaceTitle}>{t('result.roadmapTitle')}</Text>
+          <Text style={flowStyles.surfaceLead}>{t('result.roadmapLead')}</Text>
           {groups.map((group) => (
-            <View key={group.phase} style={styles.phaseBlock}>
-              <Text style={styles.phaseLabel}>{group.phase}</Text>
+            <View key={group.phase} style={flowStyles.phaseBlock}>
+              <Text style={flowStyles.phaseLabel}>{group.phase}</Text>
               {group.items.map((step, index) => (
-                <View key={`${group.phase}-${index}-${step.title}`} style={styles.roadmapRow}>
-                  <View style={styles.timeline}>
-                    <View style={styles.dot} />
-                    {index < group.items.length - 1 ? <View style={styles.line} /> : null}
+                <View key={`${group.phase}-${index}-${step.title}`} style={flowStyles.roadmapRow}>
+                  <View style={flowStyles.timeline}>
+                    <View style={flowStyles.dot} />
+                    {index < group.items.length - 1 ? <View style={flowStyles.timelineLine} /> : null}
                   </View>
-                  <View style={styles.roadmapBody}>
-                    <View style={styles.roadmapHeader}>
-                      <Text style={styles.roadmapTitle}>{step.title}</Text>
+                  <View style={flowStyles.roadmapBody}>
+                    <View style={flowStyles.roadmapHeader}>
+                      <Text style={flowStyles.roadmapTitle}>{step.title}</Text>
                       {typeof step.minutes === 'number' ? (
-                        <Text style={styles.minutes}>~{step.minutes} min</Text>
+                        <Text style={flowStyles.roadmapMinutes}>~{step.minutes} min</Text>
                       ) : null}
                     </View>
-                    <Text style={styles.roadmapDetail}>{step.detail}</Text>
+                    <Text style={flowStyles.roadmapDetail}>{step.detail}</Text>
                   </View>
                 </View>
               ))}
@@ -106,158 +106,31 @@ export default function ResultScreen() {
           ))}
         </View>
       ) : (
-        <View style={styles.teaserCard}>
-          <Text style={styles.teaserTitle}>{t('result.premiumTeaserTitle')}</Text>
-          <Text style={styles.teaserText}>{t('result.premiumTeaserText')}</Text>
+        <View style={flowStyles.surfaceCard}>
+          <Text style={flowStyles.surfaceTitle}>{t('result.premiumTeaserTitle')}</Text>
+          <Text style={flowStyles.surfaceLead}>{t('result.premiumTeaserText')}</Text>
           <Pressable
             accessibilityRole="button"
-            style={styles.teaserCta}
+            style={flowStyles.teaserCta}
             onPress={() => router.push('/subscription' as Href)}>
-            <Text style={styles.teaserCtaText}>{t('result.premiumTeaserCta')}</Text>
+            <Text style={flowStyles.teaserCtaText}>{t('result.premiumTeaserCta')}</Text>
           </Pressable>
         </View>
       )}
 
-      <Pressable style={styles.primaryButton} onPress={share}>
-        <Text style={styles.primaryText}>{t('result.shareResult')}</Text>
+      <Pressable style={flowStyles.primaryButton} onPress={share}>
+        <Text style={flowStyles.primaryText}>{t('result.shareResult')}</Text>
+      </Pressable>
+      <Pressable style={flowStyles.secondaryButton} onPress={() => router.replace('/(tabs)')}>
+        <Text style={flowStyles.secondaryText}>{t('result.home')}</Text>
       </Pressable>
       <Pressable
-        style={styles.secondaryButton}
-        onPress={() => router.replace('/(tabs)')}>
-        <Text style={styles.secondaryText}>{t('result.home')}</Text>
-      </Pressable>
-      <Pressable
-        style={styles.ghostButton}
+        style={flowStyles.ghostButton}
         onPress={() => {
           void clearActiveSession().then(() => router.replace('/session'));
         }}>
-        <Text style={styles.ghostText}>{t('result.relaunch')}</Text>
+        <Text style={flowStyles.ghostText}>{t('result.relaunch')}</Text>
       </Pressable>
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  hero: {
-    backgroundColor: FlipOn.dark,
-    borderRadius: 24,
-    padding: 20,
-    gap: 8,
-  },
-  kicker: {
-    color: FlipOn.accent,
-    fontSize: 12,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
-  title: { color: '#fff', fontSize: 28, fontWeight: '800' },
-  subtitle: { color: '#C7CBD1', fontSize: 15, lineHeight: 22 },
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 6 },
-  meta: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '700',
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 999,
-    overflow: 'hidden',
-  },
-  stepsCard: {
-    backgroundColor: FlipOn.surface,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: FlipOn.line,
-    padding: 18,
-    gap: 14,
-  },
-  stepsTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: FlipOn.ink,
-  },
-  stepsLead: { fontSize: 13, lineHeight: 19, color: FlipOn.muted, marginTop: -6 },
-  phaseBlock: { gap: 10 },
-  phaseLabel: {
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-    color: FlipOn.accent,
-  },
-  roadmapRow: { flexDirection: 'row', gap: 12, minHeight: 56 },
-  timeline: { width: 16, alignItems: 'center' },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: FlipOn.accent,
-    marginTop: 4,
-  },
-  line: {
-    flex: 1,
-    width: 2,
-    backgroundColor: FlipOn.soft,
-    marginTop: 4,
-    marginBottom: 2,
-  },
-  roadmapBody: { flex: 1, gap: 4, paddingBottom: 12 },
-  roadmapHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  roadmapTitle: { flex: 1, fontSize: 15, fontWeight: '700', color: FlipOn.ink },
-  minutes: { fontSize: 12, fontWeight: '700', color: FlipOn.muted },
-  roadmapDetail: { fontSize: 14, lineHeight: 20, color: FlipOn.muted },
-  teaserCard: {
-    backgroundColor: FlipOn.surface,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: FlipOn.line,
-    padding: 18,
-    gap: 8,
-  },
-  teaserTitle: { fontSize: 16, fontWeight: '800', color: FlipOn.ink },
-  teaserText: { fontSize: 14, lineHeight: 21, color: FlipOn.muted },
-  teaserCta: {
-    marginTop: 6,
-    alignSelf: 'flex-start',
-    minHeight: 42,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: FlipOn.accent,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  teaserCtaText: { fontSize: 14, fontWeight: '700', color: FlipOn.accent },
-  primaryButton: {
-    minHeight: 52,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: FlipOn.accent,
-  },
-  primaryText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  secondaryButton: {
-    minHeight: 50,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: FlipOn.dark,
-  },
-  secondaryText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  ghostButton: {
-    minHeight: 48,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: FlipOn.line,
-    backgroundColor: FlipOn.surface,
-  },
-  ghostText: { color: FlipOn.ink, fontSize: 14, fontWeight: '700' },
-});

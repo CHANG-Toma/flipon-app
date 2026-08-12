@@ -9,7 +9,7 @@ import { useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { Screen } from '@/components/ui/Screen';
-import { FlipOn } from '@/constants/flipon';
+import { FlipOn, cardShadow } from '@/constants/flipon';
 import { useSubscription } from '@/hooks/use-subscription';
 import { useI18n } from '@/lib/i18n';
 import type { TranslationKey } from '@/lib/i18n';
@@ -164,7 +164,7 @@ function FeatureRow({ text, tone }: { text: string; tone: 'light' | 'dark' }) {
   return (
     <View style={styles.featureRow}>
       <View style={[styles.check, onDark ? styles.checkDark : styles.checkLight]}>
-        <MaterialIcons name="check" size={12} color={onDark ? '#fff' : FlipOn.accent} />
+        <MaterialIcons name="check" size={12} color={onDark ? FlipOn.onAccent : FlipOn.accent} />
       </View>
       <Text style={[styles.featureText, onDark && styles.featureTextDark]}>{text}</Text>
     </View>
@@ -199,6 +199,7 @@ const styles = StyleSheet.create({
     borderColor: FlipOn.line,
     padding: 18,
     gap: 8,
+    ...cardShadow,
   },
   freeTop: {
     flexDirection: 'row',
@@ -232,6 +233,7 @@ const styles = StyleSheet.create({
     borderColor: FlipOn.accent,
     backgroundColor: FlipOn.dark,
     overflow: 'hidden',
+    ...cardShadow,
   },
   premiumGlow: {
     position: 'absolute',
@@ -240,7 +242,7 @@ const styles = StyleSheet.create({
     width: 220,
     height: 180,
     borderRadius: 110,
-    backgroundColor: 'rgba(249, 115, 22, 0.35)',
+    backgroundColor: 'rgba(255, 106, 43, 0.28)',
   },
   premiumInner: { padding: 18, gap: 10, position: 'relative' },
   premiumTop: {
@@ -256,29 +258,29 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  premiumTitle: { fontSize: 22, fontWeight: '800', color: '#fff', marginTop: -2 },
+  premiumTitle: { fontSize: 22, fontWeight: '800', color: FlipOn.ink, marginTop: -2 },
   currentPillDark: {
-    backgroundColor: 'rgba(249, 115, 22, 0.25)',
+    backgroundColor: 'rgba(255, 106, 43, 0.2)',
     borderWidth: 1,
-    borderColor: 'rgba(249, 115, 22, 0.5)',
+    borderColor: 'rgba(255, 106, 43, 0.45)',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 999,
   },
   currentPillDarkText: { fontSize: 11, fontWeight: '800', color: FlipOn.accent },
-  premiumDesc: { fontSize: 14, lineHeight: 21, color: 'rgba(255,255,255,0.72)' },
+  premiumDesc: { fontSize: 14, lineHeight: 21, color: FlipOn.muted },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 2 },
   chip: {
     borderWidth: 1,
-    borderColor: 'rgba(249, 115, 22, 0.4)',
-    backgroundColor: 'rgba(249, 115, 22, 0.12)',
+    borderColor: 'rgba(255, 106, 43, 0.35)',
+    backgroundColor: 'rgba(255, 106, 43, 0.12)',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 999,
   },
-  chipText: { fontSize: 11, fontWeight: '700', color: FlipOn.accent },
-  premiumPrice: { fontSize: 36, fontWeight: '800', color: '#fff', letterSpacing: -1 },
-  premiumPriceUnit: { fontSize: 14, color: 'rgba(255,255,255,0.55)', fontWeight: '600' },
+  chipText: { fontSize: 11, fontWeight: '700', color: FlipOn.accentInk },
+  premiumPrice: { fontSize: 36, fontWeight: '800', color: FlipOn.ink, letterSpacing: -1 },
+  premiumPriceUnit: { fontSize: 14, color: FlipOn.muted, fontWeight: '600' },
 
   highlightList: { gap: 8, marginTop: 2 },
   highlightRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -288,7 +290,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: FlipOn.accent,
   },
-  highlightText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  highlightText: { fontSize: 14, fontWeight: '700', color: FlipOn.ink },
 
   featureList: { gap: 10, marginTop: 6 },
   featureRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
@@ -315,8 +317,8 @@ const styles = StyleSheet.create({
     gap: 2,
     opacity: 0.92,
   },
-  premiumCtaText: { fontSize: 15, fontWeight: '800', color: '#fff' },
-  premiumCtaSoon: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
+  premiumCtaText: { fontSize: 15, fontWeight: '800', color: FlipOn.onAccent },
+  premiumCtaSoon: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.9)' },
 
   secondary: {
     minHeight: 48,
