@@ -5,33 +5,18 @@ import { FlipOn, cardShadow } from '@/constants/flipon';
 export const homeStyles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: FlipOn.bg },
   flex: { flex: 1 },
-  scroll: { flex: 1 },
-  container: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 110,
-    gap: 14,
+  screen: {
+    flex: 1,
+    paddingTop: 12,
+    paddingBottom: 100,
   },
-  header: {
-    paddingVertical: 8,
-    paddingHorizontal: 4,
+  headerBlock: {
+    paddingHorizontal: 24,
+    paddingBottom: 4,
   },
-  hello: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: FlipOn.muted,
-    letterSpacing: 0.2,
-  },
-  cards: { gap: 14 },
-  sectionLabel: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: FlipOn.ink,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    marginBottom: 2,
-    paddingHorizontal: 2,
+  cards: {
+    flex: 1,
+    justifyContent: 'center',
   },
   pressed: { opacity: 0.88 },
 
@@ -89,67 +74,4 @@ export const homeStyles = StyleSheet.create({
     color: FlipOn.ink,
     letterSpacing: -0.2,
   },
-
-  /* Rejoindre */
-  joinWrap: { gap: 6 },
-  joinInner: { alignItems: 'center', gap: 14, width: '100%' },
-  joinInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    width: '100%',
-    maxWidth: 220,
-  },
-  joinInput: {
-    flex: 1,
-    minHeight: 48,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    fontSize: 22,
-    fontWeight: '800',
-    color: FlipOn.ink,
-    letterSpacing: 6,
-    textAlign: 'center',
-    backgroundColor: FlipOn.soft,
-    borderWidth: 1,
-    borderColor: FlipOn.line,
-  },
-  joinGo: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: FlipOn.accent,
-  },
-  joinGoDisabled: { opacity: 0.35 },
-  joinError: {
-    fontSize: 13,
-    color: FlipOn.danger,
-    fontWeight: '600',
-    textAlign: 'center',
-    paddingHorizontal: 8,
-  },
-
-  /* Dernière activité */
-  latestBody: { alignItems: 'center', gap: 6, paddingHorizontal: 8 },
-  latestName: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: FlipOn.ink,
-    textAlign: 'center',
-    letterSpacing: -0.3,
-  },
-  latestMeta: { fontSize: 13, color: FlipOn.muted, textAlign: 'center' },
-  latestStatus: {
-    fontSize: 11,
-    fontWeight: '700',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    overflow: 'hidden',
-    marginTop: 2,
-  },
-  rowStatusOk: { color: FlipOn.success, backgroundColor: FlipOn.successSoft },
-  rowStatusMuted: { color: FlipOn.muted, backgroundColor: FlipOn.soft },
 });

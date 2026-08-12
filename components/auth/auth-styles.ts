@@ -1,6 +1,7 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 import { FlipOn, cardShadow } from '@/constants/flipon';
+import { platformShadow } from '@/lib/platform-shadow';
 
 export const authStyles = StyleSheet.create({
   card: {
@@ -16,8 +17,9 @@ export const authStyles = StyleSheet.create({
     borderWidth: 0,
     backgroundColor: 'transparent',
     paddingHorizontal: 0,
-    shadowOpacity: 0,
-    elevation: 0,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: 'none' }
+      : { shadowOpacity: 0, elevation: 0 }),
   },
   cardTitle: { fontSize: 15, fontWeight: '700', color: FlipOn.ink },
   screenTitle: { fontSize: 18, fontWeight: '800', color: FlipOn.ink, marginBottom: 2 },
@@ -84,11 +86,13 @@ export const authStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: FlipOn.accent,
-    shadowColor: FlipOn.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.22,
-    shadowRadius: 8,
-    elevation: 2,
+    ...platformShadow({
+      color: FlipOn.accent,
+      offset: { width: 0, height: 4 },
+      opacity: 0.22,
+      radius: 8,
+      elevation: 2,
+    }),
   },
   primaryText: { fontSize: 15, fontWeight: '700', color: FlipOn.onAccent },
   secondaryButton: {

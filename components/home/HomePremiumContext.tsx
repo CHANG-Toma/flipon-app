@@ -1,92 +1,90 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useRouter, type Href } from 'expo-router';
 
-import { FlipOn, cardShadow } from '@/constants/flipon';
+import { FlipOn } from '@/constants/flipon';
 import { usePremiumContext } from '@/hooks/use-premium-context';
 import { useI18n } from '@/lib/i18n';
 import type { TranslationKey } from '@/lib/i18n';
 import {
   formatLocalTime,
-  momentOfDayKey,
   weatherCodeToLabelKey,
 } from '@/lib/premium/context';
 
 type Props = {
-  enabled: boolean;
+  hello: string;
+  isPremium: boolean;
 };
 
-/**
- * Carte Accueil Premium — lieu + heure + météo.
- * Permission demandée uniquement via CTA (conformité stores).
- */
-export function HomePremiumContext({ enabled }: Props) {
-  const { t, locale } = useI18n();
-  const ctx = usePremiumContext(enabled);
+function Sep() {
+  return <Text style={styles.sep}>·</Text>;
+}
 
-  if (!enabled) return null;
+/**
+ * Bandeau accueil — salut + contexte Premium inline, sans carte.
+ */
+export function HomePremiumContext({ hello, isPremium }: Props) {
+  const router = useRouter();
+  const { t, locale } = useI18n();
+  const ctx = usePremiumContext(isPremium);
 
   const now = new Date();
-  const momentKey = momentOfDayKey(now);
-  const momentLabel = t(`premiumContext.moment.${momentKey}` as TranslationKey);
   const timeLabel = formatLocalTime(now, locale);
 
+  const placeLabel =
+    ctx.snapshot?.place.isApproximate
+      ? t('premiumContext.approxPlace')
+      : ctx.snapshot?.place.label;
+
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <View style={styles.headerText}>
-          <Text style={styles.kicker}>{t('subscription.premiumTitle')}</Text>
-          <Text style={styles.title}>{t('premiumContext.title')}</Text>
-        </View>
-        {ctx.status === 'ready' ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('premiumContext.refreshA11y')}
-            onPress={() => void ctx.refresh()}
-            hitSlop={10}
-            style={({ pressed }) => [styles.iconBtn, pressed && styles.pressed]}>
-            <MaterialIcons name="refresh" size={20} color={FlipOn.muted} />
-          </Pressable>
-        ) : null}
-      </View>
+    <View style={styles.wrap}>
+      <Text style={styles.hello}>{hello}</Text>
 
-      {ctx.status === 'idle' ? (
-        <>
-          <Text style={styles.subtitle}>{t('premiumContext.subtitle')}</Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('premiumContext.ctaA11y')}
-            style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
-            onPress={() => void ctx.activate()}>
-            <MaterialIcons name="my-location" size={18} color={FlipOn.onAccent} />
-            <Text style={styles.ctaText}>{t('premiumContext.cta')}</Text>
-          </Pressable>
-        </>
+      {!isPremium ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('home.premiumTeaserA11y')}
+          onPress={() => router.push('/subscription' as Href)}
+          style={({ pressed }) => [styles.inlineRow, pressed && styles.pressed]}>
+          <View style={styles.premiumPill}>
+            <Text style={styles.premiumPillText}>{t('subscription.premiumTitle')}</Text>
+          </View>
+          <Text style={styles.inlineText} numberOfLines={1}>
+            {t('home.premiumTeaser')}
+          </Text>
+          <MaterialIcons name="chevron-right" size={16} color={FlipOn.muted} />
+        </Pressable>
       ) : null}
 
-      {ctx.status === 'loading' ? (
-        <View style={styles.rowCenter}>
-          <ActivityIndicator color={FlipOn.accent} />
-          <Text style={styles.muted}>{t('premiumContext.loading')}</Text>
+      {isPremium && ctx.status === 'idle' ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('premiumContext.ctaA11y')}
+          onPress={() => void ctx.activate()}
+          style={({ pressed }) => [styles.inlineRow, pressed && styles.pressed]}>
+          <MaterialIcons name="my-location" size={14} color={FlipOn.accent} />
+          <Text style={styles.linkText}>{t('premiumContext.cta')}</Text>
+        </Pressable>
+      ) : null}
+
+      {isPremium && ctx.status === 'loading' ? (
+        <View style={styles.inlineRow}>
+          <ActivityIndicator size="small" color={FlipOn.accent} />
+          <Text style={styles.inlineText}>{t('premiumContext.loading')}</Text>
         </View>
       ) : null}
 
-      {ctx.status === 'ready' && ctx.snapshot ? (
-        <View style={styles.body}>
-          <View style={styles.line}>
-            <MaterialIcons name="place" size={18} color={FlipOn.accent} />
-            <Text style={styles.lineText} numberOfLines={1}>
-              {ctx.snapshot.place.label}
+      {isPremium && ctx.status === 'ready' && ctx.snapshot ? (
+        <View style={styles.contextRow}>
+          <View style={styles.contextLine}>
+            <MaterialIcons name="place" size={14} color={FlipOn.accent} />
+            <Text style={styles.contextItem} numberOfLines={1}>
+              {placeLabel}
             </Text>
-          </View>
-          <View style={styles.line}>
-            <MaterialIcons name="schedule" size={18} color={FlipOn.accent} />
-            <Text style={styles.lineText}>
-              {t('premiumContext.timeLine', { time: timeLabel, moment: momentLabel })}
-            </Text>
-          </View>
-          <View style={styles.line}>
-            <MaterialIcons name="wb-cloudy" size={18} color={FlipOn.accent} />
-            <Text style={styles.lineText}>
+            <Sep />
+            <Text style={styles.contextItem}>{timeLabel}</Text>
+            <Sep />
+            <Text style={styles.contextItem} numberOfLines={1}>
               {t('premiumContext.weatherLine', {
                 temp: ctx.snapshot.weather.temperatureC,
                 condition: t(
@@ -95,31 +93,37 @@ export function HomePremiumContext({ enabled }: Props) {
               })}
             </Text>
           </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('premiumContext.refreshA11y')}
+            onPress={() => void ctx.refresh()}
+            hitSlop={8}
+            style={({ pressed }) => [styles.refreshBtn, pressed && styles.pressed]}>
+            <MaterialIcons name="refresh" size={15} color={FlipOn.muted} />
+          </Pressable>
         </View>
       ) : null}
 
-      {ctx.status === 'denied' || ctx.status === 'error' ? (
-        <View style={styles.body}>
+      {isPremium && (ctx.status === 'denied' || ctx.status === 'error') ? (
+        <View style={styles.errorRow}>
+          <Text style={styles.inlineText} numberOfLines={1}>
+            {ctx.status === 'denied' ? t('premiumContext.deniedTitle') : ctx.errorMessage}
+          </Text>
           {ctx.status === 'denied' ? (
-            <Text style={styles.errorTitle}>{t('premiumContext.deniedTitle')}</Text>
-          ) : null}
-          <Text style={styles.muted}>{ctx.errorMessage}</Text>
-          <View style={styles.actions}>
-            {ctx.status === 'denied' ? (
-              <Pressable
-                accessibilityRole="button"
-                style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
-                onPress={() => void ctx.openSettings()}>
-                <Text style={styles.secondaryText}>{t('premiumContext.openSettings')}</Text>
-              </Pressable>
-            ) : null}
             <Pressable
               accessibilityRole="button"
-              style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
-              onPress={() => void (ctx.status === 'denied' ? ctx.activate() : ctx.refresh())}>
-              <Text style={styles.ctaText}>{t('premiumContext.retry')}</Text>
+              onPress={() => void ctx.openSettings()}
+              style={({ pressed }) => [styles.inlineLink, pressed && styles.pressed]}>
+              <Text style={styles.linkText}>{t('premiumContext.openSettings')}</Text>
             </Pressable>
-          </View>
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => void ctx.refresh()}
+              style={({ pressed }) => [styles.inlineLink, pressed && styles.pressed]}>
+              <Text style={styles.linkText}>{t('premiumContext.retry')}</Text>
+            </Pressable>
+          )}
         </View>
       ) : null}
     </View>
@@ -127,67 +131,85 @@ export function HomePremiumContext({ enabled }: Props) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: FlipOn.surface,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: FlipOn.line,
-    padding: 16,
-    gap: 12,
-    ...cardShadow,
+  wrap: {
+    gap: 6,
+    paddingHorizontal: 2,
+    paddingBottom: 4,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  headerText: { flex: 1, gap: 2 },
-  kicker: {
-    fontSize: 11,
+  hello: {
+    fontSize: 24,
     fontWeight: '700',
-    color: FlipOn.accent,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    color: FlipOn.ink,
+    letterSpacing: -0.3,
+    lineHeight: 28,
   },
-  title: { fontSize: 17, fontWeight: '800', color: FlipOn.ink },
-  subtitle: { fontSize: 14, lineHeight: 20, color: FlipOn.muted },
-  iconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: FlipOn.soft,
-  },
-  body: { gap: 10 },
-  line: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  lineText: { flex: 1, fontSize: 15, fontWeight: '600', color: FlipOn.ink },
-  rowCenter: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 4 },
-  muted: { fontSize: 14, lineHeight: 20, color: FlipOn.muted, flex: 1 },
-  errorTitle: { fontSize: 15, fontWeight: '800', color: FlipOn.ink },
-  actions: { gap: 8, marginTop: 4 },
-  cta: {
-    minHeight: 46,
-    borderRadius: 14,
-    backgroundColor: FlipOn.accent,
-    paddingHorizontal: 14,
+  inlineRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
+    gap: 6,
   },
-  ctaText: { color: FlipOn.onAccent, fontSize: 14, fontWeight: '700' },
-  secondaryBtn: {
-    minHeight: 44,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: FlipOn.line,
-    backgroundColor: FlipOn.surface,
+  premiumPill: {
+    backgroundColor: FlipOn.accentSoft,
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+  premiumPillText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: FlipOn.accentInk,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  inlineText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '500',
+    color: FlipOn.muted,
+    lineHeight: 18,
+  },
+  linkText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: FlipOn.accentInk,
+    lineHeight: 18,
+  },
+  contextRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  contextLine: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 5,
+    rowGap: 2,
+  },
+  contextItem: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: FlipOn.muted,
+    lineHeight: 18,
+    flexShrink: 1,
+  },
+  sep: {
+    fontSize: 13,
+    color: FlipOn.line,
+    lineHeight: 18,
+  },
+  refreshBtn: {
+    width: 26,
+    height: 26,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 14,
   },
-  secondaryText: { fontSize: 14, fontWeight: '700', color: FlipOn.ink },
-  pressed: { opacity: 0.88 },
+  errorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  inlineLink: { flexShrink: 0 },
+  pressed: { opacity: 0.75 },
 });

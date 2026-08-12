@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { FlipOn, cardShadow } from '@/constants/flipon';
+import { platformShadow } from '@/lib/platform-shadow';
 
 type Props = {
   title: string;
@@ -58,11 +59,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: FlipOn.accent,
-    shadowColor: FlipOn.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 3,
+    ...platformShadow({
+      color: FlipOn.accent,
+      offset: { width: 0, height: 4 },
+      opacity: 0.3,
+      radius: 8,
+      elevation: 3,
+    }),
   },
   buttonText: { color: FlipOn.onAccent, fontSize: 14, fontWeight: '700' },
 });

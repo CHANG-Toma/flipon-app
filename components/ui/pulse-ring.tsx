@@ -120,7 +120,7 @@ export function PulseRing({
       accessibilityRole="progressbar"
       accessibilityLabel={tr('loader.loadingA11y')}>
       {/* Anneau fixe discret — ancrage visuel */}
-      <View style={styles.ringLayer} pointerEvents="none">
+      <View style={[styles.ringLayer, { pointerEvents: 'none' }]}>
         <Svg width={box} height={box} viewBox={`0 0 ${box} ${box}`}>
           <Circle
             cx={box / 2}

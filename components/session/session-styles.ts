@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 
 import { FlipOn, cardShadow } from '@/constants/flipon';
+import { platformShadow } from '@/lib/platform-shadow';
 
 export const sessionStyles = StyleSheet.create({
   hero: {
@@ -95,11 +96,13 @@ export const sessionStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: FlipOn.accent,
-    shadowColor: FlipOn.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 4,
+    ...platformShadow({
+      color: FlipOn.accent,
+      offset: { width: 0, height: 4 },
+      opacity: 0.3,
+      radius: 10,
+      elevation: 4,
+    }),
   },
   primaryDisabled: { opacity: 0.45 },
   primaryButtonText: { fontSize: 16, fontWeight: '700', color: FlipOn.onAccent },

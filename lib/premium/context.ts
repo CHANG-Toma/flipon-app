@@ -13,6 +13,8 @@ export type WeatherSnapshot = {
 export type PlaceSnapshot = {
   /** Ville ou quartier — jamais lat/lng stockés durablement */
   label: string;
+  /** true si le libellé est un fallback i18n (re-traduire à l'affichage) */
+  isApproximate?: boolean;
 };
 
 export type PremiumContextSnapshot = {
@@ -20,16 +22,21 @@ export type PremiumContextSnapshot = {
   weather: WeatherSnapshot;
   /** Instantané local au moment du fetch */
   fetchedAt: number;
+  /** Locale au moment du fetch — invalide le cache si changement */
+  locale: string;
 };
 
 const CACHE_TTL_MS = 12 * 60 * 1000;
 
 let memoryCache: PremiumContextSnapshot | null = null;
 
-export function getCachedPremiumContext(): PremiumContextSnapshot | null {
+export function getCachedPremiumContext(locale?: string): PremiumContextSnapshot | null {
   if (!memoryCache) return null;
   if (Date.now() - memoryCache.fetchedAt > CACHE_TTL_MS) {
     memoryCache = null;
+    return null;
+  }
+  if (locale && memoryCache.locale !== locale) {
     return null;
   }
   return memoryCache;
@@ -37,10 +44,6 @@ export function getCachedPremiumContext(): PremiumContextSnapshot | null {
 
 export function setCachedPremiumContext(snapshot: PremiumContextSnapshot) {
   memoryCache = snapshot;
-}
-
-export function clearCachedPremiumContext() {
-  memoryCache = null;
 }
 
 /** Codes WMO Open-Meteo → clé i18n `premiumContext.weather.*` */
@@ -88,7 +91,7 @@ export function snapshotToContextHint(
   snapshot: PremiumContextSnapshot,
 ): ContextHint {
   return {
-    cityLabel: snapshot.place.label,
+    cityLabel: snapshot.place.isApproximate ? undefined : snapshot.place.label,
     weather: weatherCodeToLabelKey(snapshot.weather.weatherCode),
     moment: momentOfDayKey(new Date()),
     temperatureC: snapshot.weather.temperatureC,

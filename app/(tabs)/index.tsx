@@ -6,8 +6,6 @@ import { useFocusEffect, useRouter, type Href } from 'expo-router';
 import {
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
-  Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,16 +14,9 @@ import * as Haptics from 'expo-haptics';
 
 import { HomeActiveSession } from '@/components/home/HomeActiveSession';
 import { HomeCarousel } from '@/components/home/HomeCarousel';
-import { HomeLatestActivity } from '@/components/home/HomeLatestActivity';
 import { HomePremiumContext } from '@/components/home/HomePremiumContext';
 import { homeStyles as styles } from '@/components/home/home-styles';
 import { useSubscription } from '@/hooks/use-subscription';
-import {
-  getLatestHistory,
-  hydrateHistory,
-  subscribeHistory,
-} from '@/lib/history/store';
-import type { HistoryEntry } from '@/lib/history/types';
 import { isValidSessionCode, normalizeSessionCode } from '@/lib/session-code';
 import { isActiveSession } from '@/lib/session/selectors';
 import {
@@ -33,7 +24,15 @@ import {
   hydrateSession,
   subscribeSession,
 } from '@/lib/session/store';
-import { useI18n } from '@/lib/i18n';
+import { useI18n, type TranslationKey } from '@/lib/i18n';
+import { momentOfDayKey } from '@/lib/premium/context';
+
+const HELLO_KEYS: Record<ReturnType<typeof momentOfDayKey>, TranslationKey> = {
+  morning: 'home.hello',
+  afternoon: 'home.helloAfternoon',
+  evening: 'home.helloEvening',
+  night: 'home.helloNight',
+};
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -42,14 +41,12 @@ export default function HomeScreen() {
   const { isPremium } = useSubscription();
   const [joinCode, setJoinCode] = useState('');
   const [session, setSession] = useState(getSession());
-  const [latest, setLatest] = useState<HistoryEntry | null>(getLatestHistory());
   const [ready, setReady] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
 
   const refreshLocal = useCallback(async () => {
-    await Promise.all([hydrateSession(), hydrateHistory()]);
+    await hydrateSession();
     setSession(getSession());
-    setLatest(getLatestHistory());
     setReady(true);
   }, []);
 
@@ -60,11 +57,9 @@ export default function HomeScreen() {
   );
 
   useEffect(() => subscribeSession(() => setSession(getSession())), []);
-  useEffect(() => subscribeHistory(() => setLatest(getLatestHistory())), []);
 
   const hello = useMemo(() => {
-    const hour = new Date().getHours();
-    const base = hour < 18 ? t('home.hello') : t('home.helloEvening');
+    const base = t(HELLO_KEYS[momentOfDayKey()]);
     const name = (user?.firstName ?? user?.username)?.trim();
     return name ? `${base}, ${name}` : base;
   }, [t, user?.firstName, user?.username]);
@@ -99,19 +94,16 @@ export default function HomeScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={8}>
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <Text style={styles.hello}>{hello}</Text>
+        <View style={styles.screen}>
+          <View style={styles.headerBlock}>
+            <HomePremiumContext hello={hello} isPremium={isPremium} />
           </View>
 
           <View style={styles.cards}>
             {hasActive ? (
-              <HomeActiveSession session={session} onClosed={onSessionClosed} />
+              <View style={styles.headerBlock}>
+                <HomeActiveSession session={session} onClosed={onSessionClosed} />
+              </View>
             ) : ready ? (
               <HomeCarousel
                 joinCode={joinCode}
@@ -125,11 +117,7 @@ export default function HomeScreen() {
               />
             ) : null}
           </View>
-
-          <HomePremiumContext enabled={isPremium} />
-
-          <HomeLatestActivity latest={latest} />
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

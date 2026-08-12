@@ -2,7 +2,6 @@ import { Pressable, Text, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter, type Href } from 'expo-router';
 
-import { HomeActionCard } from '@/components/home/HomeActionCard';
 import { EndSessionCloseButton } from '@/components/session/EndSessionCloseButton';
 import { homeStyles as styles } from '@/components/home/home-styles';
 import { FlipOn } from '@/constants/flipon';

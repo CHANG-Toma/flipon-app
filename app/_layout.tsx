@@ -20,6 +20,18 @@ import { addHistoryEntry, clearHistory, hydrateHistory } from '@/lib/history/sto
 import { setSessionHistoryWriter } from '@/lib/session/history-port';
 import { clearActiveSession, hydrateSession } from '@/lib/session/store';
 
+const FlipOnNavTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: FlipOn.bg,
+    card: FlipOn.surface,
+    border: FlipOn.line,
+    primary: FlipOn.accent,
+    text: FlipOn.ink,
+  },
+};
+
 export const unstable_settings = {
   anchor: '(tabs)',
 };
@@ -45,7 +57,7 @@ function RootNavigator({ gate }: { gate: 'auth' | 'missing' | 'none' }) {
 
   const tree = (
     <I18nProvider>
-      <ThemeProvider value={DarkTheme}>
+      <ThemeProvider value={FlipOnNavTheme}>
         <Stack
           screenOptions={{
             headerShown: false,

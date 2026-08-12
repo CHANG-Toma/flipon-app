@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 
 import { FlipOn, cardShadow } from '@/constants/flipon';
+import { platformShadow } from '@/lib/platform-shadow';
 
 /** Styles partagés des écrans de flux — thème sombre premium. */
 export const flowStyles = StyleSheet.create({
@@ -111,11 +112,13 @@ export const flowStyles = StyleSheet.create({
     backgroundColor: FlipOn.accent,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: FlipOn.accent,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 4,
+    ...platformShadow({
+      color: FlipOn.accent,
+      offset: { width: 0, height: 6 },
+      opacity: 0.35,
+      radius: 12,
+      elevation: 4,
+    }),
   },
   yesText: { fontSize: 16, fontWeight: '700', color: FlipOn.onAccent },
   disabled: { opacity: 0.5 },
@@ -128,11 +131,13 @@ export const flowStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: FlipOn.accent,
-    shadowColor: FlipOn.accent,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 4,
+    ...platformShadow({
+      color: FlipOn.accent,
+      offset: { width: 0, height: 6 },
+      opacity: 0.3,
+      radius: 12,
+      elevation: 4,
+    }),
   },
   primaryText: { color: FlipOn.onAccent, fontSize: 15, fontWeight: '700' },
   secondaryButton: {

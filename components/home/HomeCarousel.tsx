@@ -1,10 +1,10 @@
+import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -13,6 +13,15 @@ import {
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter, type Href } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import Animated, {
+  Extrapolation,
+  interpolate,
+  interpolateColor,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  type SharedValue,
+} from 'react-native-reanimated';
 
 import { HomeHeroCard, homeHeroCardHeight } from '@/components/home/HomeHeroCard';
 import { FlipOn } from '@/constants/flipon';
@@ -21,10 +30,16 @@ import { useI18n } from '@/lib/i18n';
 import { normalizeSessionCode } from '@/lib/session-code';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const CARD_GAP = 12;
-const CARD_WIDTH = SCREEN_WIDTH - 72;
-const SIDE_INSET = (SCREEN_WIDTH - CARD_WIDTH) / 2;
-const CENTER_OFFSET = CARD_WIDTH + CARD_GAP;
+const PEEK = 44;
+const CARD_GAP = 16;
+const CARD_WIDTH = SCREEN_WIDTH - PEEK * 2;
+const SNAP_OFFSET = CARD_WIDTH + CARD_GAP;
+const SNAP_OFFSETS = [0, SNAP_OFFSET, SNAP_OFFSET * 2] as const;
+const DEFAULT_INDEX = 1;
+const SIDE_SCALE = 0.88;
+const SIDE_OPACITY = 0.68;
+const DOT_IDLE = 6;
+const DOT_ACTIVE = 18;
 
 type Props = {
   joinCode: string;
@@ -33,6 +48,93 @@ type Props = {
   onChangeCode: (code: string) => void;
   onJoin: () => void;
 };
+
+type SlideProps = {
+  index: number;
+  scrollX: SharedValue<number>;
+  isLast?: boolean;
+  children: ReactNode;
+};
+
+type DotProps = {
+  index: number;
+  scrollX: SharedValue<number>;
+  label: string;
+  onPress: () => void;
+};
+
+function CarouselDot({ index, scrollX, label, onPress }: DotProps) {
+  const animatedStyle = useAnimatedStyle(() => {
+    const inputRange = [
+      (index - 1) * SNAP_OFFSET,
+      index * SNAP_OFFSET,
+      (index + 1) * SNAP_OFFSET,
+    ];
+    const width = interpolate(
+      scrollX.value,
+      inputRange,
+      [DOT_IDLE, DOT_ACTIVE, DOT_IDLE],
+      Extrapolation.CLAMP,
+    );
+    const backgroundColor = interpolateColor(scrollX.value, inputRange, [
+      FlipOn.line,
+      FlipOn.accent,
+      FlipOn.line,
+    ]);
+
+    return { width, backgroundColor };
+  });
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={styles.dotHit}>
+      <Animated.View style={[styles.dot, animatedStyle]} />
+    </Pressable>
+  );
+}
+
+function CarouselSlide({ index, scrollX, isLast, children }: SlideProps) {
+  const animatedStyle = useAnimatedStyle(() => {
+    const inputRange = [
+      (index - 1) * SNAP_OFFSET,
+      index * SNAP_OFFSET,
+      (index + 1) * SNAP_OFFSET,
+    ];
+
+    const scale = interpolate(
+      scrollX.value,
+      inputRange,
+      [SIDE_SCALE, 1, SIDE_SCALE],
+      Extrapolation.CLAMP,
+    );
+    const opacity = interpolate(
+      scrollX.value,
+      inputRange,
+      [SIDE_OPACITY, 1, SIDE_OPACITY],
+      Extrapolation.CLAMP,
+    );
+    const translateY = interpolate(
+      scrollX.value,
+      inputRange,
+      [10, 0, 10],
+      Extrapolation.CLAMP,
+    );
+
+    return {
+      opacity,
+      transform: [{ scale }, { translateY }],
+    };
+  });
+
+  return (
+    <View style={[styles.slide, isLast && styles.slideLast]}>
+      <Animated.View style={[styles.slideInner, animatedStyle]}>{children}</Animated.View>
+    </View>
+  );
+}
 
 export function HomeCarousel({
   joinCode,
@@ -43,31 +145,50 @@ export function HomeCarousel({
 }: Props) {
   const router = useRouter();
   const { t } = useI18n();
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<Animated.ScrollView>(null);
   const premium = usePremiumContext(isPremium);
   const canJoin = joinCode.trim().length > 0;
-  const [activeIndex, setActiveIndex] = useState(1);
+  const [layoutReady, setLayoutReady] = useState(false);
+  const scrollX = useSharedValue(SNAP_OFFSET * DEFAULT_INDEX);
+  const lastHapticIndex = useRef(DEFAULT_INDEX);
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollX.value = event.contentOffset.x;
+    },
+  });
+
+  const scrollToIndex = useCallback((index: number, animated: boolean) => {
+    const x = SNAP_OFFSETS[index] ?? 0;
+    scrollX.value = x;
+    scrollRef.current?.scrollTo({ x, animated });
+  }, [scrollX]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      scrollRef.current?.scrollTo({ x: CENTER_OFFSET, animated: false });
-    }, 0);
-    return () => clearTimeout(timer);
-  }, []);
+    if (!layoutReady) return;
+    scrollToIndex(DEFAULT_INDEX, false);
+  }, [layoutReady, scrollToIndex]);
 
-  const snapToCenter = useCallback((index: 0 | 1 | 2) => {
-    setActiveIndex(index);
-    scrollRef.current?.scrollTo({
-      x: index * CENTER_OFFSET,
-      animated: true,
-    });
-  }, []);
+  const snapToCenter = useCallback(
+    (index: 0 | 1 | 2) => {
+      lastHapticIndex.current = index;
+      scrollToIndex(index, true);
+    },
+    [scrollToIndex],
+  );
 
   const onScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const x = event.nativeEvent.contentOffset.x;
-    const index = Math.max(0, Math.min(2, Math.round(x / CENTER_OFFSET)));
-    setActiveIndex(index);
-    void Haptics.selectionAsync();
+    const index = SNAP_OFFSETS.reduce((best, offset, i) => {
+      const bestDist = Math.abs(SNAP_OFFSETS[best] - x);
+      const dist = Math.abs(offset - x);
+      return dist < bestDist ? i : best;
+    }, 0);
+    scrollX.value = SNAP_OFFSETS[index] ?? 0;
+    if (lastHapticIndex.current !== index) {
+      lastHapticIndex.current = index;
+      void Haptics.selectionAsync();
+    }
   };
 
   const goSession = () => {
@@ -88,19 +209,21 @@ export function HomeCarousel({
   };
 
   return (
-    <View style={styles.wrap}>
-      <ScrollView
+    <View style={styles.wrap} onLayout={() => setLayoutReady(true)}>
+      <Animated.ScrollView
         ref={scrollRef}
         horizontal
         showsHorizontalScrollIndicator={false}
         decelerationRate="fast"
-        snapToInterval={CENTER_OFFSET}
+        snapToOffsets={[...SNAP_OFFSETS]}
         snapToAlignment="start"
         disableIntervalMomentum
+        scrollEventThrottle={16}
         contentContainerStyle={styles.content}
+        onScroll={scrollHandler}
         onMomentumScrollEnd={onScrollEnd}
         onScrollEndDrag={onScrollEnd}>
-        <View style={styles.slide}>
+        <CarouselSlide index={0} scrollX={scrollX}>
           <HomeHeroCard
             image={require('../../assets/images/home-join.jpg')}
             title={t('home.joinCardTitleLine')}
@@ -131,15 +254,15 @@ export function HomeCarousel({
                     style={[styles.joinGo, !canJoin && styles.joinGoDisabled]}
                     onPress={onJoin}
                     disabled={!canJoin}>
-                    <MaterialIcons name="arrow-forward" size={20} color={FlipOn.onAccent} />
+                    <MaterialIcons name="arrow-forward" size={22} color={FlipOn.onAccent} />
                   </Pressable>
                 </View>
               </View>
             }
           />
-        </View>
+        </CarouselSlide>
 
-        <View style={styles.slide}>
+        <CarouselSlide index={1} scrollX={scrollX}>
           <HomeHeroCard
             image={require('../../assets/images/home-session.jpg')}
             title={t('home.startCardTitle')}
@@ -148,9 +271,9 @@ export function HomeCarousel({
             accessibilityLabel={t('home.startA11y')}
             onPress={goSession}
           />
-        </View>
+        </CarouselSlide>
 
-        <View style={styles.slide}>
+        <CarouselSlide index={2} scrollX={scrollX} isLast>
           <HomeHeroCard
             image={require('../../assets/images/home-nearby.jpg')}
             title={t('home.nearbyCardTitle')}
@@ -160,21 +283,20 @@ export function HomeCarousel({
             accessibilityLabel={t('home.nearbyA11y')}
             onPress={() => void goNearby()}
           />
-        </View>
-      </ScrollView>
+        </CarouselSlide>
+      </Animated.ScrollView>
 
       {joinError ? <Text style={styles.joinError}>{joinError}</Text> : null}
 
       <View style={styles.dots}>
         {[t('home.joinCardTitle'), t('home.startCta'), t('home.nearbyShort')].map((label, index) => (
-          <Pressable
+          <CarouselDot
             key={label}
-            accessibilityRole="button"
-            accessibilityLabel={label}
+            index={index}
+            scrollX={scrollX}
+            label={label}
             onPress={() => snapToCenter(index as 0 | 1 | 2)}
-            style={styles.dotHit}>
-            <View style={[styles.dot, index === activeIndex && styles.dotActive]} />
-          </Pressable>
+          />
         ))}
       </View>
     </View>
@@ -183,44 +305,56 @@ export function HomeCarousel({
 
 const styles = StyleSheet.create({
   wrap: {
-    gap: 8,
-    marginHorizontal: -20,
+    width: SCREEN_WIDTH,
+    alignSelf: 'center',
+    gap: 14,
   },
   content: {
-    paddingHorizontal: SIDE_INSET,
-    gap: CARD_GAP,
+    paddingHorizontal: PEEK,
+    alignItems: 'center',
   },
   slide: {
+    width: CARD_WIDTH,
+    height: homeHeroCardHeight,
+    marginRight: CARD_GAP,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  slideLast: {
+    marginRight: 0,
+  },
+  slideInner: {
     width: CARD_WIDTH,
     height: homeHeroCardHeight,
   },
   joinOverlay: {
     width: '100%',
+    maxWidth: 280,
     paddingHorizontal: 4,
   },
   joinInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   joinInput: {
     flex: 1,
-    minHeight: 48,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    fontSize: 22,
+    minHeight: 56,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    fontSize: 26,
     fontWeight: '800',
     color: '#fff',
-    letterSpacing: 6,
+    letterSpacing: 8,
     textAlign: 'center',
     backgroundColor: 'rgba(0,0,0,0.35)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.25)',
   },
   joinGo: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: FlipOn.accent,
@@ -231,24 +365,19 @@ const styles = StyleSheet.create({
     color: FlipOn.danger,
     fontWeight: '600',
     textAlign: 'center',
-    paddingHorizontal: SIDE_INSET,
+    paddingHorizontal: PEEK,
   },
   dots: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
-    marginTop: 4,
+    marginTop: 2,
   },
   dotHit: { padding: 6 },
   dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    height: DOT_IDLE,
+    borderRadius: DOT_IDLE / 2,
     backgroundColor: FlipOn.line,
-  },
-  dotActive: {
-    width: 18,
-    backgroundColor: FlipOn.accent,
   },
 });

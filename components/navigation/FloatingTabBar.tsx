@@ -32,8 +32,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
 
   return (
     <View
-      style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 10) }]}
-      pointerEvents="box-none">
+      style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 10), pointerEvents: 'box-none' }]}>
       <View style={styles.pill} accessibilityRole="tablist">
         {Platform.OS === 'ios' ? (
           <BlurView intensity={55} tint="dark" style={StyleSheet.absoluteFillObject} />
@@ -41,7 +40,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
           <View style={[StyleSheet.absoluteFillObject, styles.pillFallback]} />
         )}
 
-        <View style={styles.pillBorder} pointerEvents="none" />
+        <View style={[styles.pillBorder, { pointerEvents: 'none' }]} />
 
         <View style={styles.row}>
           {visibleRoutes.map((route) => {

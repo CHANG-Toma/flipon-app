@@ -11,6 +11,14 @@ export type ResolvedPlace = {
   latitude: number;
   longitude: number;
   label: string;
+  isApproximate: boolean;
+};
+
+type OpenMeteoReverseResponse = {
+  results?: Array<{
+    name?: string;
+    admin1?: string;
+  }>;
 };
 
 export async function getForegroundPermissionState(): Promise<LocationPermissionState> {
@@ -60,27 +68,71 @@ function buildPlaceLabel(
   return fallback;
 }
 
-export async function resolveCurrentPlace(fallbackLabel: string): Promise<ResolvedPlace> {
+/** Web — Open-Meteo (expo-location reverse geocode Google deprecated on SDK 49+). */
+async function reverseGeocodeWeb(
+  latitude: number,
+  longitude: number,
+  language: string,
+  fallback: string,
+): Promise<{ label: string; isApproximate: boolean }> {
+  try {
+    const url = new URL('https://geocoding-api.open-meteo.com/v1/reverse');
+    url.searchParams.set('latitude', String(latitude));
+    url.searchParams.set('longitude', String(longitude));
+    url.searchParams.set('language', language.startsWith('fr') ? 'fr' : 'en');
+    url.searchParams.set('count', '1');
+
+    const res = await fetch(url.toString(), {
+      headers: { Accept: 'application/json' },
+    });
+    if (!res.ok) return { label: fallback, isApproximate: true };
+
+    const data = (await res.json()) as OpenMeteoReverseResponse;
+    const first = data.results?.[0];
+    if (!first?.name) return { label: fallback, isApproximate: true };
+
+    const parts = [first.name, first.admin1].filter(Boolean);
+    return { label: parts.join(', '), isApproximate: false };
+  } catch {
+    return { label: fallback, isApproximate: true };
+  }
+}
+
+async function reverseGeocodeNative(
+  latitude: number,
+  longitude: number,
+  fallback: string,
+): Promise<{ label: string; isApproximate: boolean }> {
+  try {
+    const places = await Location.reverseGeocodeAsync({ latitude, longitude });
+    const resolved = buildPlaceLabel(places, fallback);
+    if (resolved === fallback) {
+      return { label: fallback, isApproximate: true };
+    }
+    return { label: resolved, isApproximate: false };
+  } catch {
+    return { label: fallback, isApproximate: true };
+  }
+}
+
+export async function resolveCurrentPlace(
+  fallbackLabel: string,
+  language = 'en',
+): Promise<ResolvedPlace> {
   const enabled = await Location.hasServicesEnabledAsync();
   if (!enabled) {
     throw new Error('location_services_disabled');
   }
 
   const position = await Location.getCurrentPositionAsync({
-    accuracy:
-      Platform.OS === 'android'
-        ? Location.Accuracy.Balanced
-        : Location.Accuracy.Balanced,
+    accuracy: Location.Accuracy.Balanced,
   });
 
   const { latitude, longitude } = position.coords;
-  let label = fallbackLabel;
-  try {
-    const places = await Location.reverseGeocodeAsync({ latitude, longitude });
-    label = buildPlaceLabel(places, fallbackLabel);
-  } catch {
-    /* garde le fallback */
-  }
+  const geocoded =
+    Platform.OS === 'web'
+      ? await reverseGeocodeWeb(latitude, longitude, language, fallbackLabel)
+      : await reverseGeocodeNative(latitude, longitude, fallbackLabel);
 
-  return { latitude, longitude, label };
+  return { latitude, longitude, ...geocoded };
 }

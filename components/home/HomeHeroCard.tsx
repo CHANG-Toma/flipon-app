@@ -1,5 +1,6 @@
 import type { ImageSourcePropType, ReactNode } from 'react';
 import {
+  Dimensions,
   ImageBackground,
   Pressable,
   StyleSheet,
@@ -11,7 +12,10 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
-import { cardShadow } from '@/constants/flipon';
+import { FlipOn, cardShadow } from '@/constants/flipon';
+
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+const DEFAULT_CARD_HEIGHT = Math.round(Math.min(SCREEN_HEIGHT * 0.68, 600));
 
 type Props = {
   image: ImageSourcePropType;
@@ -23,6 +27,7 @@ type Props = {
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
   icon?: keyof typeof MaterialIcons.glyphMap;
+  height?: number;
 };
 
 /** Carte hero photo — même gabarit pour le carrousel accueil. */
@@ -36,16 +41,17 @@ export function HomeHeroCard({
   accessibilityLabel,
   style,
   icon = 'arrow-forward',
+  height = DEFAULT_CARD_HEIGHT,
 }: Props) {
   const body = (
     <ImageBackground
       source={image}
-      style={[styles.card, style]}
+      style={[styles.card, { height }, style]}
       imageStyle={styles.image}
       resizeMode="cover">
       <LinearGradient
-        colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.35)', 'rgba(0,0,0,0.9)']}
-        locations={[0.2, 0.55, 1]}
+        colors={['rgba(0,0,0,0.12)', 'rgba(0,0,0,0.28)', 'rgba(0,0,0,0.92)']}
+        locations={[0.15, 0.5, 1]}
         style={styles.gradient}
       />
 
@@ -59,7 +65,7 @@ export function HomeHeroCard({
         )}
         {onPress ? (
           <View style={styles.iconBtn}>
-            <MaterialIcons name={icon} size={18} color="#fff" />
+            <MaterialIcons name={icon} size={20} color="#fff" />
           </View>
         ) : null}
       </View>
@@ -79,37 +85,39 @@ export function HomeHeroCard({
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel ?? title}
         onPress={onPress}
-        style={({ pressed }) => [styles.press, pressed && styles.pressed]}>
+        style={({ pressed }) => [
+          styles.press,
+          { height },
+          pressed && styles.pressed,
+        ]}>
         {body}
       </Pressable>
     );
   }
 
-  return <View style={styles.press}>{body}</View>;
+  return <View style={[styles.press, { height }]}>{body}</View>;
 }
 
-const CARD_HEIGHT = 280;
-
-export const homeHeroCardHeight = CARD_HEIGHT;
+export const homeHeroCardHeight = DEFAULT_CARD_HEIGHT;
 
 const styles = StyleSheet.create({
   press: {
     width: '100%',
-    height: CARD_HEIGHT,
-    borderRadius: 22,
+    borderRadius: 28,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: FlipOn.cardStroke,
     ...cardShadow,
   },
   pressed: { opacity: 0.94, transform: [{ scale: 0.985 }] },
   card: {
-    height: CARD_HEIGHT,
     justifyContent: 'space-between',
-    padding: 16,
+    padding: 22,
   },
-  image: { borderRadius: 22 },
+  image: { borderRadius: 27 },
   gradient: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 22,
+    borderRadius: 27,
   },
   topRow: {
     flexDirection: 'row',
@@ -118,20 +126,20 @@ const styles = StyleSheet.create({
   },
   badge: {
     backgroundColor: '#fff',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   badgeText: {
     color: '#0A0A0A',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.8,
   },
   iconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(0,0,0,0.45)',
@@ -145,18 +153,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 8,
   },
-  footer: { gap: 6, paddingBottom: 4 },
+  footer: { gap: 8, paddingBottom: 6 },
   title: {
     color: '#fff',
-    fontSize: 24,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-    lineHeight: 28,
+    fontSize: 30,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+    lineHeight: 34,
     textTransform: 'uppercase',
   },
   meta: {
     color: 'rgba(255,255,255,0.72)',
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '500',
     letterSpacing: 0.2,
   },

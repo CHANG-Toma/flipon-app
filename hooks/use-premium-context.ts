@@ -37,58 +37,28 @@ export type UsePremiumContextResult = {
 };
 
 export function usePremiumContext(enabled: boolean): UsePremiumContextResult {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [status, setStatus] = useState<PremiumContextStatus>('idle');
   const [permission, setPermission] = useState<LocationPermissionState>('undetermined');
   const [snapshot, setSnapshot] = useState<PremiumContextSnapshot | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!enabled) {
-      setStatus('idle');
-      setSnapshot(null);
-      return;
-    }
-    const cached = getCachedPremiumContext();
-    if (cached) {
-      setSnapshot(cached);
-      setStatus('ready');
-    }
-    void (async () => {
-      const perm = await getForegroundPermissionState();
-      setPermission(perm);
-      if (perm === 'granted' && !cached) {
-        // Déjà autorisé : charger sans re-demander (pas de prompt système).
-        setStatus('loading');
-        try {
-          const place = await resolveCurrentPlace(t('premiumContext.approxPlace'));
-          const weather = await fetchCurrentWeather(place.latitude, place.longitude);
-          const next = {
-            place: { label: place.label },
-            weather,
-            fetchedAt: Date.now(),
-          };
-          setCachedPremiumContext(next);
-          setSnapshot(next);
-          setStatus('ready');
-        } catch {
-          setStatus('idle');
-        }
-      }
-    })();
-  }, [enabled, t]);
 
   const load = useCallback(async () => {
     if (!enabled) return;
     setStatus('loading');
     setErrorMessage(null);
     try {
-      const place = await resolveCurrentPlace(t('premiumContext.approxPlace'));
+      const approxLabel = t('premiumContext.approxPlace');
+      const place = await resolveCurrentPlace(approxLabel, locale);
       const weather = await fetchCurrentWeather(place.latitude, place.longitude);
       const next: PremiumContextSnapshot = {
-        place: { label: place.label },
+        place: {
+          label: place.label,
+          isApproximate: place.isApproximate,
+        },
         weather,
         fetchedAt: Date.now(),
+        locale,
       };
       setCachedPremiumContext(next);
       setSnapshot(next);
@@ -105,7 +75,34 @@ export function usePremiumContext(enabled: boolean): UsePremiumContextResult {
       }
       setStatus('error');
     }
-  }, [enabled, t]);
+  }, [enabled, locale, t]);
+
+  useEffect(() => {
+    if (!enabled) {
+      setStatus('idle');
+      setSnapshot(null);
+      return;
+    }
+
+    const cached = getCachedPremiumContext(locale);
+    if (cached) {
+      setSnapshot(cached);
+      setStatus('ready');
+      return;
+    }
+
+    setSnapshot(null);
+
+    void (async () => {
+      const perm = await getForegroundPermissionState();
+      setPermission(perm);
+      if (perm === 'granted') {
+        await load();
+      } else {
+        setStatus('idle');
+      }
+    })();
+  }, [enabled, locale, load]);
 
   const activate = useCallback(async () => {
     if (!enabled) return;

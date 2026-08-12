@@ -41,15 +41,15 @@ function stepFromSession(session: SessionState): Step {
   return session.status === 'lobby' && Boolean(session.code) ? 'invite' : 'setup';
 }
 
-function resolveSessionContext(isPremium: boolean): ContextHint | null {
+function resolveSessionContext(isPremium: boolean, locale: string): ContextHint | null {
   if (!isPremium) return null;
-  const cached = getCachedPremiumContext();
+  const cached = getCachedPremiumContext(locale);
   return cached ? snapshotToContextHint(cached) : null;
 }
 
 export default function SessionScreen() {
   const router = useRouter();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const isMounted = useMounted();
   const { isPremium } = useSubscription();
   const premiumCtx = usePremiumContext(isPremium);
@@ -74,8 +74,8 @@ export default function SessionScreen() {
     if (premiumCtx.status === 'ready' && premiumCtx.snapshot) {
       return snapshotToContextHint(premiumCtx.snapshot);
     }
-    return resolveSessionContext(isPremium);
-  }, [isPremium, premiumCtx.snapshot, premiumCtx.status]);
+    return resolveSessionContext(isPremium, locale);
+  }, [isPremium, premiumCtx.snapshot, premiumCtx.status, locale]);
 
   const syncFromStore = useCallback(() => {
     const session = getSession();

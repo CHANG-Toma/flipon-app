@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Gérer mon abonnement
  * --------------------
  * Layout aligné sur /tarifs (site) : Basique clair + Premium dark « désirable ».
@@ -92,7 +92,7 @@ export default function SubscriptionScreen() {
 
       {/* Premium — carte désir (comme le site) */}
       <View style={styles.premiumCard}>
-        <View style={styles.premiumGlow} pointerEvents="none" />
+        <View style={[styles.premiumGlow, { pointerEvents: 'none' }]} />
         <View style={styles.premiumInner}>
           <View style={styles.premiumTop}>
             <View>

@@ -155,8 +155,11 @@ export function AuthBridge({ children }: { children: ReactNode }) {
       {children}
       {splashMounted ? (
         <Animated.View
-          style={[styles.splashOverlay, overlayStyle]}
-          pointerEvents={showSplash ? 'auto' : 'none'}>
+          style={[
+            styles.splashOverlay,
+            overlayStyle,
+            { pointerEvents: showSplash ? 'auto' : 'none' },
+          ]}>
           <SplashBoot message={splashMessage} />
         </Animated.View>
       ) : null}
