@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
@@ -9,7 +10,7 @@ import type { TranslationKey } from '@/lib/i18n';
 
 type Props = {
   entry: HistoryEntry;
-  onPress: () => void;
+  onOpen: (entry: HistoryEntry) => void;
 };
 
 function statusKey(status: HistoryEntry['status']): TranslationKey {
@@ -18,7 +19,7 @@ function statusKey(status: HistoryEntry['status']): TranslationKey {
   return 'status.expired';
 }
 
-export function HistoryEntryCard({ entry, onPress }: Props) {
+export const HistoryEntryCard = memo(function HistoryEntryCard({ entry, onOpen }: Props) {
   const { t } = useI18n();
   const title = displayHistoryTitle(entry.title);
   const subtitle = formatHistorySubtitle(entry, { includeWhen: false });
@@ -28,7 +29,7 @@ export function HistoryEntryCard({ entry, onPress }: Props) {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${title}, ${t(statusKey(entry.status))}`}
-      onPress={onPress}
+      onPress={() => onOpen(entry)}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
       <View style={styles.body}>
         <Text style={styles.title} numberOfLines={2}>
@@ -44,7 +45,7 @@ export function HistoryEntryCard({ entry, onPress }: Props) {
       <MaterialIcons name="chevron-right" size={22} color={FlipOn.muted} />
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

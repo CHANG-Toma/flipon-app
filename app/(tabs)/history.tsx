@@ -1,18 +1,19 @@
 /**
- * Onglet Historique — liste filtrée locale, sync cloud à la demande uniquement.
+ * Onglet Historique — présentation uniquement ; logique dans useHistoryList.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback } from 'react';
 import {
+  Platform,
   Pressable,
   RefreshControl,
   SectionList,
   StyleSheet,
   Text,
   View,
+  type SectionListRenderItem,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect, useRouter, type Href } from 'expo-router';
-import * as Haptics from 'expo-haptics';
+import { useRouter, type Href } from 'expo-router';
 
 import { HistoryDayDivider } from '@/components/history/HistoryDayDivider';
 import { HistoryEntryCard } from '@/components/history/HistoryEntryCard';
@@ -20,88 +21,36 @@ import { HistoryExpandRow } from '@/components/history/HistoryExpandRow';
 import { HistoryFilterBar } from '@/components/history/HistoryFilterBar';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FlipOn } from '@/constants/flipon';
-import {
-  filterHistoryEntries,
-  type HistoryFilterId,
-  visibleHistoryFilters,
-} from '@/lib/history/filters';
-import { groupHistoryByDay } from '@/lib/history/format';
-import {
-  getHistory,
-  hydrateHistory,
-  pullCloudHistory,
-  subscribeHistory,
-} from '@/lib/history/store';
+import { useHistoryList } from '@/hooks/use-history-list';
+import { HISTORY_LIST_WINDOW } from '@/lib/history/constants';
+import type { HistoryListSection } from '@/lib/history/list-model';
 import type { HistoryEntry } from '@/lib/history/types';
 import { useI18n } from '@/lib/i18n';
 
-const INITIAL_VISIBLE_COUNT = 5;
+function ItemSeparator() {
+  return <View style={styles.separator} />;
+}
+
+function SectionSeparator() {
+  return <View style={styles.sectionGap} />;
+}
 
 export default function HistoryScreen() {
   const router = useRouter();
   const { t } = useI18n();
-  const [sessions, setSessions] = useState<HistoryEntry[]>(getHistory());
-  const [filter, setFilter] = useState<HistoryFilterId>('all');
-  const [refreshing, setRefreshing] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-
-  const reloadLocal = useCallback(async () => {
-    await hydrateHistory();
-    setSessions(getHistory());
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      void reloadLocal();
-    }, [reloadLocal]),
-  );
-
-  useEffect(() => subscribeHistory(() => setSessions(getHistory())), []);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      await hydrateHistory();
-      const merged = await pullCloudHistory({ force: true });
-      setSessions(merged);
-      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } finally {
-      setRefreshing(false);
-    }
-  }, []);
-
-  const filters = useMemo(() => visibleHistoryFilters(sessions), [sessions]);
-
-  const filtered = useMemo(
-    () => filterHistoryEntries(sessions, filter),
-    [sessions, filter],
-  );
-
-  const hiddenCount = Math.max(0, filtered.length - INITIAL_VISIBLE_COUNT);
-
-  const visibleEntries = useMemo(() => {
-    if (expanded || hiddenCount === 0) return filtered;
-    return filtered.slice(0, INITIAL_VISIBLE_COUNT);
-  }, [expanded, filtered, hiddenCount]);
-
-  const sections = useMemo(
-    () =>
-      groupHistoryByDay(visibleEntries).map((group) => ({
-        title: group.label,
-        data: group.items,
-      })),
-    [visibleEntries],
-  );
-
-  useEffect(() => {
-    if (!filters.some((item) => item.id === filter)) {
-      setFilter('all');
-    }
-  }, [filters, filter]);
-
-  useEffect(() => {
-    setExpanded(false);
-  }, [filter]);
+  const {
+    filter,
+    setFilter,
+    filters,
+    sections,
+    hiddenCount,
+    showExpand,
+    listEmpty,
+    filterEmpty,
+    refreshing,
+    onRefresh,
+    expand,
+  } = useHistoryList();
 
   const openEntry = useCallback(
     (entry: HistoryEntry) => {
@@ -110,13 +59,17 @@ export default function HistoryScreen() {
     [router],
   );
 
-  const onExpand = useCallback(() => {
-    setExpanded(true);
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }, []);
+  const renderSectionHeader = useCallback(
+    ({ section }: { section: HistoryListSection }) => (
+      <HistoryDayDivider label={section.title} />
+    ),
+    [],
+  );
 
-  const listEmpty = sessions.length === 0;
-  const filterEmpty = !listEmpty && filtered.length === 0;
+  const renderItem: SectionListRenderItem<HistoryEntry, HistoryListSection> = useCallback(
+    ({ item }) => <HistoryEntryCard entry={item} onOpen={openEntry} />,
+    [openEntry],
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -127,6 +80,10 @@ export default function HistoryScreen() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}
+        initialNumToRender={HISTORY_LIST_WINDOW.initialNumToRender}
+        maxToRenderPerBatch={HISTORY_LIST_WINDOW.maxToRenderPerBatch}
+        windowSize={HISTORY_LIST_WINDOW.windowSize}
+        removeClippedSubviews={Platform.OS === 'android'}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -148,8 +105,8 @@ export default function HistoryScreen() {
           </View>
         }
         ListFooterComponent={
-          !expanded && hiddenCount > 0 ? (
-            <HistoryExpandRow remaining={hiddenCount} onPress={onExpand} />
+          showExpand ? (
+            <HistoryExpandRow remaining={hiddenCount} onPress={expand} />
           ) : null
         }
         ListEmptyComponent={
@@ -170,12 +127,10 @@ export default function HistoryScreen() {
             </View>
           ) : null
         }
-        renderSectionHeader={({ section }) => <HistoryDayDivider label={section.title} />}
-        renderItem={({ item }) => (
-          <HistoryEntryCard entry={item} onPress={() => openEntry(item)} />
-        )}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        SectionSeparatorComponent={() => <View style={styles.sectionGap} />}
+        renderSectionHeader={renderSectionHeader}
+        renderItem={renderItem}
+        ItemSeparatorComponent={ItemSeparator}
+        SectionSeparatorComponent={SectionSeparator}
       />
     </SafeAreaView>
   );

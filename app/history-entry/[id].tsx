@@ -1,9 +1,9 @@
 /**
- * Détail d’une entrée d’historique
+ * Détail d'une entrée d'historique
  * --------------------------------
- * Idée retenue (Basique : pas d’étapes), partage, relancer, supprimer local.
+ * Idée retenue (Basique : pas d'étapes), partage, relancer, supprimer local.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Alert, Pressable, Share, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -12,13 +12,9 @@ import { Screen } from '@/components/ui/Screen';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { flowStyles } from '@/components/ui/flow-styles';
 import { getPlanById } from '@/data/plans';
+import { useHistoryEntry } from '@/hooks/use-history';
 import { displayHistoryTitle, formatHistoryMeta } from '@/lib/history/format';
-import {
-  getHistoryEntry,
-  hydrateHistory,
-  removeHistoryEntry,
-  subscribeHistory,
-} from '@/lib/history/store';
+import { hydrateHistory, removeHistoryEntry } from '@/lib/history/store';
 import type { HistoryEntry } from '@/lib/history/types';
 import { useI18n } from '@/lib/i18n';
 import type { TranslationKey } from '@/lib/i18n';
@@ -35,22 +31,11 @@ export default function HistoryEntryScreen() {
   const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const entryId = String(id ?? '');
-  const [entry, setEntry] = useState<HistoryEntry | null>(
-    entryId ? getHistoryEntry(entryId) : null,
-  );
-
-  const refresh = useCallback(async () => {
-    await hydrateHistory();
-    setEntry(entryId ? getHistoryEntry(entryId) : null);
-  }, [entryId]);
+  const entry = useHistoryEntry(entryId || undefined);
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
-
-  useEffect(() => subscribeHistory(() => {
-    setEntry(entryId ? getHistoryEntry(entryId) : null);
-  }), [entryId]);
+    void hydrateHistory();
+  }, [entryId]);
 
   if (!entry) {
     return (

@@ -1,4 +1,4 @@
-import type { ImageSourcePropType, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import {
   Dimensions,
   ImageBackground,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   View,
+  type ImageSourcePropType,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';

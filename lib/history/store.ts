@@ -1,11 +1,13 @@
 import { fetchRemoteHistory } from '@/lib/api/history';
+import {
+  HISTORY_CLOUD_PULL_MIN_INTERVAL_MS,
+  HISTORY_MAX_ENTRIES,
+} from '@/lib/history/constants';
 import type { HistoryEntry } from '@/lib/history/types';
 import { getKeyValueStore } from '@/lib/storage';
 
 const STORAGE_KEY_PREFIX = 'flipon:history:v1';
 const GUEST_SCOPE = 'guest';
-/** Intervalle minimum entre deux sync cloud (pull-to-refresh). */
-const CLOUD_PULL_MIN_INTERVAL_MS = 60_000;
 
 let storageScope = GUEST_SCOPE;
 let lastCloudPullAt = 0;
@@ -16,6 +18,47 @@ const listeners = new Set<() => void>();
 
 function emit() {
   listeners.forEach((listener) => listener());
+}
+
+function entriesEqual(a: HistoryEntry[], b: HistoryEntry[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const left = a[i];
+    const right = b[i];
+    if (
+      left.id !== right.id ||
+      left.title !== right.title ||
+      left.status !== right.status ||
+      left.createdAt !== right.createdAt ||
+      left.type !== right.type ||
+      left.durationMin !== right.durationMin ||
+      left.planId !== right.planId
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/** Met à jour le cache mémoire ; émet seulement si les données changent. */
+function commitEntries(next: HistoryEntry[], options?: { persist?: boolean }): HistoryEntry[] {
+  const capped = next.slice(0, HISTORY_MAX_ENTRIES);
+  if (entriesEqual(entries, capped)) return entries;
+  entries = capped;
+  if (options?.persist !== false) {
+    void persist();
+  }
+  emit();
+  return entries;
+}
+
+async function commitEntriesAsync(next: HistoryEntry[]): Promise<HistoryEntry[]> {
+  const capped = next.slice(0, HISTORY_MAX_ENTRIES);
+  if (entriesEqual(entries, capped)) return entries;
+  entries = capped;
+  await persist();
+  emit();
+  return entries;
 }
 
 async function persist() {
@@ -51,10 +94,7 @@ export function getHistoryEntry(id: string) {
 
 export async function removeHistoryEntry(id: string) {
   await hydrateHistory();
-  entries = entries.filter((item) => item.id !== id);
-  await persist();
-  emit();
-  return entries;
+  return commitEntriesAsync(entries.filter((item) => item.id !== id));
 }
 
 export async function hydrateHistory() {
@@ -63,13 +103,14 @@ export async function hydrateHistory() {
     const raw = await getKeyValueStore().getItem(getStorageKey());
     if (raw) {
       const parsed = JSON.parse(raw) as HistoryEntry[];
-      if (Array.isArray(parsed)) entries = parsed;
+      if (Array.isArray(parsed)) {
+        commitEntries(parsed, { persist: false });
+      }
     }
   } catch {
-    entries = [];
+    commitEntries([], { persist: false });
   }
   hydrated = true;
-  emit();
   return entries;
 }
 
@@ -87,30 +128,25 @@ export async function addHistoryEntry(
     planId: entry.planId,
     constraints: entry.constraints,
   };
-  entries = [next, ...entries.filter((item) => item.id !== next.id)].slice(0, 50);
-  await persist();
-  emit();
+  await commitEntriesAsync([next, ...entries.filter((item) => item.id !== next.id)]);
   return next;
 }
 
-/** Fusionne l’historique cloud (auth) avec le local ; le cloud gagne en cas de conflit d’id. */
+/** Fusionne l'historique cloud (auth) avec le local ; le cloud gagne en cas de conflit d'id. */
 export async function mergeRemoteHistory(remote: HistoryEntry[]) {
   await hydrateHistory();
   const byId = new Map<string, HistoryEntry>();
   for (const item of entries) byId.set(item.id, item);
   for (const item of remote) byId.set(item.id, item);
-  entries = Array.from(byId.values())
-    .sort((a, b) => b.createdAt - a.createdAt)
-    .slice(0, 50);
-  await persist();
-  emit();
-  return entries;
+  return commitEntriesAsync(
+    Array.from(byId.values()).sort((a, b) => b.createdAt - a.createdAt),
+  );
 }
 
 export async function pullCloudHistory(options?: { force?: boolean }) {
   const force = options?.force ?? false;
   const now = Date.now();
-  if (!force && now - lastCloudPullAt < CLOUD_PULL_MIN_INTERVAL_MS) {
+  if (!force && now - lastCloudPullAt < HISTORY_CLOUD_PULL_MIN_INTERVAL_MS) {
     return getHistory();
   }
   try {
@@ -123,9 +159,7 @@ export async function pullCloudHistory(options?: { force?: boolean }) {
 }
 
 export async function clearHistory() {
-  entries = [];
-  await persist();
-  emit();
+  return commitEntriesAsync([]);
 }
 
 /**
