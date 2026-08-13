@@ -1,10 +1,13 @@
 /**
- * Hook abonnement — RevenueCat entitlement `premium` (+ EXPO_PUBLIC_DEV_PREMIUM).
- * Un seul fetch partagé entre écrans via cache CustomerInfo (TTL 30s).
+ * Hook abonnement — RevenueCat `Flipon Pro` + `/api/me` + EXPO_PUBLIC_DEV_PREMIUM.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@clerk/clerk-expo';
 
+import {
+  hasPremiumEntitlement,
+  subscribeCustomerInfo,
+} from '@/lib/revenuecat';
 import {
   getSubscription,
   isDevPremiumOverride,
@@ -54,6 +57,15 @@ export function useSubscription(): UseSubscriptionResult {
   useEffect(() => {
     void reload(false);
   }, [reload]);
+
+  useEffect(() => {
+    return subscribeCustomerInfo((info) => {
+      if (hasPremiumEntitlement(info)) {
+        setPlan('premium');
+        setIsLoaded(true);
+      }
+    });
+  }, []);
 
   const snap = useMemo(() => subscriptionSnapshot(plan), [plan]);
 

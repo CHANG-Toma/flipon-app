@@ -11,6 +11,7 @@ import 'react-native-reanimated';
 import { AuthBridge } from '@/providers/AuthBridge';
 import { ClerkMissingGate } from '@/providers/ClerkMissingGate';
 import { I18nProvider } from '@/providers/I18nProvider';
+import { PurchasesBootstrap } from '@/providers/PurchasesBootstrap';
 import { ConfirmHost } from '@/components/ui/ConfirmHost';
 import { FlipOn } from '@/constants/flipon';
 import { setAccountCleanup } from '@/lib/account-cleanup';
@@ -94,6 +95,7 @@ export default function RootLayout() {
 
   return (
     <ClerkProvider publishableKey={clerkPublishableKey} tokenCache={tokenCache}>
+      <PurchasesBootstrap />
       <RootNavigator gate="auth" />
     </ClerkProvider>
   );

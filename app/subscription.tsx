@@ -1,9 +1,9 @@
 ﻿/**
  * Gérer mon abonnement
  * --------------------
- * Layout aligné sur /tarifs (site) : Basique clair + Premium dark « désirable ».
- * Paiement (RevenueCat) plus tard — CTA Premium désactivé pour l’instant.
+ * Paywall RevenueCat (monthly / yearly) + Customer Center si déjà Premium.
  */
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -13,6 +13,12 @@ import { FlipOn, cardShadow } from '@/constants/flipon';
 import { useSubscription } from '@/hooks/use-subscription';
 import { useI18n } from '@/lib/i18n';
 import type { TranslationKey } from '@/lib/i18n';
+import {
+  hasPremiumEntitlement,
+  presentFlipOnCustomerCenter,
+  presentFlipOnPaywall,
+  restorePurchases,
+} from '@/lib/revenuecat';
 
 const FREE_FEATURE_KEYS: TranslationKey[] = [
   'subscription.freeFeature1',
@@ -47,9 +53,59 @@ const BOOST_FEATURE_KEYS: TranslationKey[] = [
 export default function SubscriptionScreen() {
   const router = useRouter();
   const { t } = useI18n();
-  const { plan, isPremium } = useSubscription();
+  const { plan, isPremium, reload, isLoaded } = useSubscription();
   const onBasique = plan === 'basique';
   const onPremium = isPremium;
+  const [busy, setBusy] = useState<'paywall' | 'manage' | 'restore' | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
+
+  async function onUpgrade() {
+    if (busy) return;
+    setBusy('paywall');
+    setStatus(null);
+    try {
+      const result = await presentFlipOnPaywall();
+      if (result === 'granted') {
+        await reload();
+      } else if (result === 'error') {
+        setStatus(t('subscription.paywallError'));
+      }
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function onManage() {
+    if (busy) return;
+    setBusy('manage');
+    setStatus(null);
+    try {
+      const ok = await presentFlipOnCustomerCenter();
+      await reload();
+      if (!ok) setStatus(t('subscription.manageError'));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function onRestore() {
+    if (busy) return;
+    setBusy('restore');
+    setStatus(null);
+    try {
+      const info = await restorePurchases();
+      await reload();
+      if (hasPremiumEntitlement(info)) {
+        setStatus(t('subscription.restoreOk'));
+      } else {
+        setStatus(t('subscription.restoreNone'));
+      }
+    } catch {
+      setStatus(t('subscription.paywallError'));
+    } finally {
+      setBusy(null);
+    }
+  }
 
   return (
     <Screen showBack title={t('subscription.title')}>
@@ -135,19 +191,38 @@ export default function SubscriptionScreen() {
             ))}
           </View>
 
-          {!onPremium ? (
+          {onPremium ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityState={{ disabled: true }}
-              accessibilityLabel={t('subscription.premiumCtaA11y')}
-              disabled
-              style={styles.premiumCta}>
-              <Text style={styles.premiumCtaText}>{t('subscription.premiumCta')}</Text>
-              <Text style={styles.premiumCtaSoon}>{t('subscription.premiumSoon')}</Text>
+              accessibilityLabel={t('subscription.manageCta')}
+              disabled={Boolean(busy) || !isLoaded}
+              onPress={() => void onManage()}
+              style={[styles.premiumCta, busy && styles.premiumCtaBusy]}>
+              <Text style={styles.premiumCtaText}>{t('subscription.manageCta')}</Text>
             </Pressable>
-          ) : null}
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('subscription.premiumCtaA11y')}
+              disabled={Boolean(busy) || !isLoaded}
+              onPress={() => void onUpgrade()}
+              style={[styles.premiumCta, busy && styles.premiumCtaBusy]}>
+              <Text style={styles.premiumCtaText}>{t('subscription.premiumCta')}</Text>
+            </Pressable>
+          )}
         </View>
       </View>
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('subscription.restoreCta')}
+        disabled={Boolean(busy)}
+        onPress={() => void onRestore()}
+        style={styles.secondary}>
+        <Text style={styles.secondaryText}>{t('subscription.restoreCta')}</Text>
+      </Pressable>
+
+      {status ? <Text style={styles.status}>{status}</Text> : null}
 
       <Pressable
         accessibilityRole="button"
@@ -315,10 +390,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: FlipOn.accent,
     gap: 2,
-    opacity: 0.92,
   },
+  premiumCtaBusy: { opacity: 0.7 },
   premiumCtaText: { fontSize: 15, fontWeight: '800', color: FlipOn.onAccent },
-  premiumCtaSoon: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.9)' },
+
+  status: {
+    textAlign: 'center',
+    fontSize: 13,
+    lineHeight: 18,
+    color: FlipOn.muted,
+  },
 
   secondary: {
     minHeight: 48,

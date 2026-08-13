@@ -1,9 +1,9 @@
 ﻿/**
  * Abonnement FlipOn (Basique / Premium)
  * -------------------------------------
- * Source client : RevenueCat entitlement `premium` (+ override DEV).
- * Source serveur : table Prisma Subscription (webhook RC) — ne pas se fier au seul client.
+ * Source client : RevenueCat entitlement `Flipon Pro`, puis `/api/me` (webhook).
  */
+import { syncMe } from '@/lib/api/me';
 import { tr } from '@/lib/i18n';
 import {
   fetchCustomerInfo,
@@ -46,16 +46,27 @@ export function isPremiumActive(
   return plan === 'premium';
 }
 
-/** Snapshot synchrone sans RC — Basique sauf DEV override. */
+/** Snapshot synchrone sans réseau — Basique sauf DEV override. */
 export function getSubscription(): SubscriptionSnapshot {
   return subscriptionSnapshot(isDevPremiumOverride() ? 'premium' : 'basique');
 }
 
-/** Lit le plan depuis RevenueCat CustomerInfo (+ DEV override). */
+/** Lit le plan : RevenueCat d’abord, puis l’API (webhook / essai web). */
 export async function resolveSubscriptionPlan(
   opts?: { force?: boolean },
 ): Promise<FlipOnPlan> {
   if (isDevPremiumOverride()) return 'premium';
-  const info = await fetchCustomerInfo(opts);
-  return hasPremiumEntitlement(info) ? 'premium' : 'basique';
+  try {
+    const info = await fetchCustomerInfo({ force: opts?.force });
+    if (hasPremiumEntitlement(info)) return 'premium';
+  } catch {
+    /* SDK indisponible */
+  }
+  try {
+    const me = await syncMe();
+    if (me.isPremium || me.plan === 'premium') return 'premium';
+  } catch {
+    /* réseau / non sync — Basique */
+  }
+  return 'basique';
 }

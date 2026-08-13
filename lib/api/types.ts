@@ -34,4 +34,7 @@ export type MeSnapshot = {
   clerkId: string;
   email: string | null;
   displayName: string | null;
+  plan?: 'basique' | 'premium';
+  isPremium?: boolean;
+  source?: 'trial' | 'paid' | 'none';
 };
