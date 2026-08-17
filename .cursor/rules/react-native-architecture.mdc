@@ -1,0 +1,33 @@
+---
+description: React Native architecture, SOLID, performance, and strict TypeScript
+globs: "{app,components,hooks,lib,providers}/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Architecture & Performance
+
+## SOLID
+
+- Screens and UI components stay declarative. Put business logic, API calls, and mutations in `lib/*-store`, `lib/api.ts`, or `hooks/`.
+- One responsibility per module. Do not grow route files into god screens.
+
+```tsx
+// ❌ BAD — fetch inside a screen
+useEffect(() => { fetch(url).then(r => r.json()).then(setRoom); }, []);
+
+// ✅ GOOD — store owns I/O; screen subscribes
+useEffect(() => subscribeSession(() => setSession(getSession())), []);
+```
+
+## Performance
+
+- Avoid extra re-renders: stable callbacks (`useCallback`) only when passed to memoized children; proper `key`s in lists.
+- Large lists: `FlatList` (tuned `keyExtractor`, avoid heavy items). Do not map long datasets inside a `ScrollView`. Do not add FlashList unless already a dependency and needed.
+- Animations: Reanimated / native driver. Keep motion subtle; haptics on decisive actions (Oui / Passer) when available.
+- Polling: only via `hooks/use-polling.ts`, focused + `AppState` active, never a global interval. Enable only in lobby / `waiting_partner`.
+- Guard async UI after unmount (`useMounted`). Debounce primary actions (vote, create, join).
+
+## Strict TypeScript
+
+- No `any`. Type navigation params, API payloads, store state, and component props.
+- Reuse existing types from stores / `lib/api.ts` instead of duplicating shapes.

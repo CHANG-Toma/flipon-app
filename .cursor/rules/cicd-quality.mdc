@@ -1,0 +1,31 @@
+---
+description: CI/CD and release readiness — types, lint, iOS/Android, testable code
+globs: "{app,components,hooks,lib,providers}/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# CI/CD & Release Readiness
+
+## Quality gates
+
+New or modified code must pass without errors or warnings:
+
+- Typecheck: `npx tsc --noEmit`
+- Lint: `npm run lint` (`expo lint`)
+
+No unused imports, unexplained `eslint-disable`, or `@ts-expect-error` without a comment.
+
+## Cross-platform
+
+- Behavior must work on iOS and Android. Use `Platform.select` or `.ios.ts` / `.android.ts` when native APIs differ.
+- Touch targets ≥ 44pt. Set `accessibilityRole` / `accessibilityLabel` on icon-only and primary CTAs.
+- Keyboard: `keyboardShouldPersistTaps="handled"`; do not cover inputs with the tab bar / FAB.
+- RevenueCat native SDK is not available in Expo Go — keep DEV override paths; do not assume IAP works in Go.
+
+## Testable structure
+
+- Keep domain logic in `lib/` (stores, `api`, validators) so Jest can cover it without rendering screens.
+- Hooks (`usePolling`, `useMounted`) must clean up intervals/subscriptions.
+- Loading / empty / error states on every network-facing screen.
+
+Do not add dependencies unless necessary and Expo SDK 54 compatible. API JSON contracts are shared with `flipon` — breaking shapes requires updating both apps.

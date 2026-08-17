@@ -1,0 +1,31 @@
+---
+description: Mobile security — SecureStore, env, validation, HTTPS, deep links
+globs: "{app,lib,hooks,providers}/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Mobile Security
+
+## Storage
+
+- Tokens, device keys, and secrets: `expo-secure-store` only (Clerk token cache, `lib/device.ts`).
+- Session/history snapshots may stay in AsyncStorage (`flipon:active-session:v1`, `flipon:history:v1`) — never tokens, API keys, or raw PII dumps.
+- Never log tokens, votes, or secrets.
+
+## Environment
+
+- No hardcoded API keys or credentials. Public client config only: `EXPO_PUBLIC_*` (API URL, Clerk publishable key).
+- Secrets belong on the Next.js API / EAS Secrets, not in the app bundle.
+
+## Validation
+
+- Validate user input and API responses before use (session codes via `lib/session-code.ts`; prefer Zod if adding new payloads).
+- Client checks are UX only — authorization must hold on the server.
+
+## Network & deep links
+
+- HTTPS only (`EXPO_PUBLIC_API_URL`). `localhost` / LAN HTTP is allowed in local Expo Go dev.
+- Validate `join/[code]` (and any Universal Link params) with `normalize` / `isValid` **before** routing or calling `joinByCode`.
+- Do not put secrets in URLs or deep-link query strings.
+- Request location/notifications only when a feature needs them, with a clear purpose.
+- Confirm destructive actions (delete account, logout).

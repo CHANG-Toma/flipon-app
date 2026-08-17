@@ -1,0 +1,36 @@
+---
+description: English-only identifiers/comments and TSDoc for shared mobile code
+alwaysApply: true
+---
+
+# Language & Documentation
+
+## English only (code)
+
+All of the following MUST be English:
+
+- Identifiers: variables, functions, components, files
+- Comments and TSDoc
+- Commit messages (when you write them)
+
+**UI copy stays French** (correct accents and apostrophes). Do not mix French into code identifiers.
+
+```ts
+// ❌ BAD
+/** Rejoint une salle avec le code */
+export function rejoindreParCode(code: string) {}
+
+// ✅ GOOD
+/** Joins a duo room after normalizing and validating the invite code. */
+export function joinByCode(code: string) {}
+```
+
+## TSDoc
+
+Add `/** ... */` on stores, hooks, and shared utilities. Cover:
+
+- Intent
+- Inputs/outputs and constraints (e.g. session code format)
+- Security notes (SecureStore vs AsyncStorage, tokens, deep-link params)
+
+Skip TSDoc on trivial presentational components and obvious one-liners.

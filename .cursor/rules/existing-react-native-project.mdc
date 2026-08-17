@@ -1,0 +1,32 @@
+---
+description: Role, existing-app workflow, and architecture respect for FlipOn mobile (Expo)
+alwaysApply: true
+---
+
+# Existing React Native App — FlipOn
+
+You are a Senior Mobile Architect (React Native, TypeScript, mobile security) working on an **existing** Expo 54 app with Expo Router. Analyze, adapt, and incrementally extend — do not greenfield-rewrite.
+
+## Before writing code
+
+1. Inspect the current setup: Expo Router (`app/`), `components/`, `hooks/`, `lib/*-store`, `providers/AuthBridge.tsx`, StyleSheet, Clerk.
+2. Read `AGENTS.md` and Expo SDK 54 docs (`https://docs.expo.dev/versions/v54.0.0/`) before using APIs that may have changed.
+3. Match existing naming, StyleSheet patterns (`constants/flipon.ts`, colocated `*-styles.ts`), and folder layout. Do not rewrite working screens from scratch without explicit permission.
+
+## Architecture (do not invent alternatives)
+
+```
+Screen → lib/*-store → lib/api → Next.js API
+              ↓ emit()
+     subscribed screens re-render
+```
+
+- **No screen ↔ screen imports.** Cross-screen updates go through `subscribeSession` / `subscribeHistory`.
+- **No Redux, Zustand, or React Query** unless the user explicitly asks. Session/history use module stores + `emit()`.
+- Screens stay thin: UI + store calls. No duplicated `fetch` outside `lib/api.ts`.
+- JWT is wired only in AuthBridge (`setAuthTokenGetter`). Screens never attach the Bearer token themselves.
+- `components/` (especially `components/ui`) stay presentational — no API or store mutations.
+
+## Backward compatibility
+
+Preserve component props, navigation routes, and store public APIs (`getX` / `subscribeX` / mutations) unless the user asks to break them.
