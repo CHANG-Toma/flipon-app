@@ -10,9 +10,9 @@ import { buildResultRoadmap, groupRoadmapByPhase } from '@/lib/premium/roadmap';
 import { clearActiveSession, getSession } from '@/lib/session/store';
 
 /**
- * Résultat Basique / Premium
+ * Résultat
  * --------------------------
- * Basique : idée matchée + teaser Premium.
+ * Sans abonnement : idée matchée + teaser.
  * Premium : feuille de route (roadmap) détaillée.
  */
 export default function ResultScreen() {

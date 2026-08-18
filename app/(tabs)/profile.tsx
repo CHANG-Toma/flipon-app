@@ -1,8 +1,8 @@
 /**
- * Onglet Profil (Basique)
+ * Onglet Profil
  * -----------------------
  * - Compte Clerk (AuthCard : identité + modifier + déconnexion)
- * - Offre (Basique / Premium selon abonnement)
+ * - Abonnement (Premium actif ou inactif)
  * - Liens légaux (site) + support
  * - Suppression de compte (RGPD)
  * Pas de faux toggles (notifs / stats) tant qu’ils ne sont pas branchés.

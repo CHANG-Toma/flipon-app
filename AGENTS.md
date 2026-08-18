@@ -12,8 +12,9 @@ Prefer Expo SDK APIs and documented patterns over outdated Stack Overflow snippe
 FlipOn helps people decide an activity quickly (duo or group):
 private votes → shared matched idea.
 
-- **Basique (gratuit, focus actuel)** : catalogue + filtres → vote → **idée retenue uniquement** (titre / blurb / méta). Pas d’IA / météo / abo.
-- **Boost (plus tard)** : plan détaillé (étapes) + idées IA / contexte. Ne pas réintroduire d’écran mock « Boost » ni d’étapes sur `/result` tant que Basique.
+- **Un seul plan payant (Premium)** : 3,99 €/mois avec essai 7 jours. Pas de version gratuite/limitée.
+- Premium inclut : vote privé, idées IA / lieu / météo, plan détaillé, catalogue + filtres, sessions Duo+ / Groupe+.
+- `basique` reste un état interne (pas d'abonnement actif) mais n'est jamais présenté comme une offre.
 - Session creation is step-by-step: type + cadre first, then invitation lobby.
 - Groupe lets the host pick party size (3–8). Voting starts when the lobby is full. (API encore limitée duo.)
 - Active sessions + history are persisted locally; duo create/join/vote go through FlipOn API (`/api/duo`).
@@ -83,7 +84,7 @@ If a feature needs backend rules, say so explicitly and do not fake security onl
 - Prefer pure, testable business logic outside UI components when logic grows
 - Document public env vars in `.env.example`
 - Keep README product-focused; put agent/dev rules in `AGENTS.md`
-- Design for change: Basique vs Boost as capability flags, not copy-paste flows
+- Design for change: isPremium as capability flag, not copy-paste flows
 - No dead code, commented-out blocks, or temporary hacks left behind
 - When unsure, choose the simpler option that is easier to delete or extend later
 

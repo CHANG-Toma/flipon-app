@@ -19,7 +19,7 @@ type Props = {
   type: SessionType;
   partySize: number;
   constraints: Constraints;
-  /** Compteur catalogue (Basique). Masqué en Premium. */
+  /** Compteur catalogue. Masqué en Premium. */
   matchCount: number;
   showIdeaCount: boolean;
   loading: boolean;

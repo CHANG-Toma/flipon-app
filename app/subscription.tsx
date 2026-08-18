@@ -1,7 +1,8 @@
 ﻿/**
  * Gérer mon abonnement
  * --------------------
- * Paywall RevenueCat (monthly / yearly) + Customer Center si déjà Premium.
+ * Un seul plan FlipOn (3,99 €/mois, essai 7 jours).
+ * Paywall RevenueCat + Customer Center si déjà Premium.
  */
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -20,42 +21,35 @@ import {
   restorePurchases,
 } from '@/lib/revenuecat';
 
-const FREE_FEATURE_KEYS: TranslationKey[] = [
-  'subscription.freeFeature1',
-  'subscription.freeFeature2',
-  'subscription.freeFeature3',
-  'subscription.freeFeature4',
-  'subscription.freeFeature5',
-];
-
-const BOOST_CHIP_KEYS: TranslationKey[] = [
+const CHIP_KEYS: TranslationKey[] = [
   'subscription.premiumChip1',
   'subscription.premiumChip2',
   'subscription.premiumChip3',
   'subscription.premiumChip4',
 ];
 
-const BOOST_HIGHLIGHT_KEYS: TranslationKey[] = [
+const HIGHLIGHT_KEYS: TranslationKey[] = [
   'subscription.premiumHighlight1',
   'subscription.premiumHighlight2',
   'subscription.premiumHighlight3',
 ];
 
-const BOOST_FEATURE_KEYS: TranslationKey[] = [
+const FEATURE_KEYS: TranslationKey[] = [
   'subscription.premiumFeature1',
   'subscription.premiumFeature2',
   'subscription.premiumFeature3',
   'subscription.premiumFeature4',
   'subscription.premiumFeature5',
   'subscription.premiumFeature6',
+  'subscription.premiumFeature7',
+  'subscription.premiumFeature8',
+  'subscription.premiumFeature9',
 ];
 
 export default function SubscriptionScreen() {
   const router = useRouter();
   const { t } = useI18n();
-  const { plan, isPremium, reload, isLoaded } = useSubscription();
-  const onBasique = plan === 'basique';
-  const onPremium = isPremium;
+  const { isPremium, reload, isLoaded } = useSubscription();
   const [busy, setBusy] = useState<'paywall' | 'manage' | 'restore' | null>(null);
   const [status, setStatus] = useState<string | null>(null);
 
@@ -121,32 +115,7 @@ export default function SubscriptionScreen() {
         </Text>
       </View>
 
-      {/* Basique — offre actuelle */}
-      <View style={styles.freeCard}>
-        <View style={styles.freeTop}>
-          <View>
-            <Text style={styles.freeEyebrow}>{t('subscription.freeEyebrow')}</Text>
-            <Text style={styles.freeTitle}>{t('subscription.freeTitle')}</Text>
-          </View>
-          {onBasique ? (
-            <View style={styles.currentPill}>
-              <Text style={styles.currentPillText}>{t('subscription.current')}</Text>
-            </View>
-          ) : null}
-        </View>
-        <Text style={styles.freeDesc}>{t('subscription.freeDesc')}</Text>
-        <View style={styles.priceRow}>
-          <Text style={styles.freePrice}>{t('subscription.priceZero')}</Text>
-          <Text style={styles.priceUnit}>{t('subscription.perMonth')}</Text>
-        </View>
-        <View style={styles.featureList}>
-          {FREE_FEATURE_KEYS.map((key) => (
-            <FeatureRow key={key} text={t(key)} tone="light" />
-          ))}
-        </View>
-      </View>
-
-      {/* Premium — carte désir (comme le site) */}
+      {/* Carte unique — FlipOn Premium */}
       <View style={styles.premiumCard}>
         <View style={[styles.premiumGlow, { pointerEvents: 'none' }]} />
         <View style={styles.premiumInner}>
@@ -155,16 +124,16 @@ export default function SubscriptionScreen() {
               <Text style={styles.premiumEyebrow}>{t('subscription.premiumEyebrow')}</Text>
               <Text style={styles.premiumTitle}>{t('subscription.premiumTitle')}</Text>
             </View>
-            {onPremium ? (
-              <View style={styles.currentPillDark}>
-                <Text style={styles.currentPillDarkText}>{t('subscription.current')}</Text>
+            {isPremium ? (
+              <View style={styles.currentPill}>
+                <Text style={styles.currentPillText}>{t('subscription.current')}</Text>
               </View>
             ) : null}
           </View>
           <Text style={styles.premiumDesc}>{t('subscription.premiumDesc')}</Text>
 
           <View style={styles.chipRow}>
-            {BOOST_CHIP_KEYS.map((key) => (
+            {CHIP_KEYS.map((key) => (
               <View key={key} style={styles.chip}>
                 <Text style={styles.chipText}>{t(key)}</Text>
               </View>
@@ -177,7 +146,7 @@ export default function SubscriptionScreen() {
           </View>
 
           <View style={styles.highlightList}>
-            {BOOST_HIGHLIGHT_KEYS.map((key) => (
+            {HIGHLIGHT_KEYS.map((key) => (
               <View key={key} style={styles.highlightRow}>
                 <View style={styles.highlightDot} />
                 <Text style={styles.highlightText}>{t(key)}</Text>
@@ -186,12 +155,12 @@ export default function SubscriptionScreen() {
           </View>
 
           <View style={styles.featureList}>
-            {BOOST_FEATURE_KEYS.map((key) => (
-              <FeatureRow key={key} text={t(key)} tone="dark" />
+            {FEATURE_KEYS.map((key) => (
+              <FeatureRow key={key} text={t(key)} />
             ))}
           </View>
 
-          {onPremium ? (
+          {isPremium ? (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={t('subscription.manageCta')}
@@ -234,14 +203,13 @@ export default function SubscriptionScreen() {
   );
 }
 
-function FeatureRow({ text, tone }: { text: string; tone: 'light' | 'dark' }) {
-  const onDark = tone === 'dark';
+function FeatureRow({ text }: { text: string }) {
   return (
     <View style={styles.featureRow}>
-      <View style={[styles.check, onDark ? styles.checkDark : styles.checkLight]}>
-        <MaterialIcons name="check" size={12} color={onDark ? FlipOn.onAccent : FlipOn.accent} />
+      <View style={styles.check}>
+        <MaterialIcons name="check" size={12} color={FlipOn.onAccent} />
       </View>
-      <Text style={[styles.featureText, onDark && styles.featureTextDark]}>{text}</Text>
+      <Text style={styles.featureText}>{text}</Text>
     </View>
   );
 }
@@ -266,41 +234,6 @@ const styles = StyleSheet.create({
     color: FlipOn.muted,
   },
   em: { fontStyle: 'italic', color: FlipOn.ink, fontWeight: '600' },
-
-  freeCard: {
-    backgroundColor: FlipOn.surface,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: FlipOn.line,
-    padding: 18,
-    gap: 8,
-    ...cardShadow,
-  },
-  freeTop: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  freeEyebrow: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: FlipOn.muted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  freeTitle: { fontSize: 20, fontWeight: '800', color: FlipOn.ink, marginTop: 2 },
-  currentPill: {
-    backgroundColor: FlipOn.successSoft,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 999,
-  },
-  currentPillText: { fontSize: 11, fontWeight: '800', color: FlipOn.success },
-  freeDesc: { fontSize: 14, lineHeight: 20, color: FlipOn.muted },
-  freePrice: { fontSize: 36, fontWeight: '800', color: FlipOn.ink, letterSpacing: -1 },
-  priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 4 },
-  priceUnit: { fontSize: 14, color: FlipOn.muted, fontWeight: '600' },
 
   premiumCard: {
     borderRadius: 20,
@@ -334,7 +267,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   premiumTitle: { fontSize: 22, fontWeight: '800', color: FlipOn.ink, marginTop: -2 },
-  currentPillDark: {
+  currentPill: {
     backgroundColor: 'rgba(255, 106, 43, 0.2)',
     borderWidth: 1,
     borderColor: 'rgba(255, 106, 43, 0.45)',
@@ -342,7 +275,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 999,
   },
-  currentPillDarkText: { fontSize: 11, fontWeight: '800', color: FlipOn.accent },
+  currentPillText: { fontSize: 11, fontWeight: '800', color: FlipOn.accent },
   premiumDesc: { fontSize: 14, lineHeight: 21, color: FlipOn.muted },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 2 },
   chip: {
@@ -356,6 +289,7 @@ const styles = StyleSheet.create({
   chipText: { fontSize: 11, fontWeight: '700', color: FlipOn.accentInk },
   premiumPrice: { fontSize: 36, fontWeight: '800', color: FlipOn.ink, letterSpacing: -1 },
   premiumPriceUnit: { fontSize: 14, color: FlipOn.muted, fontWeight: '600' },
+  priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 4 },
 
   highlightList: { gap: 8, marginTop: 2 },
   highlightRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -376,11 +310,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 1,
+    backgroundColor: FlipOn.accent,
   },
-  checkLight: { backgroundColor: FlipOn.accentSoft },
-  checkDark: { backgroundColor: FlipOn.accent },
-  featureText: { flex: 1, fontSize: 14, lineHeight: 20, color: FlipOn.ink, fontWeight: '500' },
-  featureTextDark: { color: 'rgba(255,255,255,0.92)' },
+  featureText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+    color: 'rgba(255,255,255,0.92)',
+    fontWeight: '500',
+  },
 
   premiumCta: {
     marginTop: 10,

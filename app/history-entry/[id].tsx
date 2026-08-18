@@ -1,7 +1,7 @@
 /**
  * Détail d'une entrée d'historique
  * --------------------------------
- * Idée retenue (Basique : pas d'étapes), partage, relancer, supprimer local.
+ * Idée retenue (Sans abonnement : pas d'étapes), partage, relancer, supprimer local.
  */
 import { useEffect } from 'react';
 import { Alert, Pressable, Share, Text, View } from 'react-native';

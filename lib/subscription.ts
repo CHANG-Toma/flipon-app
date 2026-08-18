@@ -1,7 +1,8 @@
 ﻿/**
- * Abonnement FlipOn (Basique / Premium)
- * -------------------------------------
+ * Abonnement FlipOn — un seul plan (Premium), essai 7 jours.
+ * -----------------------------------------------------------
  * Source client : RevenueCat entitlement `Flipon Pro`, puis `/api/me` (webhook).
+ * `basique` = pas d'abonnement actif (état interne, jamais exposé comme offre).
  */
 import { syncMe } from '@/lib/api/me';
 import { tr } from '@/lib/i18n';
@@ -31,11 +32,11 @@ export function subscriptionSnapshot(plan: FlipOnPlan): SubscriptionSnapshot {
     label:
       plan === 'premium'
         ? tr('subscription.premiumTitle')
-        : tr('subscription.freeTitle'),
+        : tr('subscription.inactiveTitle'),
     priceLabel:
       plan === 'premium'
         ? tr('subscription.premiumPrice')
-        : tr('subscription.freeEyebrow'),
+        : tr('subscription.inactivePrice'),
   };
 }
 
@@ -46,12 +47,12 @@ export function isPremiumActive(
   return plan === 'premium';
 }
 
-/** Snapshot synchrone sans réseau — Basique sauf DEV override. */
+/** Snapshot synchrone sans réseau — inactif sauf DEV override. */
 export function getSubscription(): SubscriptionSnapshot {
   return subscriptionSnapshot(isDevPremiumOverride() ? 'premium' : 'basique');
 }
 
-/** Lit le plan : RevenueCat d’abord, puis l’API (webhook / essai web). */
+/** Lit le plan : RevenueCat d'abord, puis l'API (webhook / essai web). */
 export async function resolveSubscriptionPlan(
   opts?: { force?: boolean },
 ): Promise<FlipOnPlan> {
@@ -66,7 +67,7 @@ export async function resolveSubscriptionPlan(
     const me = await syncMe();
     if (me.isPremium || me.plan === 'premium') return 'premium';
   } catch {
-    /* réseau / non sync — Basique */
+    /* réseau / non sync */
   }
   return 'basique';
 }
