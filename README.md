@@ -1,6 +1,6 @@
 # FlipOn Mobile
 
-FlipOn aide a choisir rapidement une activite en solo, duo ou groupe.
+FlipOn aide a choisir rapidement sous forme de vote une activité en solo, duo ou groupe.
 
 ## Dev — Expo Go
 
